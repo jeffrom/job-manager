@@ -1,0 +1,12 @@
+syntax = "proto3";
+package job.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/job";
+
+
+message QueueConfig {
+  string name = 1;
+  int32 concurrency = 2;
+}

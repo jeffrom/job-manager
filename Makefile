@@ -2,7 +2,7 @@ SHELL := /bin/bash
 TMPDIR := $(if $(TMPDIR),$(TMPDIR),"/tmp/")
 GOPATH := $(shell go env GOPATH)
 
-jobctl_bin := $(GOPATH)/bin/jobctl
+bins := $(GOPATH)/bin/jobctl
 gofiles := $(wildcard *.go **/*.go **/**/*.go **/**/**/*.go)
 protofiles := $(wildcard proto/*.proto proto/**/*.proto proto/**/**/*.proto proto/**/**/**/*.proto)
 prototargets := $(wildcard *.pb.go **/*.pb.go **/**/*.pb.go **/**/**/*.pb.go)
@@ -19,10 +19,10 @@ endif
 
 all: build
 
-build: $(jobctl_bin)
+build: $(bins)
 
-$(jobctl_bin): $(gofiles)
-	GO111MODULE=on go install ./cmd/jobctl
+$(bins): $(gen) $(gofiles)
+	GO111MODULE=on go install ./cmd/...
 
 .PHONY: clean
 clean:
@@ -66,7 +66,7 @@ $(gocoverutil):
 	GO111MODULE=off go get github.com/AlekSi/gocoverutil
 
 $(staticcheck):
-	cd $(TMPDIR) && GO111MODULE=on go get honnef.co/go/tools/cmd/staticcheck@2019.2.3
+	cd $(TMPDIR) && GO111MODULE=on go get honnef.co/go/tools/cmd/staticcheck@2020.1.5
 
 $(gomodoutdated):
 	GO111MODULE=off go get github.com/psampaz/go-mod-outdated

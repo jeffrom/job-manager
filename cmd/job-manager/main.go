@@ -4,13 +4,11 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/web"
 )
 
 func main() {
-	be := backend.NewMemory()
-	h, err := web.NewControllerRouter(be)
+	h, err := web.NewControllerRouter(web.NewConfig())
 	if err != nil {
 		panic(err)
 	}

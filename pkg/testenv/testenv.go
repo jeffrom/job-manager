@@ -3,25 +3,27 @@
 package testenv
 
 import (
+	"io"
+	"log"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/jeffrom/job-manager/jobclient"
-	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/web"
 )
 
 func NewTestControllerServer(t testing.TB, cfg web.Config) *httptest.Server {
 	t.Helper()
-	be := cfg.GetBackend()
-	if be == nil {
-		be = backend.NewMemory()
+	cfg.LogOutput = testLogOutput(t)
+	log.SetOutput(testLogOutput(t))
+	if cfg.Backend == "" {
+		cfg.Backend = "memory"
 	}
-	h, err := web.NewControllerRouter(be)
+	h, err := web.NewControllerRouter(cfg)
 	die(t, err)
 
 	srv := httptest.NewUnstartedServer(h)
-	t.Logf("Started job-controller server with backend %T at address: %s", be, srv.Listener.Addr())
+	t.Logf("Started job-controller server with backend %T at address: %s", cfg.GetBackend(), srv.Listener.Addr())
 	return srv
 }
 
@@ -34,4 +36,17 @@ func die(t testing.TB, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+type testLogger struct {
+	t testing.TB
+}
+
+func (t *testLogger) Write(b []byte) (int, error) {
+	t.t.Log(string(b))
+	return len(b), nil
+}
+
+func testLogOutput(t testing.TB) io.Writer {
+	return &testLogger{t: t}
 }

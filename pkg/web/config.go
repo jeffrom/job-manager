@@ -1,10 +1,23 @@
 package web
 
-import "github.com/jeffrom/job-manager/pkg/backend"
+import (
+	"io"
+	"os"
+
+	"github.com/jeffrom/job-manager/pkg/backend"
+)
 
 type Config struct {
-	Backend string `json:"backend"`
-	be      backend.Interface
+	LogOutput io.Writer
+	Backend   string `json:"backend"`
+	be        backend.Interface
+}
+
+func NewConfig() Config {
+	return Config{
+		LogOutput: os.Stdout,
+		Backend:   "memory",
+	}
 }
 
 func (c *Config) GetBackend() backend.Interface {

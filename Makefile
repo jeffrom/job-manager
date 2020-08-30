@@ -2,7 +2,8 @@ SHELL := /bin/bash
 TMPDIR := $(if $(TMPDIR),$(TMPDIR),"/tmp/")
 GOPATH := $(shell go env GOPATH)
 
-bins := $(GOPATH)/bin/jobctl
+ctl_bin := jobctl
+server_bin := job-manager
 gofiles := $(wildcard *.go **/*.go **/**/*.go **/**/**/*.go)
 protofiles := $(wildcard proto/*.proto proto/**/*.proto proto/**/**/*.proto proto/**/**/**/*.proto)
 prototargets := $(wildcard *.pb.go **/*.pb.go **/**/*.pb.go **/**/**/*.pb.go)
@@ -12,6 +13,7 @@ protoc_gen_go = $(GOPATH)/bin/protoc-gen-go
 gocoverutil := $(GOPATH)/bin/gocoverutil
 staticcheck := $(GOPATH)/bin/staticcheck
 gomodoutdated := $(GOPATH)/bin/go-mod-outdated
+tulpa := $(GOPATH)/bin/tulpa
 
 ifeq ($(buf),)
 	buf = must-rebuild
@@ -19,25 +21,30 @@ endif
 
 all: build
 
-build: $(bins)
+build: $(gen) $(gofiles)
+	GO111MODULE=on go install ./...
 
-$(bins): $(gen) $(gofiles)
-	GO111MODULE=on go install ./cmd/...
+$(server_bin): $(gen) $(gofiles)
+	GO111MODULE=on go build -o $(server_bin) ./cmd/$(server_bin)
+
+$(ctl_bin): $(gen) $(gofiles)
+	GO111MODULE=on go build -o $(ctl_bin) ./cmd/$(ctl_bin)
 
 .PHONY: clean
 clean:
 	git clean -x -f
 
 .PHONY: test
-test: $(gen)
+test: $(gen) $(gofiles) | $(staticcheck) $(buf)
 	GO111MODULE=on go test -cover -race ./...
 
 .PHONY: test.lint
-test.lint: $(gen) | $(staticcheck)
+test.lint: $(gen) $(gofiles) | $(staticcheck) $(buf)
 	GO111MODULE=on $(staticcheck) -f stylish -checks all ./...
+	$(buf) check lint
 
 .PHONY: test.cover
-test.cover: $(gen) | $(gocoverutil)
+test.cover: $(gen) $(gofiles) | $(gocoverutil)
 	$(gocoverutil) -coverprofile=cov.out test -covermode=count ./... \
 		2> >(grep -v "no packages being tested depend on matches for pattern" 1>&2) \
 		| sed -e 's/of statements in .*/of statements/'
@@ -61,6 +68,10 @@ gen.proto: $(prototargets)
 
 $(prototargets): $(protofiles) | $(protoc_gen_go) $(buf)
 	buf protoc -I=proto --go_out=${GOPATH}/src ${protofiles}
+
+.PHONY: dev
+dev:
+	tulpa "make $(server_bin) && $(server_bin)"
 
 $(gocoverutil):
 	GO111MODULE=off go get github.com/AlekSi/gocoverutil

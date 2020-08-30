@@ -1,3 +1,7 @@
 *.out
 
 dist/
+
+job-manager
+jobctl
+proc-consume

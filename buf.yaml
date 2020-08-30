@@ -1,11 +1,11 @@
 build:
   roots:
-    - ./pkg/proto
+    - ./proto
 lint:
   use:
-    - BASIC
-    - FILE_LOWER_SNAKE_CASE
+    - DEFAULT
   except:
+    - ONEOF_LOWER_SNAKE_CASE
     - ENUM_NO_ALLOW_ALIAS
     - IMPORT_NO_PUBLIC
     - PACKAGE_AFFINITY

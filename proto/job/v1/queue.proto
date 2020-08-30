@@ -1,0 +1,24 @@
+syntax = "proto3";
+package job.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/job";
+
+
+message Queue {
+  string name = 1;
+  int32 concurrency = 2;
+  int32 max_retries = 3;
+  google.protobuf.Duration duration = 4;
+  map<string, string> labels = 5;
+
+  google.protobuf.Timestamp created_at  = 6;
+  google.protobuf.Timestamp updated_at  = 7;
+  optional google.protobuf.Timestamp deleted_at  = 8;
+}
+
+message Queues {
+  repeated Queue queues = 1;
+}

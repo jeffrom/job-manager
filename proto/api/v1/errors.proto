@@ -1,0 +1,10 @@
+syntax = "proto3";
+package api.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
+
+message NotFoundErrorResponse {
+  string resource = 1;
+}

@@ -1,0 +1,17 @@
+syntax = "proto3";
+package job.v1;
+
+import "google/protobuf/timestamp.proto";
+
+import "job/v1/job.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/job";
+
+
+message ListOpts {
+  repeated string names = 1;
+  repeated Status statuses = 2;
+  map<string, string> labels = 3;
+  optional google.protobuf.Timestamp created_since = 4;
+  optional google.protobuf.Timestamp created_until = 5;
+}

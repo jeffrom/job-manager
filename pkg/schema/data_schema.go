@@ -9,9 +9,22 @@ var dataSchemaRaw = []byte(`{
     "type": "object",
     "properties": {
         "type": { "type": "string", "pattern": "^object$" },
-        "properties": { "type": "object" }
+        "properties": { "type": "object" },
+        "propertyNames": {
+            "type": "object",
+            "properties": {
+                "pattern": { "type": "string" }
+            },
+            "required": ["pattern"]
+        },
+        "minProperties": { "type": "number" },
+        "maxProperties": { "type": "number" },
+        "dependencies": {
+            "type": "object",
+            "additionalProperties": { "type": "array" }
+        }
     },
     "additionalProperties": false,
-    "required": ["type"]
+    "required": ["type", "properties"]
 }
 `)

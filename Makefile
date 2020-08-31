@@ -52,7 +52,7 @@ clean:
 
 .PHONY: test
 test: $(gen) $(gofiles) | $(staticcheck) $(buf)
-	GO111MODULE=on go test -race -short ./...
+	GO111MODULE=on go test -short ./...
 
 .PHONY: test.lint
 test.lint: $(gen) $(gofiles) | $(staticcheck) $(buf)

@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/jeffrom/job-manager/pkg/web"
+	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func main() {
-	h, err := web.NewControllerRouter(web.NewConfig())
+	h, err := web.NewControllerRouter(middleware.NewConfig())
 	if err != nil {
 		panic(err)
 	}

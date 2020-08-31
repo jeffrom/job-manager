@@ -32,7 +32,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if params.Num != nil {
 		num = int(*params.Num)
 	}
-	listOpts := &job.ListOpts{Statuses: []job.Status{job.Status_QUEUED}}
+	listOpts := &job.ListOpts{Statuses: []job.Status{job.StatusQueued}}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)
 	if err != nil {
 		return err

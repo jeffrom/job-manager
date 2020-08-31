@@ -50,15 +50,18 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *job.ListOpts) (
 	if opts == nil {
 		opts = &job.ListOpts{}
 	}
-	if len(opts.Statuses) == 0 {
-		opts.Statuses = []job.Status{job.Status_QUEUED}
-	}
+	opts.Statuses = []job.Status{job.StatusQueued, job.StatusFailed}
+
 	jobs, err := m.ListJobs(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
+	if num < len(jobs.Jobs) {
+		jobs.Jobs = jobs.Jobs[:num]
+	}
+
 	for _, jobData := range jobs.Jobs {
-		jobData.Status = job.Status_RUNNING
+		jobData.Status = job.StatusRunning
 	}
 	return jobs, nil
 }
@@ -69,13 +72,24 @@ func (m *Memory) AckJobs(ctx context.Context, results *job.Results) error {
 		if !ok {
 			return ErrNotFound
 		}
+		if len(res.Data) > 0 {
+			job.ResultData = res.Data
+		}
 		job.Status = res.Status
 	}
+	// fmt.Println("---")
+	// for k := range m.jobs {
+	// 	fmt.Println(k, m.jobs[k].Status)
+	// }
 	return nil
 }
 
 func (m *Memory) GetJobByID(ctx context.Context, id string) (*job.Job, error) {
-	return m.jobs[id], nil
+	jobData, ok := m.jobs[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return jobData, nil
 }
 
 func (m *Memory) ListJobs(ctx context.Context, opts *job.ListOpts) (*job.Jobs, error) {

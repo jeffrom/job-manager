@@ -4,14 +4,15 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"google.golang.org/protobuf/proto"
 
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 type httpError interface {
@@ -26,20 +27,26 @@ type protoError interface {
 func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := fn(w, r); err != nil {
-			log.Printf("error %T: %+v", err, err)
+			reqLog := middleware.RequestLogFromContext(r.Context())
+
+			status := http.StatusInternalServerError
 			if herr, ok := err.(httpError); ok {
-				w.WriteHeader(herr.Status())
+				status = herr.Status()
 			} else if errors.Is(err, io.ErrUnexpectedEOF) {
-				w.WriteHeader(http.StatusBadRequest)
+				status = http.StatusBadRequest
 			} else if errors.Is(err, backend.ErrNotFound) {
-				w.WriteHeader(http.StatusNotFound)
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
+				status = http.StatusNotFound
 			}
+
+			reqLog.Str("err_type", fmt.Sprintf("%T", err))
+			if status >= http.StatusInternalServerError {
+				reqLog.Err(err)
+			}
+			w.WriteHeader(status)
 
 			if pr, ok := err.(protoError); ok {
 				if err := MarshalResponse(w, r, pr.Message()); err != nil {
-					log.Printf("handler: error marshalling response: %v", err)
+					middleware.LoggerFromContext(r.Context()).Error().Err(err).Msg("marshal response failed")
 				}
 			}
 		}
@@ -49,7 +56,7 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
 	defer r.Body.Close()
 	ct := r.Header.Get("content-type")
-	log.Printf("content type: %q", ct)
+	log := middleware.LoggerFromContext(r.Context())
 
 	b, rerr := ioutil.ReadAll(r.Body)
 	if rerr != nil {
@@ -72,7 +79,11 @@ func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
 		panic("handler: unknown content-type: " + ct)
 	}
 
-	log.Printf("params (%T): %+v", v, v)
+	log.Debug().
+		Str("content_type", ct).
+		Str("type", fmt.Sprintf("%T", v)).
+		Interface("params", v).
+		Msg("params")
 	return err
 }
 
@@ -89,7 +100,11 @@ func MarshalResponse(w http.ResponseWriter, r *http.Request, v proto.Message) er
 		panic("handler: unknown content-type: " + ct)
 	}
 
-	log.Printf("response (%T): %+v", v, v)
+	log := middleware.LoggerFromContext(r.Context())
+	log.Debug().
+		Interface("data", v).
+		Str("type", fmt.Sprintf("%T", v)).
+		Msg("response")
 	if _, err := w.Write(b); err != nil {
 		return err
 	}

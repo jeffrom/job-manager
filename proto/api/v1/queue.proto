@@ -10,33 +10,6 @@ import "job/v1/job.proto";
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
-message EnqueueParamArgs {
-  string job = 1;
-  repeated google.protobuf.Value args = 2;
-  map<string, string> data = 3;
-
-  optional int32 retries = 4;
-  optional google.protobuf.Duration duration = 5;
-}
-
-message EnqueueParams {
-  repeated EnqueueParamArgs jobs = 1;
-}
-
-message DequeueParams {
-  optional int32 num = 1;
-  optional string job = 2;
-  repeated string selectors = 3;
-}
-
-message AckParamArgs {
-  job.v1.Result result = 1;
-}
-
-message AckParams {
-  repeated AckParamArgs acks = 1;
-}
-
 message SaveQueueParamArgs {
   string name = 1;
   optional int32 concurrency = 2;

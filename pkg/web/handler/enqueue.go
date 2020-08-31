@@ -58,7 +58,7 @@ func EnqueueJobs(w http.ResponseWriter, r *http.Request) error {
 			Data:       jobArg.Data,
 			Duration:   dur,
 			MaxRetries: maxRetries,
-			Status:     job.Status_QUEUED,
+			Status:     job.StatusQueued,
 			EnqueuedAt: now,
 		}
 	}

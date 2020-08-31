@@ -18,16 +18,19 @@ import (
 
 type Interface interface {
 	Ping(ctx context.Context) error
+
 	// EnqueueJobs(ctx context.Context, jobs *job.Jobs) ([]string, error)
 	// EnqueueJobsOpts(ctx context.Context, jobs *job.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
 	// EnqueueJobOpts(ctx context.Context, jobData *job.Job, opts EnqueueOpts) error
 	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*job.Jobs, error)
-	AckJob(ctx context.Context, status job.Status) error
+	AckJob(ctx context.Context, id string, status job.Status) error
+	AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error
 	// AckJobs(ctx context.Context, results *job.Results) error
 
 	SaveQueue(ctx context.Context, opts SaveQueueOptions) (*job.Queue, error)
 	// SaveQueues(ctx context.Context, queue *job.Queues) error
+	GetJob(ctx context.Context, id string) (*job.Job, error)
 }
 
 type providerFunc func(c *Client) *Client

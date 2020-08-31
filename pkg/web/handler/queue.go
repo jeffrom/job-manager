@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -15,24 +13,27 @@ import (
 
 func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
+	cfg := middleware.ConfigFromContext(ctx)
+	reqLog := middleware.RequestLogFromContext(ctx)
 	be := middleware.GetBackend(ctx)
 	name := chi.URLParam(r, "queueName")
-	log.Print("queueName:", name)
+	reqLog.Str("queue", name)
+
 	var params apiv1.SaveQueueParamArgs
 	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
 
-	var concurrency int32 = 10
+	var concurrency int32 = int32(cfg.DefaultConcurrency)
 	if conc := params.Concurrency; conc != nil {
 		concurrency = *conc
 	}
-	var maxRetries int32 = 10
+	var maxRetries int32 = int32(cfg.DefaultMaxRetries)
 	if mr := params.MaxRetries; mr != nil {
 		maxRetries = *mr
 	}
 
-	dur := durationpb.New(10 * time.Minute)
+	dur := durationpb.New(cfg.DefaultMaxJobTimeout)
 	if d := params.Duration; d != nil {
 		dur = d
 	}

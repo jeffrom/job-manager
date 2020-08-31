@@ -63,6 +63,46 @@ func (c *Client) DequeueJobs(ctx context.Context, num int, jobName string, selec
 	return jobs, nil
 }
 
-func (c *Client) AckJob(ctx context.Context, status job.Status) error {
-	return nil
+type AckJobOpts struct {
+	Data map[string]interface{}
+}
+
+func (c *Client) AckJob(ctx context.Context, id string, status job.Status) error {
+	return c.AckJobOpts(ctx, id, status, AckJobOpts{})
+}
+
+func (c *Client) AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error {
+	args := &apiv1.AckParamArgs{
+		Id:     id,
+		Status: status,
+	}
+	if len(opts.Data) > 0 {
+		data, err := structpb.NewStruct(opts.Data)
+		if err != nil {
+			return err
+		}
+		args.Data = data.Fields
+	}
+
+	uri := "/api/v1/jobs/ack"
+	params := &apiv1.AckParams{Acks: []*apiv1.AckParamArgs{args}}
+	req, err := c.newRequestProto("POST", uri, params)
+	if err != nil {
+		return err
+	}
+	return c.doRequest(ctx, req, nil)
+}
+
+func (c *Client) GetJob(ctx context.Context, id string) (*job.Job, error) {
+	uri := fmt.Sprintf("/api/v1/job/%s", id)
+	req, err := c.newRequestProto("GET", uri, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	jobData := &job.Job{}
+	if err := c.doRequest(ctx, req, jobData); err != nil {
+		return nil, err
+	}
+	return jobData, nil
 }

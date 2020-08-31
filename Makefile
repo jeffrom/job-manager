@@ -24,11 +24,14 @@ all: build
 build: $(gen) $(gofiles)
 	GO111MODULE=on go install ./...
 
-$(server_bin): $(gen) $(gofiles)
-	GO111MODULE=on go build -o $(server_bin) ./cmd/$(server_bin)
+.make/$(server_bin): .make $(gen) $(gofiles)
+	GO111MODULE=on go build -o .make/$(server_bin) ./cmd/$(server_bin)
 
-$(ctl_bin): $(gen) $(gofiles)
-	GO111MODULE=on go build -o $(ctl_bin) ./cmd/$(ctl_bin)
+.make/$(ctl_bin): .make $(gen) $(gofiles)
+	GO111MODULE=on go build -o .make/$(ctl_bin) ./cmd/$(ctl_bin)
+
+.make:
+	mkdir -p .make
 
 .PHONY: clean
 clean:
@@ -71,7 +74,7 @@ $(prototargets): $(protofiles) | $(protoc_gen_go) $(buf)
 
 .PHONY: dev
 dev:
-	tulpa "make $(server_bin) && $(server_bin)"
+	tulpa "make .make/$(server_bin) && .make/$(server_bin)"
 
 $(gocoverutil):
 	GO111MODULE=off go get github.com/AlekSi/gocoverutil
@@ -83,7 +86,7 @@ $(gomodoutdated):
 	GO111MODULE=off go get github.com/psampaz/go-mod-outdated
 
 $(protoc_gen_go):
-	GO111MODULE=off go get -u github.com/golang/protobuf/protoc-gen-go
+	GO111MODULE=off go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 
 $(buf):
 	@echo "Please install buf: https://buf.build/docs/installation/"

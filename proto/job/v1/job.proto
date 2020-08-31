@@ -9,13 +9,14 @@ option go_package = "github.com/jeffrom/job-manager/pkg/job";
 
 
 enum Status {
-  UNKNOWN = 0;
-  QUEUED = 1;
-  RUNNING = 2;
-  COMPLETE = 3;
-  DEAD = 4;
-  CANCELLED = 5;
-  INVALID = 6;
+  STATUS_UNSPECIFIED = 0;
+  STATUS_QUEUED = 1;
+  STATUS_RUNNING = 2;
+  STATUS_COMPLETE = 3;
+  STATUS_DEAD = 4;
+  STATUS_CANCELLED = 5;
+  STATUS_INVALID = 6;
+  STATUS_FAILED = 7;
 }
 
 message Job {
@@ -31,7 +32,9 @@ message Job {
 
   Status status = 8;
 
-  google.protobuf.Timestamp enqueued_at = 9;
+  map<string, google.protobuf.Value> result_data = 9;
+
+  google.protobuf.Timestamp enqueued_at = 10;
 }
 
 message Jobs {
@@ -41,6 +44,7 @@ message Jobs {
 message Result {
   string id = 1;
   Status status = 2;
+  map<string, google.protobuf.Value> data = 3;
 }
 
 message Results {

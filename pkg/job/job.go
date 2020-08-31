@@ -3,6 +3,17 @@ package job
 
 import uuid "github.com/satori/go.uuid"
 
+const (
+	StatusUnknown   = Status_STATUS_UNSPECIFIED
+	StatusQueued    = Status_STATUS_QUEUED
+	StatusRunning   = Status_STATUS_RUNNING
+	StatusComplete  = Status_STATUS_COMPLETE
+	StatusDead      = Status_STATUS_DEAD
+	StatusCancelled = Status_STATUS_CANCELLED
+	StatusInvalid   = Status_STATUS_INVALID
+	StatusFailed    = Status_STATUS_FAILED
+)
+
 func NewID() string {
 	return uuid.NewV4().String()
 }

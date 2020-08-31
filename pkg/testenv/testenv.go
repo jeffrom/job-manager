@@ -4,18 +4,17 @@ package testenv
 
 import (
 	"io"
-	"log"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/jeffrom/job-manager/jobclient"
 	"github.com/jeffrom/job-manager/pkg/web"
+	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
-func NewTestControllerServer(t testing.TB, cfg web.Config) *httptest.Server {
+func NewTestControllerServer(t testing.TB, cfg middleware.Config) *httptest.Server {
 	t.Helper()
-	cfg.LogOutput = testLogOutput(t)
-	log.SetOutput(testLogOutput(t))
+	cfg.ResetLogOutput(testLogOutput(t))
 	if cfg.Backend == "" {
 		cfg.Backend = "memory"
 	}

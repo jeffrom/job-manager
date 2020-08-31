@@ -2,3 +2,5 @@
 package middleware
 
 type contextKey string
+
+var ConfigKey = contextKey("config")

@@ -18,7 +18,11 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 
 	results := &job.Results{Results: make([]*job.Result, len(params.Acks))}
 	for i, ackParam := range params.Acks {
-		results.Results[i] = ackParam.Result
+		results.Results[i] = &job.Result{
+			Id:     ackParam.Id,
+			Status: ackParam.Status,
+			Data:   ackParam.Data,
+		}
 	}
 
 	if err := be.AckJobs(ctx, results); err != nil {

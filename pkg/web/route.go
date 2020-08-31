@@ -67,7 +67,8 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 					r.Put("/", handler.Func(handler.SaveQueue))
 					r.Delete("/", handler.Func(handler.DeleteQueue))
 
-					r.Post("/enqueue", handler.Func(handler.EnqueueJobs))
+					enqueueHandler := &handler.EnqueueJobs{}
+					r.Post("/enqueue", enqueueHandler.ServeHTTP)
 					r.Post("/dequeue", handler.Func(handler.DequeueJobs))
 				})
 
@@ -77,6 +78,7 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 
 			r.Route("/job/{jobID}", func(r chi.Router) {
 				r.Get("/", handler.Func(handler.GetJobByID))
+				r.Get("/queue", handler.Func(handler.GetQueueByJobID))
 			})
 		})
 	})

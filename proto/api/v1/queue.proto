@@ -1,21 +1,20 @@
 syntax = "proto3";
 package api.v1;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-import "google/protobuf/struct.proto";
-
-import "job/v1/job.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
 message SaveQueueParamArgs {
   string name = 1;
-  optional int32 concurrency = 2;
-  optional int32 max_retries = 3;
-  optional google.protobuf.Duration duration = 4;
+  int32 concurrency = 2;
+  int32 max_retries = 3;
+  google.protobuf.Duration duration = 4;
   map<string, string> labels = 5;
+  bytes arg_schema = 6;
+  bytes data_schema = 7;
+  bytes result_schema = 8;
 }
 
 message SaveQueueParams {

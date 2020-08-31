@@ -1,7 +1,6 @@
 syntax = "proto3";
 package api.v1;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
@@ -15,8 +14,8 @@ message EnqueueParamArgs {
   repeated google.protobuf.Value args = 2;
   map<string, string> data = 3;
 
-  optional int32 retries = 4;
-  optional google.protobuf.Duration duration = 5;
+  int32 retries = 4;
+  google.protobuf.Duration duration = 5;
 }
 
 message EnqueueParams {
@@ -24,8 +23,8 @@ message EnqueueParams {
 }
 
 message DequeueParams {
-  optional int32 num = 1;
-  optional string job = 2;
+  int32 num = 1;
+  string job = 2;
   repeated string selectors = 3;
 }
 

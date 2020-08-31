@@ -2,9 +2,9 @@ package jobclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
@@ -32,6 +32,10 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 		return "", err
 	}
 
+	if len(jobs.Jobs) == 0 {
+		return "", errors.New("jobclient: unexpectedly received no enqueued job data")
+	}
+
 	return jobs.Jobs[0].Id, nil
 }
 
@@ -40,10 +44,10 @@ func (c *Client) DequeueJobs(ctx context.Context, num int, jobName string, selec
 		Selectors: selectors,
 	}
 	if num > 0 {
-		params.Num = proto.Int32(int32(num))
+		params.Num = int32(num)
 	}
 	if jobName != "" {
-		params.Job = proto.String(jobName)
+		params.Job = jobName
 	}
 
 	uri := "/api/v1/jobs/dequeue"

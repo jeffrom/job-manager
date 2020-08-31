@@ -5,6 +5,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
@@ -18,8 +19,25 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 
 	results := &job.Results{Results: make([]*job.Result, len(params.Acks))}
 	for i, ackParam := range params.Acks {
+		id := ackParam.Id
+		jobData, err := be.GetJobByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		queue, err := be.GetQueue(ctx, jobData.Name)
+		if err != nil {
+			return err
+		}
+		scm, err := schema.Parse(queue)
+		if err != nil {
+			return err
+		}
+		if err := scm.ValidateResult(ctx, ackParam.Data); err != nil {
+			return err
+		}
+
 		results.Results[i] = &job.Result{
-			Id:     ackParam.Id,
+			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,
 		}

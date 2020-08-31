@@ -5,36 +5,60 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 type SaveQueueOptions struct {
-	Concurrency int
-	MaxRetries  int
-	JobDuration time.Duration
-	Labels      map[string]string
+	Concurrency  int
+	MaxRetries   int
+	JobDuration  time.Duration
+	Labels       map[string]string
+	ArgSchema    []byte
+	DataSchema   []byte
+	ResultSchema []byte
 }
 
-func (c *Client) SaveQueue(ctx context.Context, params string, opts SaveQueueOptions) (*job.Queue, error) {
+func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOptions) (*job.Queue, error) {
 	args := &apiv1.SaveQueueParamArgs{
-		Name:   params,
+		Name:   name,
 		Labels: opts.Labels,
 	}
 	if opts.Concurrency > 0 {
-		args.Concurrency = proto.Int32(int32(opts.Concurrency))
+		args.Concurrency = int32(opts.Concurrency)
 	}
 	if opts.MaxRetries > 0 {
-		args.MaxRetries = proto.Int32(int32(opts.MaxRetries))
+		args.MaxRetries = int32(opts.MaxRetries)
 	}
 	if opts.JobDuration > 0 {
 		args.Duration = durationpb.New(opts.JobDuration)
 	}
+	if len(opts.ArgSchema) > 0 {
+		cargsSchema, err := schema.Canonicalize(opts.ArgSchema)
+		if err != nil {
+			return nil, err
+		}
+		args.ArgSchema = cargsSchema
+	}
+	if len(opts.DataSchema) > 0 {
+		dataSchema, err := schema.Canonicalize(opts.DataSchema)
+		if err != nil {
+			return nil, err
+		}
+		args.DataSchema = dataSchema
+	}
+	if len(opts.ResultSchema) > 0 {
+		resSchema, err := schema.Canonicalize(opts.ResultSchema)
+		if err != nil {
+			return nil, err
+		}
+		args.ResultSchema = resSchema
+	}
 
-	uri := fmt.Sprintf("/api/v1/jobs/%s", params)
+	uri := fmt.Sprintf("/api/v1/jobs/%s", name)
 	req, err := c.newRequestProto("PUT", uri, args)
 	if err != nil {
 		return nil, err

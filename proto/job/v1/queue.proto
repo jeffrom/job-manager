@@ -13,10 +13,13 @@ message Queue {
   int32 max_retries = 3;
   google.protobuf.Duration duration = 4;
   map<string, string> labels = 5;
+  bytes arg_schema_raw = 6;
+  bytes data_schema_raw = 7;
+  bytes result_schema_raw = 8;
 
-  google.protobuf.Timestamp created_at  = 6;
-  google.protobuf.Timestamp updated_at  = 7;
-  optional google.protobuf.Timestamp deleted_at  = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  google.protobuf.Timestamp deleted_at = 11;
 }
 
 message Queues {

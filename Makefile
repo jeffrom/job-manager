@@ -6,10 +6,20 @@ ctl_bin := jobctl
 server_bin := job-manager
 gofiles := $(wildcard *.go **/*.go **/**/*.go **/**/**/*.go)
 protofiles := $(wildcard proto/*.proto proto/**/*.proto proto/**/**/*.proto proto/**/**/**/*.proto)
-prototargets := $(wildcard *.pb.go **/*.pb.go **/**/*.pb.go **/**/**/*.pb.go)
+prototargets := $(wildcard doc/doc.json *.pb.go **/*.pb.go **/**/*.pb.go **/**/**/*.pb.go)
+
+write_jsonschema_bin := script/write_jsonschema.sh
+args_schema_target := pkg/schema/args_schema.go
+args_schema_deps := jsonschema/Args.json
+data_schema_target := pkg/schema/data_schema.go
+data_schema_deps := jsonschema/Data.json
+result_schema_target := pkg/schema/result_schema.go
+result_schema_deps := jsonschema/Result.json
 
 buf := $(shell which buf)
+protoc := $(shell which protoc)
 protoc_gen_go = $(GOPATH)/bin/protoc-gen-go
+protoc_gen_doc = $(GOPATH)/bin/protoc-gen-doc
 gocoverutil := $(GOPATH)/bin/gocoverutil
 staticcheck := $(GOPATH)/bin/staticcheck
 gomodoutdated := $(GOPATH)/bin/go-mod-outdated
@@ -17,6 +27,9 @@ tulpa := $(GOPATH)/bin/tulpa
 
 ifeq ($(buf),)
 	buf = must-rebuild
+endif
+ifeq ($(protoc),)
+	protoc = must-rebuild
 endif
 
 all: build
@@ -39,7 +52,7 @@ clean:
 
 .PHONY: test
 test: $(gen) $(gofiles) | $(staticcheck) $(buf)
-	GO111MODULE=on go test -cover -race ./...
+	GO111MODULE=on go test -race -short ./...
 
 .PHONY: test.lint
 test.lint: $(gen) $(gofiles) | $(staticcheck) $(buf)
@@ -65,12 +78,24 @@ release.dryrun:
 release:
 	goreleaser --rm-dist
 
-gen: gen.proto
+gen: gen.proto gen.jsonschema
 
 gen.proto: $(prototargets)
 
-$(prototargets): $(protofiles) | $(protoc_gen_go) $(buf)
-	buf protoc -I=proto --go_out=${GOPATH}/src ${protofiles}
+$(prototargets): $(protofiles) | $(protoc_gen_go) $(protoc_gen_doc)
+	protoc -I=proto --go_out=${GOPATH}/src ${protofiles}
+	protoc -I=proto --doc_opt=json,doc.json --doc_out=doc ${protofiles}
+
+gen.jsonschema: $(args_schema_target) $(data_schema_target) $(result_schema_target)
+
+$(args_schema_target): $(write_jsonschema_bin) $(args_schema_deps)
+	script/write_jsonschema.sh Args argSchemaRaw $(args_schema_target)
+
+$(data_schema_target): $(write_jsonschema_bin) $(data_schema_deps)
+	script/write_jsonschema.sh Data dataSchemaRaw $(data_schema_target)
+
+$(result_schema_target): $(write_jsonschema_bin) $(result_schema_deps)
+	script/write_jsonschema.sh Result resultSchemaRaw $(result_schema_target)
 
 .PHONY: dev
 dev:
@@ -88,7 +113,14 @@ $(gomodoutdated):
 $(protoc_gen_go):
 	GO111MODULE=off go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 
+$(protoc_gen_doc):
+	GO111MODULE=off go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
+
 $(buf):
 	@echo "Please install buf: https://buf.build/docs/installation/"
+	@exit 1
+
+$(protoc):
+	@echo "Please install protoc"
 	@exit 1
 

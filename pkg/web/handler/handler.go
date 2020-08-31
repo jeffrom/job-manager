@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
@@ -36,6 +37,8 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 				status = http.StatusBadRequest
 			} else if errors.Is(err, backend.ErrNotFound) {
 				status = http.StatusNotFound
+			} else if errors.Is(err, &schema.ValidationError{}) {
+				status = http.StatusBadRequest
 			}
 
 			reqLog.Str("err_type", fmt.Sprintf("%T", err))

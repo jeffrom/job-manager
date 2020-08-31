@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"google.golang.org/protobuf/proto"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
@@ -20,7 +19,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if queueName != "" {
-		params.Job = proto.String(queueName)
+		params.Job = queueName
 	}
 
 	_, err := be.GetQueue(ctx, queueName)
@@ -29,8 +28,8 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var num int = 1
-	if params.Num != nil {
-		num = int(*params.Num)
+	if params.Num > 0 {
+		num = int(params.Num)
 	}
 	listOpts := &job.ListOpts{Statuses: []job.Status{job.StatusQueued}}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)

@@ -14,6 +14,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 type Interface interface {
@@ -28,7 +29,7 @@ type Interface interface {
 	AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error
 	// AckJobs(ctx context.Context, results *job.Results) error
 
-	SaveQueue(ctx context.Context, opts SaveQueueOptions) (*job.Queue, error)
+	SaveQueue(ctx context.Context, name string, opts SaveQueueOptions) (*job.Queue, error)
 	// SaveQueues(ctx context.Context, queue *job.Queues) error
 	GetJob(ctx context.Context, id string) (*job.Job, error)
 }
@@ -125,6 +126,15 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 			return err
 		}
 		return apiv1.NewNotFoundErrorProto(msg)
+	case http.StatusBadRequest:
+		msg := &apiv1.ValidationErrorResponse{}
+		if err := unmarshalProto(res, msg); err != nil {
+			return err
+		}
+		return schema.NewValidationErrorProto(msg)
+	case http.StatusInternalServerError:
+		// XXX handle 500 error
+		return fmt.Errorf("XXX 500 errorrr!")
 	default:
 		panic(fmt.Sprintf("unhandled exit code: %d %s", res.StatusCode, res.Status))
 	}

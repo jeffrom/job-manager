@@ -36,3 +36,5 @@ func NewNotFoundError(resource string) *NotFoundError {
 func NewNotFoundErrorProto(message *NotFoundErrorResponse) *NotFoundError {
 	return &NotFoundError{NotFoundErrorResponse: message}
 }
+
+// func NewValidationError(message *ValidationErrorResponse)

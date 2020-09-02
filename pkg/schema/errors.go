@@ -37,9 +37,9 @@ func (ve *ValidationError) Message() proto.Message {
 			return nil
 		}
 		msg.Errs = append(msg.Errs, &apiv1.ValidationErrorArg{
-			Path:  verr.PropertyPath,
-			Value: val,
-			Msg:   verr.Message,
+			Path:    verr.PropertyPath,
+			Value:   val,
+			Message: verr.Message,
 		})
 	}
 	return msg
@@ -64,7 +64,7 @@ func NewValidationErrorProto(resp *apiv1.ValidationErrorResponse) *ValidationErr
 		ve.verrs = append(ve.verrs, jsonschema.KeyError{
 			PropertyPath: verr.Path,
 			InvalidValue: verr.Value.AsInterface(),
-			Message:      verr.Msg,
+			Message:      verr.Message,
 		})
 	}
 	return ve

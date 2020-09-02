@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/jeffrom/job-manager/jobclient"
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/testenv"
@@ -137,7 +136,7 @@ func testSingleJob(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
-	expectErr := &apiv1.NotFoundError{}
+	expectErr := &jobclient.NotFoundError{}
 	id, err := c.EnqueueJob(ctx, "cool", "nice")
 	if !errors.Is(err, expectErr) {
 		t.Errorf("expected error %T, got %#v", expectErr, err)

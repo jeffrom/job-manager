@@ -121,11 +121,11 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 			return err
 		}
 	case http.StatusNotFound:
-		msg := &apiv1.NotFoundErrorResponse{}
+		msg := &apiv1.GenericError{}
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-		return apiv1.NewNotFoundErrorProto(msg)
+		return newNotFoundErrorProto(msg)
 	case http.StatusBadRequest:
 		msg := &apiv1.ValidationErrorResponse{}
 		if err := unmarshalProto(res, msg); err != nil {
@@ -133,8 +133,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 		}
 		return schema.NewValidationErrorProto(msg)
 	case http.StatusInternalServerError:
-		// XXX handle 500 error
-		return fmt.Errorf("XXX 500 errorrr!")
+		return ErrInternal
 	default:
 		panic(fmt.Sprintf("unhandled exit code: %d %s", res.StatusCode, res.Status))
 	}

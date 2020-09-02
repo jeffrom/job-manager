@@ -12,14 +12,24 @@
       "extensions": [],
       "messages": [
         {
-          "name": "NotFoundErrorResponse",
-          "longName": "NotFoundErrorResponse",
-          "fullName": "api.v1.NotFoundErrorResponse",
+          "name": "GenericError",
+          "longName": "GenericError",
+          "fullName": "api.v1.GenericError",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
           "extensions": [],
           "fields": [
+            {
+              "name": "message",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
             {
               "name": "resource",
               "description": "",
@@ -52,7 +62,7 @@
               "defaultValue": ""
             },
             {
-              "name": "msg",
+              "name": "message",
               "description": "",
               "label": "",
               "type": "string",

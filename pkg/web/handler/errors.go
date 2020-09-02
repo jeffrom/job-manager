@@ -1,16 +1,18 @@
-package v1
+package handler
 
 import (
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
+
+	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 )
 
-var internalServerErrorProto = &GenericError{
+var internalServerErrorProto = &apiv1.GenericError{
 	Message: "internal server error",
 }
 
-var notFoundErrorProto = &GenericError{
+var notFoundErrorProto = &apiv1.GenericError{
 	Message: "not found",
 }
 
@@ -59,5 +61,3 @@ func (e *Error) Error() string {
 }
 
 func (e *Error) Status() int { return e.status }
-
-func (e *Error) Message() proto.Message { return e.protoMsg }

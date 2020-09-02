@@ -6,13 +6,14 @@ import "google/protobuf/struct.proto";
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
-message NotFoundErrorResponse {
-  string resource = 1;
+message GenericError {
+  string message = 1;
+  string resource = 2;
 }
 
 message ValidationErrorArg {
   string path = 1;
-  string msg = 2;
+  string message = 2;
   google.protobuf.Value value = 3;
 }
 

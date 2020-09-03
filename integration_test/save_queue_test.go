@@ -79,7 +79,7 @@ func TestIntegrationSaveQueue(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			checkSaveInvalidQueue(ctx, t, c, tc.name, jobclient.SaveQueueOptions{
+			checkSaveInvalidQueue(ctx, t, c, tc.name, jobclient.SaveQueueOpts{
 				ArgSchema:    []byte(tc.argSchema),
 				DataSchema:   []byte(tc.dataSchema),
 				ResultSchema: []byte(tc.resSchema),
@@ -88,7 +88,7 @@ func TestIntegrationSaveQueue(t *testing.T) {
 	}
 }
 
-func checkSaveQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOptions) *job.Queue {
+func checkSaveQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOpts) *job.Queue {
 	t.Helper()
 	q, err := c.SaveQueue(ctx, name, opts)
 	if err != nil {
@@ -97,7 +97,7 @@ func checkSaveQueue(ctx context.Context, t testing.TB, c jobclient.Interface, na
 	return q
 }
 
-func checkSaveInvalidQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOptions) {
+func checkSaveInvalidQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOpts) {
 	t.Helper()
 	_, err := c.SaveQueue(ctx, name, opts)
 	if err == nil {

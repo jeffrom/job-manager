@@ -20,7 +20,7 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 		Jobs: []*apiv1.EnqueueParamArgs{{Job: name, Args: argList.Values}},
 	}
 
-	uri := fmt.Sprintf("/api/v1/jobs/%s/enqueue", name)
+	uri := fmt.Sprintf("/api/v1/queues/%s/enqueue", name)
 	req, err := c.newRequestProto("POST", uri, params)
 	if err != nil {
 		return "", err
@@ -39,20 +39,20 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 	return resp.Jobs.Jobs[0].Id, nil
 }
 
-func (c *Client) DequeueJobs(ctx context.Context, num int, jobName string, selectors ...string) (*job.Jobs, error) {
+func (c *Client) DequeueJobs(ctx context.Context, num int, queueName string, selectors ...string) (*job.Jobs, error) {
 	params := &apiv1.DequeueParams{
 		Selectors: selectors,
 	}
 	if num > 0 {
 		params.Num = int32(num)
 	}
-	if jobName != "" {
-		params.Job = jobName
+	if queueName != "" {
+		params.Job = queueName
 	}
 
 	uri := "/api/v1/jobs/dequeue"
-	if jobName != "" {
-		uri = fmt.Sprintf("/api/v1/jobs/%s/dequeue", jobName)
+	if queueName != "" {
+		uri = fmt.Sprintf("/api/v1/queues/%s/dequeue", queueName)
 	}
 	req, err := c.newRequestProto("POST", uri, params)
 	if err != nil {
@@ -98,7 +98,7 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status job.Status, o
 }
 
 func (c *Client) GetJob(ctx context.Context, id string) (*job.Job, error) {
-	uri := fmt.Sprintf("/api/v1/job/%s", id)
+	uri := fmt.Sprintf("/api/v1/jobs/%s", id)
 	req, err := c.newRequestProto("GET", uri, nil)
 	if err != nil {
 		return nil, err

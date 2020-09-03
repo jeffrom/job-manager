@@ -94,7 +94,7 @@ func (c *queueSaveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *
 	if err != nil {
 		return err
 	}
-	fmt.Printf("res: %+v\n", q)
+	fmt.Printf("<- %+v\n", q)
 	return nil
 }
 

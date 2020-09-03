@@ -32,7 +32,7 @@ func (tc *sanityTestCase) wrap(ctx context.Context, fn func(ctx context.Context,
 	}
 }
 
-func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOptions) *job.Queue {
+func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOpts) *job.Queue {
 	t.Helper()
 	q, err := tc.ctx.client.SaveQueue(ctx, name, opts)
 	if err != nil {
@@ -149,7 +149,7 @@ func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
 	expectName := "cool"
-	q, err := c.SaveQueue(ctx, expectName, jobclient.SaveQueueOptions{})
+	q, err := c.SaveQueue(ctx, expectName, jobclient.SaveQueueOpts{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -307,7 +307,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 
 // TODO move this to its own test
 func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
-	q := tc.saveQueue(ctx, t, "validat0r", jobclient.SaveQueueOptions{
+	q := tc.saveQueue(ctx, t, "validat0r", jobclient.SaveQueueOpts{
 		ArgSchema: testenv.ReadFile(t, "testdata/schema/basic.jsonschema"),
 	})
 	if q == nil {

@@ -60,7 +60,7 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 		r.Route("/api/v1", func(r chi.Router) {
 			r.Use(middleware.Backend(cfg.GetBackend()))
 
-			r.Route("/jobs", func(r chi.Router) {
+			r.Route("/queues", func(r chi.Router) {
 				r.Get("/", handler.Func(handler.ListQueues))
 
 				r.Route("/{queueName}", func(r chi.Router) {
@@ -71,14 +71,16 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 					r.Post("/enqueue", enqueueHandler.ServeHTTP)
 					r.Post("/dequeue", handler.Func(handler.DequeueJobs))
 				})
-
-				r.Post("/ack", handler.Func(handler.Ack))
-				r.Post("/dequeue", handler.Func(handler.DequeueJobs))
 			})
 
-			r.Route("/job/{jobID}", func(r chi.Router) {
-				r.Get("/", handler.Func(handler.GetJobByID))
-				r.Get("/queue", handler.Func(handler.GetQueueByJobID))
+			r.Route("/jobs", func(r chi.Router) {
+				r.Post("/dequeue", handler.Func(handler.DequeueJobs))
+				r.Post("/ack", handler.Func(handler.Ack))
+
+				r.Route("/{jobID}", func(r chi.Router) {
+					r.Get("/", handler.Func(handler.GetJobByID))
+					r.Get("/queue", handler.Func(handler.GetQueueByJobID))
+				})
 			})
 		})
 	})

@@ -62,7 +62,7 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 		args.ResultSchema = resSchema
 	}
 
-	uri := fmt.Sprintf("/api/v1/jobs/%s", name)
+	uri := fmt.Sprintf("/api/v1/queues/%s", name)
 	req, err := c.newRequestProto("PUT", uri, args)
 	if err != nil {
 		return nil, err

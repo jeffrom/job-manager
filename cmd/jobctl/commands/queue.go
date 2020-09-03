@@ -12,5 +12,6 @@ func newQueueCmd(cfg *jobclient.Config) *cobra.Command {
 		Aliases: []string{"q"},
 	}
 
+	cmd.AddCommand(newQueueListCmd(cfg))
 	return cmd
 }

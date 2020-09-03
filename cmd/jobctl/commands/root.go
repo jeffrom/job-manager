@@ -8,7 +8,9 @@ import (
 
 func newRootCmd(cfg *jobclient.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "jobctl",
+		Use:          "jobctl",
+		SilenceUsage: true,
+		RunE:         wrapCmd(cfg, usageCmd),
 	}
 
 	flags := cmd.PersistentFlags()
@@ -18,4 +20,8 @@ func newRootCmd(cfg *jobclient.Config) *cobra.Command {
 		newQueueCmd(cfg),
 	)
 	return cmd
+}
+
+func usageCmd(cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+	return cmd.Usage()
 }

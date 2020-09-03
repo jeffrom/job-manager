@@ -3,6 +3,8 @@ package api.v1;
 
 import "google/protobuf/duration.proto";
 
+import "job/v1/queue.proto";
+
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
@@ -19,4 +21,18 @@ message SaveQueueParamArgs {
 
 message SaveQueueParams {
   repeated SaveQueueParamArgs queues = 1;
+}
+
+message SaveQueueResponse {
+  job.v1.Queue queue = 1;
+}
+
+
+message ListQueuesRequest {
+  repeated string names = 1;
+  repeated string selectors = 2;
+}
+
+message ListQueuesResponse {
+  job.v1.Queues queues = 1;
 }

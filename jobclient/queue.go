@@ -68,9 +68,32 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 		return nil, err
 	}
 
-	queue := &job.Queue{}
-	if err := c.doRequest(ctx, req, queue); err != nil {
+	resp := &apiv1.SaveQueueResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}
-	return queue, nil
+	return resp.Queue, nil
+}
+
+type ListQueuesOpts struct {
+	Names     []string
+	Selectors []string
+}
+
+func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*job.Queues, error) {
+	params := &apiv1.ListQueuesRequest{
+		Names:     opts.Names,
+		Selectors: opts.Selectors,
+	}
+	uri := "/api/v1/queues"
+	req, err := c.newRequestProto("GET", uri, params)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &apiv1.ListQueuesResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return nil, err
+	}
+	return resp.Queues, nil
 }

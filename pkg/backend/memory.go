@@ -27,11 +27,11 @@ func (m *Memory) GetQueue(ctx context.Context, name string) (*job.Queue, error) 
 }
 
 func (m *Memory) SaveQueue(ctx context.Context, queue *job.Queue) error {
-	m.configs[queue.Name] = queue
+	m.configs[queue.Id] = queue
 	return nil
 }
 
-func (m *Memory) ListQueues(ctx context.Context, opts *job.ListOpts) (*job.Queues, error) {
+func (m *Memory) ListQueues(ctx context.Context, opts *job.QueueListParams) (*job.Queues, error) {
 	jobs := &job.Queues{}
 	for _, job := range m.configs {
 		jobs.Queues = append(jobs.Queues, job)
@@ -46,9 +46,9 @@ func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *job.Jobs) error {
 	return nil
 }
 
-func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *job.ListOpts) (*job.Jobs, error) {
+func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *job.JobListParams) (*job.Jobs, error) {
 	if opts == nil {
-		opts = &job.ListOpts{}
+		opts = &job.JobListParams{}
 	}
 	opts.Statuses = []job.Status{job.StatusQueued, job.StatusFailed}
 
@@ -92,9 +92,9 @@ func (m *Memory) GetJobByID(ctx context.Context, id string) (*job.Job, error) {
 	return jobData, nil
 }
 
-func (m *Memory) ListJobs(ctx context.Context, opts *job.ListOpts) (*job.Jobs, error) {
+func (m *Memory) ListJobs(ctx context.Context, opts *job.JobListParams) (*job.Jobs, error) {
 	if opts == nil {
-		opts = &job.ListOpts{}
+		opts = &job.JobListParams{}
 	}
 	res := &job.Jobs{}
 	for _, jobData := range m.jobs {

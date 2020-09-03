@@ -59,6 +59,9 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
 	defer r.Body.Close()
 	ct := r.Header.Get("content-type")
+	if r.Method == "GET" {
+		ct = "application/x-www-form-urlencoded"
+	}
 	log := middleware.LoggerFromContext(r.Context())
 
 	b, rerr := ioutil.ReadAll(r.Body)
@@ -78,6 +81,11 @@ func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
 		err = json.Unmarshal(b, v)
 	case "application/protobuf":
 		err = proto.Unmarshal(b, v.(proto.Message))
+	case "application/x-www-form-urlencoded":
+		if err := r.ParseForm(); err != nil {
+			return err
+		}
+		err = formDecoder.Decode(v, r.Form)
 	default:
 		panic("handler: unknown content-type: " + ct)
 	}

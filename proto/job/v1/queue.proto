@@ -4,11 +4,13 @@ package job.v1;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
+import "job/v1/job.proto";
+
 option go_package = "github.com/jeffrom/job-manager/pkg/job";
 
 
 message Queue {
-  string name = 1;
+  string id = 1;
   int32 concurrency = 2;
   int32 max_retries = 3;
   google.protobuf.Duration duration = 4;
@@ -24,4 +26,9 @@ message Queue {
 
 message Queues {
   repeated Queue queues = 1;
+}
+
+message QueueListParams {
+  repeated string names = 1;
+  repeated string selectors = 2;
 }

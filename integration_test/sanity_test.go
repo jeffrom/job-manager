@@ -148,8 +148,8 @@ func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
-	expectName := "cool"
-	q, err := c.SaveQueue(ctx, expectName, jobclient.SaveQueueOpts{})
+	expectID := "cool"
+	q, err := c.SaveQueue(ctx, expectID, jobclient.SaveQueueOpts{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,8 +157,8 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q == nil {
 		t.Fatal("queue result was nil")
 	}
-	if q.Name != expectName {
-		t.Errorf("expected queue name %q, got %q", expectName, q.Name)
+	if q.Id != expectID {
+		t.Errorf("expected queue name %q, got %q", expectID, q.Id)
 	}
 	var defaultConcurrency int32 = 10
 	if q.Concurrency != defaultConcurrency {

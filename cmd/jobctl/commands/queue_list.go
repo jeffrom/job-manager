@@ -2,6 +2,10 @@ package commands
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"text/tabwriter"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -32,5 +36,17 @@ func newQueueListCmd(cfg *jobclient.Config) *queueListCmd {
 
 func (c *queueListCmd) Cmd() *cobra.Command { return c.Command }
 func (c *queueListCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	return nil
+	client := clientFromContext(ctx)
+	queues, err := client.ListQueues(ctx, jobclient.ListQueuesOpts{})
+	if err != nil {
+		return err
+	}
+	padding := 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
+	fmt.Fprintln(w, "NAME\tCREATED\t")
+	for _, q := range queues.Queues {
+		fmt.Fprintf(w, "%s\t%s\n", q.Id, q.CreatedAt.AsTime().Format(time.Stamp))
+	}
+	// fmt.Fprintln(w)
+	return w.Flush()
 }

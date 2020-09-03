@@ -39,20 +39,20 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 	return resp.Jobs.Jobs[0].Id, nil
 }
 
-func (c *Client) DequeueJobs(ctx context.Context, num int, queueName string, selectors ...string) (*job.Jobs, error) {
+func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selectors ...string) (*job.Jobs, error) {
 	params := &apiv1.DequeueParams{
 		Selectors: selectors,
 	}
 	if num > 0 {
 		params.Num = int32(num)
 	}
-	if queueName != "" {
-		params.Job = queueName
+	if queueID != "" {
+		params.Job = queueID
 	}
 
 	uri := "/api/v1/jobs/dequeue"
-	if queueName != "" {
-		uri = fmt.Sprintf("/api/v1/queues/%s/dequeue", queueName)
+	if queueID != "" {
+		uri = fmt.Sprintf("/api/v1/queues/%s/dequeue", queueID)
 	}
 	req, err := c.newRequestProto("POST", uri, params)
 	if err != nil {

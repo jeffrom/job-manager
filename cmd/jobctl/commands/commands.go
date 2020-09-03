@@ -27,7 +27,7 @@ func ExecuteArgs(args []string) error {
 	cmd.SetArgs(args)
 	ctx := context.Background()
 	if err := cmd.ExecuteContext(ctx); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Error:", err)
 		return err
 	}
 	return nil

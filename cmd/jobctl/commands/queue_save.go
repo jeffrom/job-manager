@@ -97,15 +97,3 @@ func (c *queueSaveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *
 	fmt.Printf("<- %+v\n", q)
 	return nil
 }
-
-func queueSaveRun(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	c := clientFromContext(ctx)
-	q, err := c.SaveQueue(ctx, args[0], jobclient.SaveQueueOpts{
-		Concurrency: 10,
-	})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("res: %+v\n", q)
-	return nil
-}

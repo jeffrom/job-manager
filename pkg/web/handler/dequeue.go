@@ -13,16 +13,16 @@ import (
 func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
-	queueName := chi.URLParam(r, "queueName")
+	queueID := chi.URLParam(r, "queueID")
 	var params apiv1.DequeueParams
-	if err := UnmarshalBody(r, &params, queueName == ""); err != nil {
+	if err := UnmarshalBody(r, &params, queueID == ""); err != nil {
 		return err
 	}
-	if queueName != "" {
-		params.Job = queueName
+	if queueID != "" {
+		params.Job = queueID
 	}
 
-	_, err := be.GetQueue(ctx, queueName)
+	_, err := be.GetQueue(ctx, queueID)
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if params.Num > 0 {
 		num = int(params.Num)
 	}
-	listOpts := &job.ListOpts{Statuses: []job.Status{job.StatusQueued}}
+	listOpts := &job.JobListParams{Statuses: []job.Status{job.StatusQueued}}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)
 	if err != nil {
 		return err

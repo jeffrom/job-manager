@@ -119,6 +119,58 @@
       "extensions": [],
       "messages": [
         {
+          "name": "ListQueuesRequest",
+          "longName": "ListQueuesRequest",
+          "fullName": "api.v1.ListQueuesRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "names",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "selectors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ListQueuesResponse",
+          "longName": "ListQueuesResponse",
+          "fullName": "api.v1.ListQueuesResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "queues",
+              "description": "",
+              "label": "",
+              "type": "Queues",
+              "longType": "job.v1.Queues",
+              "fullType": "job.v1.Queues",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SaveQueueParamArgs",
           "longName": "SaveQueueParamArgs",
           "fullName": "api.v1.SaveQueueParamArgs",
@@ -256,6 +308,27 @@
               "type": "SaveQueueParamArgs",
               "longType": "SaveQueueParamArgs",
               "fullType": "api.v1.SaveQueueParamArgs",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SaveQueueResponse",
+          "longName": "SaveQueueResponse",
+          "fullName": "api.v1.SaveQueueResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "queue",
+              "description": "",
+              "label": "",
+              "type": "Queue",
+              "longType": "job.v1.Queue",
+              "fullType": "job.v1.Queue",
               "ismap": false,
               "defaultValue": ""
             }
@@ -588,7 +661,7 @@
           "extensions": [],
           "fields": [
             {
-              "name": "name",
+              "name": "id",
               "description": "",
               "label": "",
               "type": "string",
@@ -731,44 +804,9 @@
           ]
         },
         {
-          "name": "Queues",
-          "longName": "Queues",
-          "fullName": "job.v1.Queues",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "queues",
-              "description": "",
-              "label": "repeated",
-              "type": "Queue",
-              "longType": "Queue",
-              "fullType": "job.v1.Queue",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        }
-      ],
-      "services": []
-    },
-    {
-      "name": "job/v1/list.proto",
-      "description": "",
-      "package": "job.v1",
-      "hasEnums": false,
-      "hasExtensions": false,
-      "hasMessages": true,
-      "hasServices": false,
-      "enums": [],
-      "extensions": [],
-      "messages": [
-        {
-          "name": "ListOpts",
-          "longName": "ListOpts",
-          "fullName": "job.v1.ListOpts",
+          "name": "QueueListParams",
+          "longName": "QueueListParams",
+          "fullName": "job.v1.QueueListParams",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -785,73 +823,33 @@
               "defaultValue": ""
             },
             {
-              "name": "statuses",
+              "name": "selectors",
               "description": "",
               "label": "repeated",
-              "type": "Status",
-              "longType": "Status",
-              "fullType": "job.v1.Status",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "labels",
-              "description": "",
-              "label": "repeated",
-              "type": "LabelsEntry",
-              "longType": "ListOpts.LabelsEntry",
-              "fullType": "job.v1.ListOpts.LabelsEntry",
-              "ismap": true,
-              "defaultValue": ""
-            },
-            {
-              "name": "created_since",
-              "description": "",
-              "label": "",
-              "type": "Timestamp",
-              "longType": "google.protobuf.Timestamp",
-              "fullType": "google.protobuf.Timestamp",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "created_until",
-              "description": "",
-              "label": "",
-              "type": "Timestamp",
-              "longType": "google.protobuf.Timestamp",
-              "fullType": "google.protobuf.Timestamp",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "defaultValue": ""
             }
           ]
         },
         {
-          "name": "LabelsEntry",
-          "longName": "ListOpts.LabelsEntry",
-          "fullName": "job.v1.ListOpts.LabelsEntry",
+          "name": "Queues",
+          "longName": "Queues",
+          "fullName": "job.v1.Queues",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
           "extensions": [],
           "fields": [
             {
-              "name": "key",
+              "name": "queues",
               "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "label": "repeated",
+              "type": "Queue",
+              "longType": "Queue",
+              "fullType": "job.v1.Queue",
               "ismap": false,
               "defaultValue": ""
             }
@@ -1088,6 +1086,98 @@
               "type": "Value",
               "longType": "google.protobuf.Value",
               "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobListParams",
+          "longName": "JobListParams",
+          "fullName": "job.v1.JobListParams",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "names",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "statuses",
+              "description": "",
+              "label": "repeated",
+              "type": "Status",
+              "longType": "Status",
+              "fullType": "job.v1.Status",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "labels",
+              "description": "",
+              "label": "repeated",
+              "type": "LabelsEntry",
+              "longType": "JobListParams.LabelsEntry",
+              "fullType": "job.v1.JobListParams.LabelsEntry",
+              "ismap": true,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_since",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_until",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LabelsEntry",
+          "longName": "JobListParams.LabelsEntry",
+          "fullName": "job.v1.JobListParams.LabelsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "defaultValue": ""
             }

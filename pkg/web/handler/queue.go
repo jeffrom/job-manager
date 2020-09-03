@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
@@ -17,8 +18,8 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	cfg := middleware.ConfigFromContext(ctx)
 	reqLog := middleware.RequestLogFromContext(ctx)
 	be := middleware.GetBackend(ctx)
-	name := chi.URLParam(r, "queueName")
-	reqLog.Str("queue", name)
+	queueID := chi.URLParam(r, "queueID")
+	reqLog.Str("queue", queueID)
 
 	var params apiv1.SaveQueueParamArgs
 	if err := UnmarshalBody(r, &params, false); err != nil {
@@ -43,19 +44,21 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		dur = d
 	}
 
+	now := timestamppb.Now()
 	queue := &job.Queue{
-		Name:            name,
+		Id:              queueID,
 		Concurrency:     concurrency,
 		MaxRetries:      maxRetries,
 		Labels:          params.Labels,
 		Duration:        dur,
 		ArgSchemaRaw:    params.ArgSchema,
 		ResultSchemaRaw: params.ResultSchema,
+		CreatedAt:       now,
 	}
 	if err := be.SaveQueue(ctx, queue); err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, queue)
+	return MarshalResponse(w, r, &apiv1.SaveQueueResponse{Queue: queue})
 }
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
@@ -63,13 +66,20 @@ func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
 }
 
 func ListQueues(w http.ResponseWriter, r *http.Request) error {
+	var params apiv1.ListQueuesRequest
+	if err := UnmarshalBody(r, &params, false); err != nil {
+		return err
+	}
+
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
-	jobs, err := be.ListQueues(ctx, nil)
+	queues, err := be.ListQueues(ctx, &job.QueueListParams{
+		Names: params.Names,
+	})
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, jobs)
+	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{Queues: queues})
 }
 
 func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {

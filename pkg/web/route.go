@@ -63,7 +63,7 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 			r.Route("/queues", func(r chi.Router) {
 				r.Get("/", handler.Func(handler.ListQueues))
 
-				r.Route("/{queueName}", func(r chi.Router) {
+				r.Route("/{queueID}", func(r chi.Router) {
 					r.Put("/", handler.Func(handler.SaveQueue))
 					r.Delete("/", handler.Func(handler.DeleteQueue))
 

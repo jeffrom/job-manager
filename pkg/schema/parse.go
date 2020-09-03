@@ -37,3 +37,11 @@ func Parse(q *job.Queue) (*Schema, error) {
 		Result: resultSchema,
 	}, nil
 }
+
+func ParseBytes(b []byte) (*Schema, error) {
+	q := &job.Queue{}
+	if err := json.Unmarshal(b, q); err != nil {
+		return nil, err
+	}
+	return Parse(q)
+}

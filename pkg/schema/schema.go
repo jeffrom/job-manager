@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/qri-io/jsonschema"
 	jsonmin "github.com/tdewolff/minify/v2/json"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -32,12 +33,24 @@ func init() {
 }
 
 type Schema struct {
-	Args   *jsonschema.Schema
-	Data   *jsonschema.Schema
-	Result *jsonschema.Schema
+	Args   *jsonschema.Schema `json:"args,omitempty"`
+	Data   *jsonschema.Schema `json:"data,omitempty"`
+	Result *jsonschema.Schema `json:"result,omitempty"`
 }
 
-// func (s *Schema) Validate(ctx context.Context,
+func (s *Schema) Validate(ctx context.Context, args, data, result interface{}) error {
+	merr := &multierror.Error{}
+	if err := s.ValidateArgs(ctx, args); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	if err := s.ValidateData(ctx, data); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	if err := s.ValidateResult(ctx, result); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	return merr.ErrorOrNil()
+}
 
 func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
 	if s.Args == nil {

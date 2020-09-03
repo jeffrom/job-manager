@@ -30,7 +30,7 @@ type Interface interface {
 	AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error
 	// AckJobs(ctx context.Context, results *job.Results) error
 
-	SaveQueue(ctx context.Context, name string, opts SaveQueueOptions) (*job.Queue, error)
+	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*job.Queue, error)
 	// SaveQueues(ctx context.Context, queue *job.Queues) error
 	GetJob(ctx context.Context, id string) (*job.Job, error)
 }
@@ -39,14 +39,14 @@ type providerFunc func(c *Client) *Client
 
 type Client struct {
 	addr   string
-	cfg    Config
+	cfg    *Config
 	client *http.Client
 }
 
 func New(addr string, providers ...providerFunc) *Client {
 	c := &Client{
 		addr:   addr,
-		cfg:    getDefaultConfig(),
+		cfg:    &ConfigDefaults,
 		client: defaultClient(),
 	}
 
@@ -63,7 +63,7 @@ func WithHTTPClient(client *http.Client) providerFunc {
 	}
 }
 
-func WithConfig(cfg Config) providerFunc {
+func WithConfig(cfg *Config) providerFunc {
 	return func(c *Client) *Client {
 		c.cfg = cfg
 		return c

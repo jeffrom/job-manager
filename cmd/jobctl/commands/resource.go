@@ -7,12 +7,12 @@ import (
 type resourceOpts struct{}
 
 type cliResource struct {
-	cfg    jobclient.Config
+	cfg    *jobclient.Config
 	opts   *resourceOpts
 	client jobclient.Interface
 }
 
-func newResource(cfg jobclient.Config, opts *resourceOpts) *cliResource {
+func newResource(cfg *jobclient.Config, opts *resourceOpts) *cliResource {
 	if opts == nil {
 		opts = &resourceOpts{}
 	}

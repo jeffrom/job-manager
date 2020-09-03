@@ -12,7 +12,11 @@ import (
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
-type SaveQueueOptions struct {
+type Queue struct {
+	*job.Queue
+}
+
+type SaveQueueOpts struct {
 	Concurrency  int
 	MaxRetries   int
 	JobDuration  time.Duration
@@ -22,7 +26,7 @@ type SaveQueueOptions struct {
 	ResultSchema []byte
 }
 
-func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOptions) (*job.Queue, error) {
+func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*job.Queue, error) {
 	args := &apiv1.SaveQueueParamArgs{
 		Name:   name,
 		Labels: opts.Labels,

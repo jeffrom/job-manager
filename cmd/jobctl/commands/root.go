@@ -1,27 +1,40 @@
 package commands
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"github.com/jeffrom/job-manager/jobclient"
 )
 
-func newRootCmd(cfg *jobclient.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "jobctl",
-		SilenceUsage: true,
-		RunE:         wrapCmd(cfg, usageCmd),
+type rootCmd struct {
+	*cobra.Command
+}
+
+func (c *rootCmd) Cmd() *cobra.Command { return c.Command }
+
+func newRootCmd(cfg *jobclient.Config) *rootCmd {
+	c := &rootCmd{
+		Command: &cobra.Command{
+			Use:           "jobctl",
+			SilenceErrors: true, // we are printing errors ourselves
+			SilenceUsage:  true,
+			Args:          cobra.NoArgs,
+			RunE:          wrapCmdRun(cfg, usageCmd),
+		},
 	}
+	cmd := c.Cmd()
 
 	flags := cmd.PersistentFlags()
 	flags.StringVarP(&cfg.Addr, "host", "H", "", "set host:port (env: $HOST)")
 
 	cmd.AddCommand(
-		newQueueCmd(cfg),
+		newQueueCmd(cfg).Cmd(),
 	)
-	return cmd
+	return c
 }
 
-func usageCmd(cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func usageCmd(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
 	return cmd.Usage()
 }

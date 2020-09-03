@@ -22,10 +22,18 @@ message EnqueueParams {
   repeated EnqueueParamArgs jobs = 1;
 }
 
+message EnqueueResponse {
+  job.v1.Jobs jobs = 1;
+}
+
 message DequeueParams {
   int32 num = 1;
   string job = 2;
   repeated string selectors = 3;
+}
+
+message DequeueResponse {
+  job.v1.Jobs jobs = 1;
 }
 
 message AckParamArgs {
@@ -38,6 +46,6 @@ message AckParams {
   repeated AckParamArgs acks = 1;
 }
 
-/* service JobService { */
-/*   rpc Enqueue(EnqueueParams) returns (AckParams); */
-/* } */
+/*service JobService {
+  rpc Enqueue(EnqueueParams) returns (AckParams);
+}*/

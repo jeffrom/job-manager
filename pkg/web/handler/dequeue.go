@@ -36,5 +36,5 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, jobs)
+	return MarshalResponse(w, r, &apiv1.DequeueResponse{Jobs: jobs})
 }

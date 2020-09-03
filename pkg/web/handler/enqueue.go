@@ -85,6 +85,8 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err := be.EnqueueJobs(ctx, jobs); err != nil {
 			return err
 		}
-		return MarshalResponse(w, r, jobs)
+		return MarshalResponse(w, r, &apiv1.EnqueueResponse{
+			Jobs: jobs,
+		})
 	})(w, r)
 }

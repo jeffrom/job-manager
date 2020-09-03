@@ -26,17 +26,17 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 		return "", err
 	}
 
-	jobs := &job.Jobs{}
-	err = c.doRequest(ctx, req, jobs)
+	resp := &apiv1.EnqueueResponse{}
+	err = c.doRequest(ctx, req, resp)
 	if err != nil {
 		return "", err
 	}
 
-	if len(jobs.Jobs) == 0 {
+	if len(resp.Jobs.Jobs) == 0 {
 		return "", errors.New("jobclient: unexpectedly received no enqueued job data")
 	}
 
-	return jobs.Jobs[0].Id, nil
+	return resp.Jobs.Jobs[0].Id, nil
 }
 
 func (c *Client) DequeueJobs(ctx context.Context, num int, jobName string, selectors ...string) (*job.Jobs, error) {
@@ -59,12 +59,12 @@ func (c *Client) DequeueJobs(ctx context.Context, num int, jobName string, selec
 		return nil, err
 	}
 
-	jobs := &job.Jobs{}
-	err = c.doRequest(ctx, req, jobs)
+	resp := &apiv1.DequeueResponse{}
+	err = c.doRequest(ctx, req, resp)
 	if err != nil {
 		return nil, err
 	}
-	return jobs, nil
+	return resp.Jobs, nil
 }
 
 type AckJobOpts struct {

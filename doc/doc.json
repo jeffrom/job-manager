@@ -410,6 +410,27 @@
           ]
         },
         {
+          "name": "DequeueResponse",
+          "longName": "DequeueResponse",
+          "fullName": "api.v1.DequeueResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "jobs",
+              "description": "",
+              "label": "",
+              "type": "Jobs",
+              "longType": "job.v1.Jobs",
+              "fullType": "job.v1.Jobs",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "EnqueueParamArgs",
           "longName": "EnqueueParamArgs",
           "fullName": "api.v1.EnqueueParamArgs",
@@ -517,6 +538,27 @@
               "type": "EnqueueParamArgs",
               "longType": "EnqueueParamArgs",
               "fullType": "api.v1.EnqueueParamArgs",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "EnqueueResponse",
+          "longName": "EnqueueResponse",
+          "fullName": "api.v1.EnqueueResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "jobs",
+              "description": "",
+              "label": "",
+              "type": "Jobs",
+              "longType": "job.v1.Jobs",
+              "fullType": "job.v1.Jobs",
               "ismap": false,
               "defaultValue": ""
             }

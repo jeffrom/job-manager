@@ -37,3 +37,7 @@ message AckParamArgs {
 message AckParams {
   repeated AckParamArgs acks = 1;
 }
+
+/* service JobService { */
+/*   rpc Enqueue(EnqueueParams) returns (AckParams); */
+/* } */

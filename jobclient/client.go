@@ -18,6 +18,7 @@ import (
 )
 
 type Interface interface {
+	// Resource(name string) resource.Interface
 	Ping(ctx context.Context) error
 
 	// EnqueueJobs(ctx context.Context, jobs *job.Jobs) ([]string, error)
@@ -68,6 +69,10 @@ func WithConfig(cfg Config) providerFunc {
 		return c
 	}
 }
+
+// func (c *Client) Resource(name string) resource.Interface {
+// 	return nil
+// }
 
 func (c *Client) Ping(ctx context.Context) error {
 	req, err := c.newRequest("GET", "/internal/ready", nil)

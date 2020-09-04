@@ -12,19 +12,19 @@ func Parse(q *job.Queue) (*Schema, error) {
 	var dataSchema *jsonschema.Schema
 	var resultSchema *jsonschema.Schema
 
-	if argData := q.ArgSchemaRaw; len(argData) > 0 {
+	if argData := q.Schema.Args; len(argData) > 0 {
 		argSchema = &jsonschema.Schema{}
 		if err := json.Unmarshal(argData, argSchema); err != nil {
 			return nil, err
 		}
 	}
-	if dataData := q.DataSchemaRaw; len(dataData) > 0 {
+	if dataData := q.Schema.Data; len(dataData) > 0 {
 		dataSchema = &jsonschema.Schema{}
 		if err := json.Unmarshal(dataData, dataSchema); err != nil {
 			return nil, err
 		}
 	}
-	if resultData := q.ResultSchemaRaw; len(resultData) > 0 {
+	if resultData := q.Schema.Result; len(resultData) > 0 {
 		resultSchema = &jsonschema.Schema{}
 		if err := json.Unmarshal(resultData, resultSchema); err != nil {
 			return nil, err

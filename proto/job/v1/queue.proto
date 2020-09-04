@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
 import "job/v1/job.proto";
+import "job/v1/schema.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/job";
 
@@ -12,16 +13,14 @@ option go_package = "github.com/jeffrom/job-manager/pkg/job";
 message Queue {
   string id = 1;
   int32 concurrency = 2;
-  int32 max_retries = 3;
+  int32 retries = 3;
   google.protobuf.Duration duration = 4;
   map<string, string> labels = 5;
-  bytes arg_schema_raw = 6;
-  bytes data_schema_raw = 7;
-  bytes result_schema_raw = 8;
+  Schema schema = 6;
 
-  google.protobuf.Timestamp created_at = 9;
-  google.protobuf.Timestamp updated_at = 10;
-  google.protobuf.Timestamp deleted_at = 11;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp deleted_at = 9;
 }
 
 message Queues {

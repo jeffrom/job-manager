@@ -788,7 +788,7 @@
               "defaultValue": ""
             },
             {
-              "name": "max_retries",
+              "name": "retries",
               "description": "",
               "label": "",
               "type": "int32",
@@ -818,32 +818,12 @@
               "defaultValue": ""
             },
             {
-              "name": "arg_schema_raw",
+              "name": "schema",
               "description": "",
               "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "data_schema_raw",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "result_schema_raw",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
+              "type": "Schema",
+              "longType": "Schema",
+              "fullType": "job.v1.Schema",
               "ismap": false,
               "defaultValue": ""
             },
@@ -957,6 +937,71 @@
               "type": "Queue",
               "longType": "Queue",
               "fullType": "job.v1.Queue",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
+      "name": "job/v1/schema.proto",
+      "description": "",
+      "package": "job.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "Schema",
+          "longName": "Schema",
+          "fullName": "job.v1.Schema",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "args",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "data",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "checkin",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "result",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "defaultValue": ""
             }

@@ -46,14 +46,16 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 
 	now := timestamppb.Now()
 	queue := &job.Queue{
-		Id:              queueID,
-		Concurrency:     concurrency,
-		MaxRetries:      maxRetries,
-		Labels:          params.Labels,
-		Duration:        dur,
-		ArgSchemaRaw:    params.ArgSchema,
-		ResultSchemaRaw: params.ResultSchema,
-		CreatedAt:       now,
+		Id:          queueID,
+		Concurrency: concurrency,
+		Retries:     maxRetries,
+		Labels:      params.Labels,
+		Duration:    dur,
+		Schema: &job.Schema{
+			Args:   params.ArgSchema,
+			Result: params.ResultSchema,
+		},
+		CreatedAt: now,
 	}
 	if err := be.SaveQueue(ctx, queue); err != nil {
 		return err

@@ -380,37 +380,6 @@
             {
               "name": "data",
               "description": "",
-              "label": "repeated",
-              "type": "DataEntry",
-              "longType": "AckParamArgs.DataEntry",
-              "fullType": "api.v1.AckParamArgs.DataEntry",
-              "ismap": true,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "DataEntry",
-          "longName": "AckParamArgs.DataEntry",
-          "fullName": "api.v1.AckParamArgs.DataEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
               "label": "",
               "type": "Value",
               "longType": "google.protobuf.Value",
@@ -641,6 +610,81 @@
       "services": []
     },
     {
+      "name": "job/v1/result.proto",
+      "description": "",
+      "package": "job.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "Result",
+          "longName": "Result",
+          "fullName": "job.v1.Result",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "attempt",
+              "description": "",
+              "label": "",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "status",
+              "description": "",
+              "label": "",
+              "type": "Status",
+              "longType": "Status",
+              "fullType": "job.v1.Status",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "data",
+              "description": "",
+              "label": "",
+              "type": "Value",
+              "longType": "google.protobuf.Value",
+              "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "started_at",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "completed_at",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
       "name": "job/v1/ack.proto",
       "description": "",
       "package": "job.v1",
@@ -682,37 +726,6 @@
             },
             {
               "name": "data",
-              "description": "",
-              "label": "repeated",
-              "type": "DataEntry",
-              "longType": "Ack.DataEntry",
-              "fullType": "job.v1.Ack.DataEntry",
-              "ismap": true,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "DataEntry",
-          "longName": "Ack.DataEntry",
-          "fullName": "job.v1.Ack.DataEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
               "description": "",
               "label": "",
               "type": "Value",
@@ -1153,13 +1166,13 @@
               "defaultValue": ""
             },
             {
-              "name": "result_data",
+              "name": "results",
               "description": "",
               "label": "repeated",
-              "type": "ResultDataEntry",
-              "longType": "Job.ResultDataEntry",
-              "fullType": "job.v1.Job.ResultDataEntry",
-              "ismap": true,
+              "type": "Result",
+              "longType": "Result",
+              "fullType": "job.v1.Result",
+              "ismap": false,
               "defaultValue": ""
             },
             {
@@ -1200,37 +1213,6 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "ResultDataEntry",
-          "longName": "Job.ResultDataEntry",
-          "fullName": "job.v1.Job.ResultDataEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "Value",
-              "longType": "google.protobuf.Value",
-              "fullType": "google.protobuf.Value",
               "ismap": false,
               "defaultValue": ""
             }

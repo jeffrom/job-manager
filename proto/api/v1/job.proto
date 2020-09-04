@@ -40,7 +40,7 @@ message DequeueResponse {
 message AckParamArgs {
   string id = 1;
   job.v1.Status status = 2;
-  map<string, google.protobuf.Value> data = 3;
+  google.protobuf.Value data = 3;
 }
 
 message AckParams {

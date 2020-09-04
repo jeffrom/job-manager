@@ -68,7 +68,7 @@ func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selec
 }
 
 type AckJobOpts struct {
-	Data map[string]interface{}
+	Data interface{}
 }
 
 func (c *Client) AckJob(ctx context.Context, id string, status job.Status) error {
@@ -80,12 +80,12 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status job.Status, o
 		Id:     id,
 		Status: status,
 	}
-	if len(opts.Data) > 0 {
-		data, err := structpb.NewStruct(opts.Data)
+	if opts.Data != nil {
+		val, err := structpb.NewValue(opts.Data)
 		if err != nil {
 			return err
 		}
-		args.Data = data.Fields
+		args.Data = val
 	}
 
 	uri := "/api/v1/jobs/ack"

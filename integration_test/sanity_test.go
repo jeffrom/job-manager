@@ -165,8 +165,8 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		t.Errorf("expected default concurrency %d, got %d", defaultConcurrency, q.Concurrency)
 	}
 	var defaultMaxRetries int32 = 10
-	if q.MaxRetries != defaultMaxRetries {
-		t.Errorf("expected default max retries %d, got %d", defaultMaxRetries, q.MaxRetries)
+	if q.Retries != defaultMaxRetries {
+		t.Errorf("expected default max retries %d, got %d", defaultMaxRetries, q.Retries)
 	}
 }
 
@@ -213,23 +213,27 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 	id := jobArg.Id
 	tc.ackJobOpts(ctx, t, id, job.StatusComplete, jobclient.AckJobOpts{
-		Data: map[string]interface{}{"arg": jobArg.Args[0].GetStringValue()},
+		Data: jobArg.Args[0].GetStringValue(),
 	})
 
 	jobData := tc.getJob(ctx, t, id)
 	checkJob(t, jobData)
 
-	resultData := jobData.ResultData
+	resultData := jobData.Results
 	if resultData == nil {
 		t.Fatal("job result data was nil")
 	}
-	ival, ok := resultData["arg"]
-	if !ok {
-		t.Fatal("expected result data attribute 'arg'")
+	if len(resultData) != 1 {
+		t.Fatalf("expected 1 results, got %d", len(resultData))
 	}
+	ival := resultData[0].Data
+	// ival, ok := resultData["arg"]
+	// if !ok {
+	// 	t.Fatal("expected result data attribute 'arg'")
+	// }
 	s, ok := ival.AsInterface().(string)
 	if !ok {
-		t.Fatalf("expected result data attribute 'arg' to be type string, was %T", ival)
+		t.Fatalf("expected result data to be type string, was %T", ival)
 	}
 	if s != "nice" {
 		t.Errorf("expected 'arg' to be value 'nice', was %q", s)
@@ -485,12 +489,6 @@ func checkJob(t testing.TB, jobData *job.Job) {
 	}
 	if jobData.Attempt < 0 {
 		t.Errorf("job.Attempt was %d", jobData.Attempt)
-	}
-	if jobData.MaxRetries < 0 {
-		t.Errorf("job.MaxRetries was %d", jobData.MaxRetries)
-	}
-	if jobData.Duration == nil {
-		t.Errorf("job.Duration was nil")
 	}
 }
 

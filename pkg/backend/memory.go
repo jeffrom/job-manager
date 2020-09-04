@@ -68,14 +68,18 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *job.JobListPara
 
 func (m *Memory) AckJobs(ctx context.Context, results *job.Acks) error {
 	for _, res := range results.Acks {
-		job, ok := m.jobs[res.Id]
+		jobData, ok := m.jobs[res.Id]
 		if !ok {
 			return ErrNotFound
 		}
-		if len(res.Data) > 0 {
-			job.ResultData = res.Data
+		if res.Data != nil {
+			jobData.Results = []*job.Result{
+				{
+					Data: res.Data,
+				},
+			}
 		}
-		job.Status = res.Status
+		jobData.Status = res.Status
 	}
 	// fmt.Println("---")
 	// for k := range m.jobs {

@@ -40,6 +40,12 @@ func Execute() {
 	}
 }
 
+func wrapCobraCommand(cfg *jobclient.Config, c Command) *cobra.Command {
+	cmd := c.Cmd()
+	cmd.RunE = wrapCmdRun(cfg, c.Execute)
+	return cmd
+}
+
 type wrappedCobraRun = func(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error
 
 func wrapCmdRun(cfgFlags *jobclient.Config, fn wrappedCobraRun) func(cmd *cobra.Command, args []string) error {

@@ -14,14 +14,14 @@ type listCmd struct {
 
 func (c *listCmd) Cmd() *cobra.Command { return c.Command }
 func (c *listCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	return usageCmd(ctx, cfg, cmd, args)
+	return runListQueues(ctx, cfg, cmd, args)
 }
 
 func newListCmd(cfg *jobclient.Config) *listCmd {
 	c := &listCmd{
 		Command: &cobra.Command{
 			Use:     "list",
-			Aliases: []string{"ls"},
+			Aliases: []string{"ls", "get"},
 		},
 	}
 

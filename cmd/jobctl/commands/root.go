@@ -30,8 +30,8 @@ func newRootCmd(cfg *jobclient.Config) *rootCmd {
 	flags.StringVarP(&cfg.Addr, "host", "H", "", "set host:port (env: $HOST)")
 
 	cmd.AddCommand(
-		newListCmd(cfg).Cmd(),
-		newSaveCmd(cfg).Cmd(),
+		wrapCobraCommand(cfg, newListCmd(cfg)),
+		wrapCobraCommand(cfg, newSaveCmd(cfg)),
 	)
 	return c
 }

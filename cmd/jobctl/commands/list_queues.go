@@ -36,6 +36,10 @@ func newListQueuesCmd(cfg *jobclient.Config) *listQueuesCmd {
 
 func (c *listQueuesCmd) Cmd() *cobra.Command { return c.Command }
 func (c *listQueuesCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+	return runListQueues(ctx, cfg, cmd, args)
+}
+
+func runListQueues(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
 	client := clientFromContext(ctx)
 	queues, err := client.ListQueues(ctx, jobclient.ListQueuesOpts{})
 	if err != nil {

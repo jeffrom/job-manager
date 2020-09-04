@@ -49,13 +49,17 @@ func newSaveQueueCmd(cfg *jobclient.Config) *saveQueueCmd {
 
 func (c *saveQueueCmd) Cmd() *cobra.Command { return c.Command }
 func (c *saveQueueCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	labels, err := label.ParseStringArray(c.opts.LabelFlags)
+	return runSaveQueue(ctx, cfg, c.opts, cmd, args)
+}
+
+func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpts, cmd *cobra.Command, args []string) error {
+	labels, err := label.ParseStringArray(opts.LabelFlags)
 	if err != nil {
 		return err
 	}
 	// TODO reading the schema from stdin could be cool too
 	var scm *schema.Schema
-	if p := c.opts.SchemaPath; p != "" {
+	if p := opts.SchemaPath; p != "" {
 		b, err := ioutil.ReadFile(p)
 		if err != nil {
 			return err
@@ -85,9 +89,9 @@ func (c *saveQueueCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *
 
 	client := clientFromContext(ctx)
 	q, err := client.SaveQueue(ctx, args[0], jobclient.SaveQueueOpts{
-		Concurrency:  c.opts.Concurrency,
-		MaxRetries:   c.opts.MaxRetries,
-		JobDuration:  c.opts.JobDuration,
+		Concurrency:  opts.Concurrency,
+		MaxRetries:   opts.MaxRetries,
+		JobDuration:  opts.JobDuration,
 		Labels:       labels,
 		ArgSchema:    argSchema,
 		DataSchema:   dataSchema,

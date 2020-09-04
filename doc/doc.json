@@ -12,6 +12,37 @@
       "extensions": [],
       "messages": [
         {
+          "name": "ErrorResponse",
+          "longName": "ErrorResponse",
+          "fullName": "api.v1.ErrorResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "error",
+              "description": "",
+              "label": "",
+              "type": "GenericError",
+              "longType": "GenericError",
+              "fullType": "api.v1.GenericError",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "invalid",
+              "description": "",
+              "label": "",
+              "type": "ValidationErrorResponse",
+              "longType": "ValidationErrorResponse",
+              "fullType": "api.v1.ValidationErrorResponse",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GenericError",
           "longName": "GenericError",
           "fullName": "api.v1.GenericError",
@@ -99,6 +130,82 @@
               "type": "ValidationErrorArg",
               "longType": "ValidationErrorArg",
               "fullType": "api.v1.ValidationErrorArg",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
+      "name": "api/v1/ack.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "AckParamArgs",
+          "longName": "AckParamArgs",
+          "fullName": "api.v1.AckParamArgs",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "status",
+              "description": "",
+              "label": "",
+              "type": "Status",
+              "longType": "job.v1.Status",
+              "fullType": "job.v1.Status",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "data",
+              "description": "",
+              "label": "",
+              "type": "Value",
+              "longType": "google.protobuf.Value",
+              "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AckParams",
+          "longName": "AckParams",
+          "fullName": "api.v1.AckParams",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "acks",
+              "description": "",
+              "label": "repeated",
+              "type": "AckParamArgs",
+              "longType": "AckParamArgs",
+              "fullType": "api.v1.AckParamArgs",
               "ismap": false,
               "defaultValue": ""
             }
@@ -338,7 +445,7 @@
       "services": []
     },
     {
-      "name": "api/v1/job.proto",
+      "name": "api/v1/enqueue.proto",
       "description": "",
       "package": "api.v1",
       "hasEnums": false,
@@ -348,130 +455,6 @@
       "enums": [],
       "extensions": [],
       "messages": [
-        {
-          "name": "AckParamArgs",
-          "longName": "AckParamArgs",
-          "fullName": "api.v1.AckParamArgs",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "status",
-              "description": "",
-              "label": "",
-              "type": "Status",
-              "longType": "job.v1.Status",
-              "fullType": "job.v1.Status",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "data",
-              "description": "",
-              "label": "",
-              "type": "Value",
-              "longType": "google.protobuf.Value",
-              "fullType": "google.protobuf.Value",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "AckParams",
-          "longName": "AckParams",
-          "fullName": "api.v1.AckParams",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "acks",
-              "description": "",
-              "label": "repeated",
-              "type": "AckParamArgs",
-              "longType": "AckParamArgs",
-              "fullType": "api.v1.AckParamArgs",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "DequeueParams",
-          "longName": "DequeueParams",
-          "fullName": "api.v1.DequeueParams",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "num",
-              "description": "",
-              "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "job",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "selectors",
-              "description": "",
-              "label": "repeated",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "DequeueResponse",
-          "longName": "DequeueResponse",
-          "fullName": "api.v1.DequeueResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "jobs",
-              "description": "",
-              "label": "",
-              "type": "Jobs",
-              "longType": "job.v1.Jobs",
-              "fullType": "job.v1.Jobs",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
         {
           "name": "EnqueueParamArgs",
           "longName": "EnqueueParamArgs",
@@ -603,11 +586,176 @@
               "fullType": "job.v1.Jobs",
               "ismap": false,
               "defaultValue": ""
+            },
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "ErrorResponse",
+              "longType": "ErrorResponse",
+              "fullType": "api.v1.ErrorResponse",
+              "ismap": false,
+              "defaultValue": ""
             }
           ]
         }
       ],
       "services": []
+    },
+    {
+      "name": "api/v1/dequeue.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "DequeueParams",
+          "longName": "DequeueParams",
+          "fullName": "api.v1.DequeueParams",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "num",
+              "description": "",
+              "label": "",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "job",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "selectors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DequeueResponse",
+          "longName": "DequeueResponse",
+          "fullName": "api.v1.DequeueResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "jobs",
+              "description": "",
+              "label": "",
+              "type": "Jobs",
+              "longType": "job.v1.Jobs",
+              "fullType": "job.v1.Jobs",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "ErrorResponse",
+              "longType": "ErrorResponse",
+              "fullType": "api.v1.ErrorResponse",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
+      "name": "api/v1/job.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": true,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "Empty",
+          "longName": "Empty",
+          "fullName": "api.v1.Empty",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "extensions": [],
+          "fields": []
+        }
+      ],
+      "services": [
+        {
+          "name": "JobService",
+          "longName": "JobService",
+          "fullName": "api.v1.JobService",
+          "description": "",
+          "methods": [
+            {
+              "name": "Enqueue",
+              "description": "",
+              "requestType": "EnqueueParams",
+              "requestLongType": "EnqueueParams",
+              "requestFullType": "api.v1.EnqueueParams",
+              "requestStreaming": false,
+              "responseType": "EnqueueResponse",
+              "responseLongType": "EnqueueResponse",
+              "responseFullType": "api.v1.EnqueueResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "Dequeue",
+              "description": "",
+              "requestType": "DequeueParams",
+              "requestLongType": "DequeueParams",
+              "requestFullType": "api.v1.DequeueParams",
+              "requestStreaming": false,
+              "responseType": "DequeueResponse",
+              "responseLongType": "DequeueResponse",
+              "responseFullType": "api.v1.DequeueResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "Ack",
+              "description": "",
+              "requestType": "AckParams",
+              "requestLongType": "AckParams",
+              "requestFullType": "api.v1.AckParams",
+              "requestStreaming": false,
+              "responseType": "Empty",
+              "responseLongType": "Empty",
+              "responseFullType": "api.v1.Empty",
+              "responseStreaming": false
+            }
+          ]
+        }
+      ]
     },
     {
       "name": "job/v1/result.proto",

@@ -6,6 +6,13 @@ import "google/protobuf/struct.proto";
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
+message ErrorResponse {
+  oneof error_response {
+    GenericError error = 1;
+    ValidationErrorResponse invalid = 2;
+  }
+}
+
 message GenericError {
   string message = 1;
   string resource = 2;

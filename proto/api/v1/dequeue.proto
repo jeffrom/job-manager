@@ -1,0 +1,18 @@
+syntax = "proto3";
+package api.v1;
+
+import "job/v1/job.proto";
+import "api/v1/errors.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
+
+message DequeueParams {
+  int32 num = 1;
+  string job = 2;
+  repeated string selectors = 3;
+}
+
+message DequeueResponse {
+  job.v1.Jobs jobs = 1;
+  repeated ErrorResponse errors = 2;
+}

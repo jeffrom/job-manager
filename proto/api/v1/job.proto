@@ -1,52 +1,17 @@
 syntax = "proto3";
 package api.v1;
 
-import "google/protobuf/duration.proto";
-import "google/protobuf/struct.proto";
-
-import "job/v1/job.proto";
-import "job/v1/status.proto";
+import "api/v1/enqueue.proto";
+import "api/v1/dequeue.proto";
+import "api/v1/ack.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
-message EnqueueParamArgs {
-  string job = 1;
-  repeated google.protobuf.Value args = 2;
-  map<string, string> data = 3;
+message Empty {}
 
-  int32 retries = 4;
-  google.protobuf.Duration duration = 5;
+service JobService {
+  rpc Enqueue(EnqueueParams) returns (EnqueueResponse);
+  rpc Dequeue(DequeueParams) returns (DequeueResponse);
+  rpc Ack(AckParams) returns (Empty);
 }
-
-message EnqueueParams {
-  repeated EnqueueParamArgs jobs = 1;
-}
-
-message EnqueueResponse {
-  job.v1.Jobs jobs = 1;
-}
-
-message DequeueParams {
-  int32 num = 1;
-  string job = 2;
-  repeated string selectors = 3;
-}
-
-message DequeueResponse {
-  job.v1.Jobs jobs = 1;
-}
-
-message AckParamArgs {
-  string id = 1;
-  job.v1.Status status = 2;
-  google.protobuf.Value data = 3;
-}
-
-message AckParams {
-  repeated AckParamArgs acks = 1;
-}
-
-/*service JobService {
-  rpc Enqueue(EnqueueParams) returns (AckParams);
-}*/

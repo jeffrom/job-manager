@@ -15,12 +15,14 @@ option go_package = "github.com/jeffrom/job-manager/pkg/job";
 
 message Job {
   string id = 1;
-  string name = 2;
+  int32 v = 2;
+  int32 queue_v = 3;
+  string name = 4;
 
-  repeated google.protobuf.Value args = 3;
-  Data data = 4;
+  repeated google.protobuf.Value args = 5;
+  Data data = 6;
 
-  int32 attempt = 5;
+  int32 attempt = 7;
 
   Status status = 8;
 

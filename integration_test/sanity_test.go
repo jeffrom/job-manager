@@ -107,12 +107,23 @@ func TestIntegrationSanity(t *testing.T) {
 			if !t.Run("single-job", tc.wrap(ctx, testSingleJob)) {
 				return
 			}
+
+			// handle multiple jobs
 			if !t.Run("handle-multiple", tc.wrap(ctx, testHandleMultipleJobs)) {
 				return
 			}
+
+			// validate
 			if !t.Run("validate-args", tc.wrap(ctx, testValidateArgs)) {
 				return
 			}
+
+			// unique jobs
+			// unique jobs (jsonschema)
+
+			// checkins
+
+			// claim windows
 		})
 	}
 }

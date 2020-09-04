@@ -34,5 +34,5 @@ message ListQueuesRequest {
 }
 
 message ListQueuesResponse {
-  job.v1.Queues queues = 1;
+  job.v1.Queues data = 1;
 }

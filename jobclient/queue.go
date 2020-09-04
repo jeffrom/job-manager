@@ -95,5 +95,5 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*job.Queu
 	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}
-	return resp.Queues, nil
+	return resp.Data, nil
 }

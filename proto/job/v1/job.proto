@@ -5,19 +5,10 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
+import "job/v1/status.proto";
+
 option go_package = "github.com/jeffrom/job-manager/pkg/job";
 
-
-enum Status {
-  STATUS_UNSPECIFIED = 0;
-  STATUS_QUEUED = 1;
-  STATUS_RUNNING = 2;
-  STATUS_COMPLETE = 3;
-  STATUS_DEAD = 4;
-  STATUS_CANCELLED = 5;
-  STATUS_INVALID = 6;
-  STATUS_FAILED = 7;
-}
 
 message Job {
   string id = 1;
@@ -39,16 +30,6 @@ message Job {
 
 message Jobs {
   repeated Job jobs = 1;
-}
-
-message Result {
-  string id = 1;
-  Status status = 2;
-  map<string, google.protobuf.Value> data = 3;
-}
-
-message Results {
-  repeated Result results = 1;
 }
 
 message JobListParams {

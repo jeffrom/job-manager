@@ -15,7 +15,7 @@ type Interface interface {
 
 	EnqueueJobs(ctx context.Context, jobs *job.Jobs) error
 	DequeueJobs(ctx context.Context, num int, opts *job.JobListParams) (*job.Jobs, error)
-	AckJobs(ctx context.Context, results *job.Results) error
+	AckJobs(ctx context.Context, results *job.Acks) error
 
 	GetJobByID(ctx context.Context, id string) (*job.Job, error)
 	ListJobs(ctx context.Context, opts *job.JobListParams) (*job.Jobs, error)

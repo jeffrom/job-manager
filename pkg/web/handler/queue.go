@@ -79,7 +79,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{Queues: queues})
+	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{Data: queues})
 }
 
 func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {

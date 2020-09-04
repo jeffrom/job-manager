@@ -17,7 +17,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	results := &job.Results{Results: make([]*job.Result, len(params.Acks))}
+	results := &job.Acks{Acks: make([]*job.Ack, len(params.Acks))}
 	for i, ackParam := range params.Acks {
 		id := ackParam.Id
 		jobData, err := be.GetJobByID(ctx, id)
@@ -36,7 +36,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		results.Results[i] = &job.Result{
+		results.Acks[i] = &job.Ack{
 			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,

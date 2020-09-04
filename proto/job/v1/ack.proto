@@ -1,0 +1,19 @@
+syntax = "proto3";
+package job.v1;
+
+import "job/v1/status.proto";
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/job";
+
+
+message Ack {
+  string id = 1;
+  Status status = 2;
+  map<string, google.protobuf.Value> data = 3;
+}
+
+message Acks {
+  repeated Ack acks = 1;
+}

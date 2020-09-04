@@ -30,7 +30,8 @@ func newRootCmd(cfg *jobclient.Config) *rootCmd {
 	flags.StringVarP(&cfg.Addr, "host", "H", "", "set host:port (env: $HOST)")
 
 	cmd.AddCommand(
-		newQueueCmd(cfg).Cmd(),
+		newListCmd(cfg).Cmd(),
+		newSaveCmd(cfg).Cmd(),
 	)
 	return c
 }

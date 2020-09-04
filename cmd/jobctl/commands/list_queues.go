@@ -12,21 +12,21 @@ import (
 	"github.com/jeffrom/job-manager/jobclient"
 )
 
-type queueListOpts struct {
+type listQueuesOpts struct {
 }
 
-type queueListCmd struct {
+type listQueuesCmd struct {
 	*cobra.Command
-	opts *queueListOpts
+	opts *listQueuesOpts
 }
 
-func newQueueListCmd(cfg *jobclient.Config) *queueListCmd {
-	opts := &queueListOpts{}
-	c := &queueListCmd{
+func newListQueuesCmd(cfg *jobclient.Config) *listQueuesCmd {
+	opts := &listQueuesOpts{}
+	c := &listQueuesCmd{
 		opts: opts,
 		Command: &cobra.Command{
-			Use:     "list",
-			Aliases: []string{"ls"},
+			Use:     "queues",
+			Aliases: []string{"queue", "q"},
 			Args:    cobra.NoArgs,
 		},
 	}
@@ -34,8 +34,8 @@ func newQueueListCmd(cfg *jobclient.Config) *queueListCmd {
 	return c
 }
 
-func (c *queueListCmd) Cmd() *cobra.Command { return c.Command }
-func (c *queueListCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *listQueuesCmd) Cmd() *cobra.Command { return c.Command }
+func (c *listQueuesCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
 	client := clientFromContext(ctx)
 	queues, err := client.ListQueues(ctx, jobclient.ListQueuesOpts{})
 	if err != nil {

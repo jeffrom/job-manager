@@ -13,24 +13,25 @@ import (
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
-type queueSaveOpts struct {
+type saveQueueOpts struct {
 	jobclient.SaveQueueOpts
 
 	LabelFlags []string
 	SchemaPath string
 }
 
-type queueSaveCmd struct {
+type saveQueueCmd struct {
 	*cobra.Command
-	opts *queueSaveOpts
+	opts *saveQueueOpts
 }
 
-func newQueueSaveCmd(cfg *jobclient.Config) *queueSaveCmd {
-	opts := &queueSaveOpts{}
-	c := &queueSaveCmd{
+func newSaveQueueCmd(cfg *jobclient.Config) *saveQueueCmd {
+	opts := &saveQueueOpts{}
+	c := &saveQueueCmd{
 		Command: &cobra.Command{
-			Use:  "save",
-			Args: cobra.ExactArgs(1),
+			Use:     "queue",
+			Args:    cobra.ExactArgs(1),
+			Aliases: []string{"q"},
 		},
 		opts: opts,
 	}
@@ -46,12 +47,13 @@ func newQueueSaveCmd(cfg *jobclient.Config) *queueSaveCmd {
 	return c
 }
 
-func (c *queueSaveCmd) Cmd() *cobra.Command { return c.Command }
-func (c *queueSaveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *saveQueueCmd) Cmd() *cobra.Command { return c.Command }
+func (c *saveQueueCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
 	labels, err := label.ParseStringArray(c.opts.LabelFlags)
 	if err != nil {
 		return err
 	}
+	// TODO reading the schema from stdin could be cool too
 	var scm *schema.Schema
 	if p := c.opts.SchemaPath; p != "" {
 		b, err := ioutil.ReadFile(p)

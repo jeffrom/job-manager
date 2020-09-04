@@ -18,8 +18,6 @@ message Job {
   map<string, string> data = 4;
 
   int32 attempt = 5;
-  int32 max_retries = 6;
-  google.protobuf.Duration duration = 7;
 
   Status status = 8;
 
@@ -36,6 +34,7 @@ message JobListParams {
   repeated string names = 1;
   repeated Status statuses = 2;
   map<string, string> labels = 3;
-  google.protobuf.Timestamp created_since = 4;
-  google.protobuf.Timestamp created_until = 5;
+  repeated string selectors = 4;
+  google.protobuf.Timestamp created_since = 5;
+  google.protobuf.Timestamp created_until = 6;
 }

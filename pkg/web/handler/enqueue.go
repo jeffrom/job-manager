@@ -3,9 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"time"
 
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
@@ -52,21 +50,21 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			var maxRetries int32
-			if jobArg.Retries > 0 {
-				maxRetries = jobArg.Retries
-			} else if queue != nil && queue.MaxRetries > 0 {
-				maxRetries = queue.MaxRetries
-			}
+			// var maxRetries int32
+			// if jobArg.Retries > 0 {
+			// 	maxRetries = jobArg.Retries
+			// } else if queue != nil && queue.MaxRetries > 0 {
+			// 	maxRetries = queue.MaxRetries
+			// }
 
-			var dur *durationpb.Duration
-			if jobArg.Duration != nil {
-				dur = jobArg.Duration
-			} else if d := queue.Duration; d != nil && (d.Seconds > 0 || d.Nanos > 0) {
-				dur = queue.Duration
-			} else {
-				dur = durationpb.New(10 * time.Minute)
-			}
+			// var dur *durationpb.Duration
+			// if jobArg.Duration != nil {
+			// 	dur = jobArg.Duration
+			// } else if d := queue.Duration; d != nil && (d.Seconds > 0 || d.Nanos > 0) {
+			// 	dur = queue.Duration
+			// } else {
+			// 	dur = durationpb.New(10 * time.Minute)
+			// }
 
 			id := job.NewID()
 			jobs.Jobs[i] = &job.Job{
@@ -74,8 +72,6 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Name:       jobArg.Job,
 				Args:       jobArg.Args,
 				Data:       jobArg.Data,
-				Duration:   dur,
-				MaxRetries: maxRetries,
 				Status:     job.StatusQueued,
 				EnqueuedAt: now,
 			}

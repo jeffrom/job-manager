@@ -1098,26 +1098,6 @@
               "defaultValue": ""
             },
             {
-              "name": "max_retries",
-              "description": "",
-              "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "duration",
-              "description": "",
-              "label": "",
-              "type": "Duration",
-              "longType": "google.protobuf.Duration",
-              "fullType": "google.protobuf.Duration",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
               "name": "status",
               "description": "",
               "label": "",
@@ -1248,6 +1228,16 @@
               "longType": "JobListParams.LabelsEntry",
               "fullType": "job.v1.JobListParams.LabelsEntry",
               "ismap": true,
+              "defaultValue": ""
+            },
+            {
+              "name": "selectors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
               "defaultValue": ""
             },
             {

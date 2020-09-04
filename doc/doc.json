@@ -487,61 +487,10 @@
             {
               "name": "data",
               "description": "",
-              "label": "repeated",
-              "type": "DataEntry",
-              "longType": "EnqueueParamArgs.DataEntry",
-              "fullType": "api.v1.EnqueueParamArgs.DataEntry",
-              "ismap": true,
-              "defaultValue": ""
-            },
-            {
-              "name": "retries",
-              "description": "",
               "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "duration",
-              "description": "",
-              "label": "",
-              "type": "Duration",
-              "longType": "google.protobuf.Duration",
-              "fullType": "google.protobuf.Duration",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "DataEntry",
-          "longName": "EnqueueParamArgs.DataEntry",
-          "fullName": "api.v1.EnqueueParamArgs.DataEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "Data",
+              "longType": "job.v1.Data",
+              "fullType": "job.v1.Data",
               "ismap": false,
               "defaultValue": ""
             }
@@ -819,6 +768,51 @@
             },
             {
               "name": "completed_at",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
+      "name": "job/v1/checkin.proto",
+      "description": "",
+      "package": "job.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "Checkin",
+          "longName": "Checkin",
+          "fullName": "job.v1.Checkin",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data",
+              "description": "",
+              "label": "",
+              "type": "Value",
+              "longType": "google.protobuf.Value",
+              "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_at",
               "description": "",
               "label": "",
               "type": "Timestamp",
@@ -1234,6 +1228,41 @@
       "services": []
     },
     {
+      "name": "job/v1/data.proto",
+      "description": "",
+      "package": "job.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "Data",
+          "longName": "Data",
+          "fullName": "job.v1.Data",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data",
+              "description": "",
+              "label": "",
+              "type": "Value",
+              "longType": "google.protobuf.Value",
+              "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
       "name": "job/v1/job.proto",
       "description": "",
       "package": "job.v1",
@@ -1286,11 +1315,11 @@
             {
               "name": "data",
               "description": "",
-              "label": "repeated",
-              "type": "DataEntry",
-              "longType": "Job.DataEntry",
-              "fullType": "job.v1.Job.DataEntry",
-              "ismap": true,
+              "label": "",
+              "type": "Data",
+              "longType": "Data",
+              "fullType": "job.v1.Data",
+              "ismap": false,
               "defaultValue": ""
             },
             {
@@ -1314,6 +1343,16 @@
               "defaultValue": ""
             },
             {
+              "name": "checkins",
+              "description": "",
+              "label": "repeated",
+              "type": "Checkin",
+              "longType": "Checkin",
+              "fullType": "job.v1.Checkin",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "results",
               "description": "",
               "label": "repeated",
@@ -1330,37 +1369,6 @@
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
               "fullType": "google.protobuf.Timestamp",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "DataEntry",
-          "longName": "Job.DataEntry",
-          "fullName": "job.v1.Job.DataEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
               "ismap": false,
               "defaultValue": ""
             }

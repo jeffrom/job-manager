@@ -6,6 +6,8 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 import "job/v1/status.proto";
+import "job/v1/data.proto";
+import "job/v1/checkin.proto";
 import "job/v1/result.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/job";
@@ -16,15 +18,16 @@ message Job {
   string name = 2;
 
   repeated google.protobuf.Value args = 3;
-  map<string, string> data = 4;
+  Data data = 4;
 
   int32 attempt = 5;
 
   Status status = 8;
 
-  repeated Result results = 9;
+  repeated Checkin checkins = 9;
+  repeated Result results = 10;
 
-  google.protobuf.Timestamp enqueued_at = 10;
+  google.protobuf.Timestamp enqueued_at = 11;
 }
 
 message Jobs {

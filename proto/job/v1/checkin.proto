@@ -1,0 +1,17 @@
+syntax = "proto3";
+package job.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+
+import "job/v1/status.proto";
+import "job/v1/result.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/job";
+
+
+message Checkin {
+  google.protobuf.Value data = 1;
+  google.protobuf.Timestamp created_at = 2;
+}

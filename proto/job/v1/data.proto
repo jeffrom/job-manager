@@ -1,0 +1,11 @@
+syntax = "proto3";
+package job.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/job";
+
+
+message Data {
+  google.protobuf.Value data = 1;
+}

@@ -1,10 +1,10 @@
 syntax = "proto3";
 package api.v1;
 
-import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 import "job/v1/job.proto";
+import "job/v1/data.proto";
 import "api/v1/errors.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
@@ -13,10 +13,7 @@ option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 message EnqueueParamArgs {
   string job = 1;
   repeated google.protobuf.Value args = 2;
-  map<string, string> data = 3;
-
-  int32 retries = 4;
-  google.protobuf.Duration duration = 5;
+  job.v1.Data data = 3;
 }
 
 message EnqueueParams {

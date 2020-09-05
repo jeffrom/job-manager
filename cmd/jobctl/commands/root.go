@@ -32,6 +32,7 @@ func newRootCmd(cfg *jobclient.Config) *rootCmd {
 	cmd.AddCommand(
 		wrapCobraCommand(cfg, newListCmd(cfg)),
 		wrapCobraCommand(cfg, newSaveCmd(cfg)),
+		wrapCobraCommand(cfg, newEnqueueCmd(cfg)),
 		wrapCobraCommand(cfg, newCompletionCmd(cfg)),
 	)
 	return c

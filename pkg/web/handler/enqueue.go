@@ -26,9 +26,8 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		jobs := &job.Jobs{
-			Jobs: make([]*job.Job, len(params.Jobs)),
-		}
+		jobs := &job.Jobs{Jobs: make([]*job.Job, len(params.Jobs))}
+		ids := make([]string, len(params.Jobs))
 		now := timestamppb.Now()
 		for i, jobArg := range params.Jobs {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
@@ -75,6 +74,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Status:     job.StatusQueued,
 				EnqueuedAt: now,
 			}
+			ids[i] = id
 			// fmt.Printf("JOB: %+v\n", jobs.Jobs[i])
 		}
 
@@ -82,7 +82,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		return MarshalResponse(w, r, &apiv1.EnqueueResponse{
-			Jobs: jobs,
+			Jobs: ids,
 		})
 	})(w, r)
 }

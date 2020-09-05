@@ -32,11 +32,11 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 		return "", err
 	}
 
-	if len(resp.Jobs.Jobs) == 0 {
+	if len(resp.Jobs) == 0 {
 		return "", errors.New("jobclient: unexpectedly received no enqueued job data")
 	}
 
-	return resp.Jobs.Jobs[0].Id, nil
+	return resp.Jobs[0], nil
 }
 
 func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selectors ...string) (*job.Jobs, error) {

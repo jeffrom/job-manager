@@ -21,7 +21,7 @@ message EnqueueParams {
 }
 
 message EnqueueResponse {
-  job.v1.Jobs jobs = 1;
+  repeated string jobs = 1;
   repeated ErrorResponse errors = 2;
 }
 

@@ -12,6 +12,10 @@ func TestSelector(t *testing.T) {
 		match bool
 	}{
 		{
+			in:    "",
+			match: true,
+		},
+		{
 			in:    "cool",
 			match: true,
 		},
@@ -46,6 +50,14 @@ func TestSelector(t *testing.T) {
 		{
 			in:    "cool in (nice, hella)",
 			match: true,
+		},
+		{
+			in:    "cool in (nice, hella),!naw",
+			match: true,
+		},
+		{
+			in:    "nice in (ok, hella),!cool",
+			match: false,
 		},
 		{
 			in:    "cool = nice",

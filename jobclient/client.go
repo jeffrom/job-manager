@@ -14,6 +14,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/querystring"
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
@@ -105,13 +106,28 @@ func (c *Client) newRequest(method, uri string, body io.Reader) (*http.Request, 
 func (c *Client) newRequestProto(method, uri string, msg proto.Message) (*http.Request, error) {
 	var r io.Reader
 	if msg != nil {
-		b, err := proto.Marshal(msg)
-		if err != nil {
-			return nil, err
+		if method == "GET" {
+			vals, err := querystring.Values(msg)
+			if err != nil {
+				return nil, err
+			}
+			uri += "?" + vals.Encode()
+		} else {
+			b, err := proto.Marshal(msg)
+			if err != nil {
+				return nil, err
+			}
+			r = bytes.NewReader(b)
 		}
-		r = bytes.NewReader(b)
 	}
-	return c.newRequest(method, uri, r)
+	// fmt.Printf("uri: %q\n", uri)
+	req, err := c.newRequest(method, uri, r)
+	if method == "GET" {
+		// req.Header.Set("content-type", "application/x-www-form-urlencoded")
+	}
+	// b, _ := httputil.DumpRequest(req, false)
+	// fmt.Println(string(b))
+	return req, err
 }
 
 func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Message) error {
@@ -120,6 +136,8 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 		return err
 	}
 
+	// b, _ := httputil.DumpResponse(res, false)
+	// fmt.Println(string(b))
 	switch res.StatusCode {
 	case http.StatusOK:
 		if err := unmarshalProto(res, msg); err != nil {

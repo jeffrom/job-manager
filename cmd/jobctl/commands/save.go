@@ -13,14 +13,6 @@ type saveCmd struct {
 	saveQueueCmd *saveQueueCmd
 }
 
-func (c *saveCmd) Cmd() *cobra.Command { return c.Command }
-func (c *saveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		return cmd.Usage()
-	}
-	return c.saveQueueCmd.Execute(ctx, cfg, cmd, args)
-}
-
 func newSaveCmd(cfg *jobclient.Config) *saveCmd {
 	savec := newSaveQueueCmd(cfg)
 	cmd := savec.Cmd()
@@ -35,4 +27,12 @@ func newSaveCmd(cfg *jobclient.Config) *saveCmd {
 		newSaveQueueCmd(cfg),
 	)
 	return c
+}
+
+func (c *saveCmd) Cmd() *cobra.Command { return c.Command }
+func (c *saveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return cmd.Usage()
+	}
+	return c.saveQueueCmd.Execute(ctx, cfg, cmd, args)
 }

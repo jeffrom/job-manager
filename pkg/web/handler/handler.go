@@ -59,22 +59,24 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 }
 
 func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
+	log := middleware.LoggerFromContext(r.Context())
 	defer r.Body.Close()
 	ct := r.Header.Get("content-type")
+	var b []byte
 	if r.Method == "GET" {
 		ct = "application/x-www-form-urlencoded"
-	}
-	log := middleware.LoggerFromContext(r.Context())
-
-	b, rerr := ioutil.ReadAll(r.Body)
-	if rerr != nil {
-		return rerr
-	}
-	if len(b) == 0 {
-		if required {
-			return io.ErrUnexpectedEOF
+	} else {
+		var rerr error
+		b, rerr = ioutil.ReadAll(r.Body)
+		if rerr != nil {
+			return rerr
 		}
-		return nil
+		if len(b) == 0 {
+			if required {
+				return io.ErrUnexpectedEOF
+			}
+			return nil
+		}
 	}
 
 	var err error

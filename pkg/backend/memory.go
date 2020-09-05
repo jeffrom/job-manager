@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/label"
 )
 
 // Memory is an in-memory backend intended for testing.
@@ -34,11 +35,29 @@ func (m *Memory) SaveQueue(ctx context.Context, queue *job.Queue) error {
 }
 
 func (m *Memory) ListQueues(ctx context.Context, opts *job.QueueListParams) (*job.Queues, error) {
-	jobs := &job.Queues{}
-	for _, job := range m.configs {
-		jobs.Queues = append(jobs.Queues, job)
+	if opts == nil {
+		opts = &job.QueueListParams{}
 	}
-	return jobs, nil
+	sels, err := label.ParseSelectorStringArray(opts.Selectors)
+	if err != nil {
+		return nil, err
+	}
+
+	queues := &job.Queues{}
+	for _, queue := range m.configs {
+		if m.filterQueue(queue, opts.Names, sels) {
+			continue
+		}
+		queues.Queues = append(queues.Queues, queue)
+	}
+	return queues, nil
+}
+
+func (m *Memory) filterQueue(queue *job.Queue, names []string, sels *label.Selectors) bool {
+	if len(names) > 0 && !valIn(queue.Id, names) {
+		return true
+	}
+	return !sels.Match(queue.Labels)
 }
 
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *job.Jobs) error {
@@ -128,4 +147,13 @@ func (m *Memory) ListJobs(ctx context.Context, opts *job.JobListParams) (*job.Jo
 		res.Jobs = append(res.Jobs, jobData)
 	}
 	return res, nil
+}
+
+func valIn(val string, vals []string) bool {
+	for _, v := range vals {
+		if val == v {
+			return true
+		}
+	}
+	return false
 }

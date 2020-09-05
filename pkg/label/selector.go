@@ -19,42 +19,80 @@ var selectorValueSplitRE = regexp.MustCompile(`, *`)
 // type Selectors map[string]selectorValue
 
 type Selectors struct {
-	names []string
-	nots  []string
-	in    map[string][]string
-	notin map[string][]string
+	Names    []string
+	NotNames []string
+	In       map[string][]string
+	NotIn    map[string][]string
 }
 
 func newSelectors() *Selectors {
 	return &Selectors{
-		in:    make(map[string][]string),
-		notin: make(map[string][]string),
+		In:    make(map[string][]string),
+		NotIn: make(map[string][]string),
 	}
 }
 
+func (s Selectors) String() string {
+	var set bool
+	var b strings.Builder
+	b.WriteString("Selector<")
+	if names := s.Names; len(names) > 0 {
+		set = true
+		b.WriteString("Names: ")
+		b.WriteString(strings.Join(names, ", "))
+	}
+	if notNames := s.NotNames; len(notNames) > 0 {
+		if set {
+			b.WriteString(", ")
+		}
+		set = true
+		b.WriteString("NotNames: ")
+		b.WriteString(strings.Join(notNames, ", "))
+	}
+	if in := s.In; len(in) > 0 {
+		if set {
+			b.WriteString(", ")
+		}
+		set = true
+		b.WriteString(fmt.Sprintf("In: %v", in))
+	}
+	if notin := s.NotIn; len(notin) > 0 {
+		if set {
+			b.WriteString(", ")
+		}
+		set = true
+		b.WriteString(fmt.Sprintf("NotIn: %v", notin))
+	}
+	b.WriteString(">")
+	return b.String()
+}
+
 func (s Selectors) Match(labels Labels) bool {
+	if len(s.Names) == 0 && len(s.NotNames) == 0 && len(s.In) == 0 && len(s.NotIn) == 0 {
+		return true
+	}
 	// first negative matches
 	for name, value := range labels {
-		if valIn(name, s.nots) {
+		if valIn(name, s.NotNames) {
 			return false
 		}
-		if notInVals, ok := s.notin[name]; ok {
+		if notInVals, ok := s.NotIn[name]; ok {
 			if valIn(value, notInVals) {
 				return false
 			}
 		}
 	}
 
-	if len(s.names) == 0 && len(s.in) == 0 {
+	if len(s.Names) == 0 && len(s.In) == 0 {
 		return true
 	}
 
 	// now require positive matches
 	for name, value := range labels {
-		if valIn(name, s.names) {
+		if valIn(name, s.Names) {
 			return true
 		}
-		if inVals, ok := s.in[name]; ok {
+		if inVals, ok := s.In[name]; ok {
 			if valIn(value, inVals) {
 				return true
 			}
@@ -63,10 +101,13 @@ func (s Selectors) Match(labels Labels) bool {
 	return false
 }
 
-func ParseSelectors(s string) (*Selectors, error) {
+func ParseSelectorStringArray(sels []string) (*Selectors, error) {
 	sel := newSelectors()
-	statements := strings.Split(s, ",")
-	for i, stmt := range statements {
+
+	for i, stmt := range sels {
+		if strings.TrimSpace(stmt) == "" {
+			continue
+		}
 		match := removeEmptyParts(selectorRE.FindStringSubmatch(strings.TrimSpace(stmt)))
 		// fmt.Println(match)
 		if match == nil || len(match) < 2 {
@@ -80,9 +121,9 @@ func ParseSelectors(s string) (*Selectors, error) {
 		if len(match) == 2 {
 			not := len(name) > 0 && name[0] == '!'
 			if not {
-				sel.nots = append(sel.nots, name[1:])
+				sel.NotNames = append(sel.NotNames, name[1:])
 			} else {
-				sel.names = append(sel.names, name)
+				sel.Names = append(sel.Names, name)
 			}
 			continue
 		}
@@ -95,14 +136,46 @@ func ParseSelectors(s string) (*Selectors, error) {
 
 		switch operator {
 		case "in", "=":
-			sel.in[name] = append(sel.in[name], vals...)
+			sel.In[name] = append(sel.In[name], vals...)
 		case "notin", "!=":
-			sel.notin[name] = append(sel.notin[name], vals...)
+			sel.NotIn[name] = append(sel.NotIn[name], vals...)
 		default:
 			return nil, fmt.Errorf("label: invalid operator %q (part %d): %q", operator, i, stmt)
 		}
 	}
 	return sel, nil
+}
+
+func ParseSelectors(s string) (*Selectors, error) {
+	sels := SplitSelectors(s)
+	// fmt.Printf("%q\n", sels)
+	return ParseSelectorStringArray(sels)
+}
+
+func SplitSelectors(s string) []string {
+	var parts []string
+	prev := 0
+	depth := 0
+	for i, ch := range s {
+		if ch == '(' {
+			depth++
+		}
+		if depth > 0 {
+			if ch == ')' {
+				depth--
+			}
+			continue
+		}
+
+		if ch == ',' && (i-prev) != 0 {
+			parts = append(parts, s[prev:i])
+			prev = i + 1
+		}
+	}
+	if prev < len(s) {
+		parts = append(parts, s[prev:])
+	}
+	return parts
 }
 
 func removeEmptyParts(parts []string) []string {

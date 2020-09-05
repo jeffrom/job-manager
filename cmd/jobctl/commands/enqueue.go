@@ -41,14 +41,6 @@ func newEnqueueCmd(cfg *jobclient.Config) *enqueueCmd {
 		opts: opts,
 	}
 
-	// cmd := c.Cmd()
-	// flags := cmd.Flags()
-	// flags.IntVarP(&opts.Concurrency, "concurrency", "c", 0, "job concurrency")
-	// flags.IntVarP(&opts.MaxRetries, "retries", "r", 0, "max retries")
-	// flags.DurationVarP(&opts.JobDuration, "duration", "d", 0, "job max duration")
-	// flags.StringArrayVarP(&opts.LabelFlags, "label", "l", nil, "set label `name=value`")
-	// flags.StringVarP(&opts.SchemaPath, "schema", "S", "", "path to json schema")
-
 	return c
 }
 

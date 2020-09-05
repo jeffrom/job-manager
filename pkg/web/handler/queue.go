@@ -77,12 +77,19 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
 	queues, err := be.ListQueues(ctx, &job.QueueListParams{
-		Names: params.Names,
+		Names:     params.Names,
+		Selectors: params.Selectors,
 	})
 	if err != nil {
 		return err
 	}
+
 	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{Data: queues})
+}
+
+func nameMatches(name string, names []string) bool {
+
+	return false
 }
 
 func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {

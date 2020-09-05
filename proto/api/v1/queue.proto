@@ -10,15 +10,16 @@ option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 message SaveQueueParamArgs {
   string name = 1;
-  int32 concurrency = 2;
-  int32 max_retries = 3;
-  google.protobuf.Duration duration = 4;
-  google.protobuf.Duration checkin_duration = 5;
-  map<string, string> labels = 6;
-  bytes arg_schema = 7;
-  bytes data_schema = 8;
-  bytes result_schema = 9;
-  bool unique = 10;
+  int32 v = 2;
+  int32 concurrency = 3;
+  int32 max_retries = 4;
+  google.protobuf.Duration duration = 5;
+  google.protobuf.Duration checkin_duration = 6;
+  map<string, string> labels = 7;
+  bytes arg_schema = 8;
+  bytes data_schema = 9;
+  bytes result_schema = 10;
+  bool unique = 11;
 }
 
 message SaveQueueParams {
@@ -37,4 +38,8 @@ message ListQueuesRequest {
 
 message ListQueuesResponse {
   job.v1.Queues data = 1;
+}
+
+message GetQueueResponse {
+  job.v1.Queue data = 1;
 }

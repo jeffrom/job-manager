@@ -26,6 +26,8 @@ func debugRoutes(r chi.Router) {
 
 func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 	r := chi.NewRouter()
+	r.MethodNotAllowed(handler.Func(handler.MethodNotAllowed))
+	r.NotFound(handler.Func(handler.NotFound))
 
 	debugRoutes(r)
 
@@ -64,6 +66,7 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 				r.Get("/", handler.Func(handler.ListQueues))
 
 				r.Route("/{queueID}", func(r chi.Router) {
+					r.Get("/", handler.Func(handler.GetQueueByID))
 					r.Put("/", handler.Func(handler.SaveQueue))
 					r.Delete("/", handler.Func(handler.DeleteQueue))
 

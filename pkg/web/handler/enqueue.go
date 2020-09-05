@@ -37,7 +37,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
 			if err != nil {
 				if errors.Is(err, backend.ErrNotFound) {
-					return apiv1.NewNotFoundError("queue")
+					return apiv1.NewNotFoundError("queue", jobArg.Job, "")
 				}
 				return err
 			}

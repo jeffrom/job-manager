@@ -1,7 +1,10 @@
 package backend
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"strconv"
 
 	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/label"
@@ -30,6 +33,24 @@ func (m *Memory) GetQueue(ctx context.Context, name string) (*job.Queue, error) 
 }
 
 func (m *Memory) SaveQueue(ctx context.Context, queue *job.Queue) error {
+	// if it already exists and no version was supplied, or if version was
+	// supplied but they don't match, return conflict
+	prev, ok := m.configs[queue.Id]
+	// fmt.Printf("prev: %+v, found: %v\n", prev, ok)
+	if ok {
+		if queue.V == 0 || queue.V != prev.V {
+			return &VersionConflictError{
+				Resource:   "queue",
+				ResourceID: queue.Id,
+				Prev:       strconv.FormatInt(int64(prev.V), 10),
+				Curr:       strconv.FormatInt(int64(queue.V), 10),
+			}
+		}
+	}
+	// fmt.Printf("---\nprev: %s\ncurr: %s\nequal: %v\n\n", prev.String(), queue.String(), proto.Equal(queue, prev))
+	if prev == nil || !queuesEqual(queue, prev) {
+		queue.V++
+	}
 	m.configs[queue.Id] = queue
 	return nil
 }
@@ -156,4 +177,35 @@ func valIn(val string, vals []string) bool {
 		}
 	}
 	return false
+}
+
+func queuesEqual(a, b *job.Queue) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	ac := &*a
+	bc := &*b
+	ac.CreatedAt = nil
+	bc.CreatedAt = nil
+	abuf, err := json.Marshal(ac)
+	if err != nil {
+		return false
+	}
+	bbuf, err := json.Marshal(bc)
+	if err != nil {
+		return false
+	}
+	return bytes.Equal(abuf, bbuf)
+}
+
+func labelsEqual(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k, v := range a {
+		if b[k] != v {
+			return false
+		}
+	}
+	return true
 }

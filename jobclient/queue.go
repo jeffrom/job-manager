@@ -25,6 +25,7 @@ type SaveQueueOpts struct {
 	DataSchema   []byte
 	ResultSchema []byte
 	Unique       bool
+	V            int32
 }
 
 func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*job.Queue, error) {
@@ -63,6 +64,7 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 		args.ResultSchema = resSchema
 	}
 	args.Unique = opts.Unique
+	args.V = opts.V
 
 	uri := fmt.Sprintf("/api/v1/queues/%s", name)
 	req, err := c.newRequestProto("PUT", uri, args)
@@ -94,6 +96,20 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*job.Queu
 	}
 
 	resp := &apiv1.ListQueuesResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+func (c *Client) GetQueue(ctx context.Context, id string) (*job.Queue, error) {
+	uri := fmt.Sprintf("/api/v1/queues/%s", id)
+	req, err := c.newRequestProto("GET", uri, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &apiv1.GetQueueResponse{}
 	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}

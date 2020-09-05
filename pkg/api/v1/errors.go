@@ -2,10 +2,23 @@ package v1
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"google.golang.org/protobuf/proto"
 )
+
+var ErrMethodNotAllowed = &Error{
+	status: http.StatusMethodNotAllowed,
+	msg:    "method not allowed",
+	kind:   "method_not_allowed",
+}
+
+var ErrGenericNotFound = &Error{
+	status: http.StatusNotFound,
+	msg:    "not found",
+	kind:   "not_found",
+}
 
 type Error struct {
 	status     int
@@ -21,7 +34,7 @@ func NewError(msg string) *Error {
 	return &Error{
 		msg:    msg,
 		kind:   "internal",
-		status: 500,
+		status: http.StatusInternalServerError,
 	}
 }
 
@@ -59,16 +72,15 @@ func NewUnprocessableEntityError(resource, resourceID, reason string) *Error {
 	}
 }
 
-func NewNotFoundError(resource string) *Error {
-	msg := "not found"
-	if resource != "" {
-		msg = resource + " " + msg
+func NewNotFoundError(resource, resourceID, reason string) *Error {
+	return &Error{
+		status:     404,
+		msg:        "not found",
+		kind:       "not_found",
+		resource:   resource,
+		resourceID: resourceID,
+		reason:     reason,
 	}
-	e := NewError(msg)
-	e.kind = "not_found"
-	e.resource = resource
-	e.status = 404
-	return e
 }
 
 // func ErrorFromProto(msg proto.Message) (*Error, error) {
@@ -123,9 +135,9 @@ func (e *Error) Message() proto.Message {
 
 func ErrorMessage(e *GenericError) string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("api/v1: %s:", e.Message))
+	b.WriteString(fmt.Sprintf("api/v1: %s", e.Message))
 	if e.Reason != "" {
-		b.WriteString(" ")
+		b.WriteString(": ")
 		b.WriteString(e.Reason)
 	}
 	if e.Resource != "" {

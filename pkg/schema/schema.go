@@ -129,3 +129,11 @@ func Canonicalize(data []byte) ([]byte, error) {
 	}
 	return b.Bytes(), nil
 }
+
+// func Equals(a, b *Schema) bool {
+// 	if a == nil || b == nil {
+// 		return a == b
+// 	}
+// 	// TODO quick solution is to serialize em to compare
+// 	return false
+// }

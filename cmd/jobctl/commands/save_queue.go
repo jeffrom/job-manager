@@ -89,8 +89,19 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		}
 	}
 
+	id := args[0]
 	client := clientFromContext(ctx)
-	q, err := client.SaveQueue(ctx, args[0], jobclient.SaveQueueOpts{
+	prev, err := client.GetQueue(ctx, id)
+	if err != nil && !jobclient.IsNotFound(err) {
+		// fmt.Printf("%T %#v\n", err, err.(*jobclient.APIError).GenericError)
+		return err
+	}
+	v := int32(0)
+	if prev != nil {
+		v = prev.V
+	}
+
+	q, err := client.SaveQueue(ctx, id, jobclient.SaveQueueOpts{
 		Concurrency:  opts.Concurrency,
 		MaxRetries:   opts.MaxRetries,
 		JobDuration:  opts.JobDuration,
@@ -99,6 +110,7 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		DataSchema:   dataSchema,
 		ResultSchema: resultSchema,
 		Unique:       opts.Unique,
+		V:            v,
 	})
 	if err != nil {
 		return err

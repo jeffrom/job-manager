@@ -256,6 +256,27 @@
       "extensions": [],
       "messages": [
         {
+          "name": "GetQueueResponse",
+          "longName": "GetQueueResponse",
+          "fullName": "api.v1.GetQueueResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data",
+              "description": "",
+              "label": "",
+              "type": "Queue",
+              "longType": "job.v1.Queue",
+              "fullType": "job.v1.Queue",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "ListQueuesRequest",
           "longName": "ListQueuesRequest",
           "fullName": "api.v1.ListQueuesRequest",
@@ -323,6 +344,16 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "v",
+              "description": "",
+              "label": "",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
               "ismap": false,
               "defaultValue": ""
             },

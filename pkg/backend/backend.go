@@ -3,7 +3,6 @@ package backend
 
 import (
 	"context"
-	"errors"
 
 	"github.com/jeffrom/job-manager/pkg/job"
 )
@@ -22,5 +21,3 @@ type Interface interface {
 	GetJobByID(ctx context.Context, id string) (*job.Job, error)
 	ListJobs(ctx context.Context, opts *job.JobListParams) (*job.Jobs, error)
 }
-
-var ErrNotFound = errors.New("backend: not found")

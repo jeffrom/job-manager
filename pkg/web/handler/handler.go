@@ -30,6 +30,7 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 		if err := fn(w, r); err != nil {
 			reqLog := middleware.RequestLogFromContext(r.Context())
 
+			// set status depending on the error returned
 			status := http.StatusInternalServerError
 			if herr, ok := err.(httpError); ok {
 				status = herr.Status()
@@ -37,6 +38,8 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 				status = http.StatusBadRequest
 			} else if errors.Is(err, backend.ErrNotFound) {
 				status = http.StatusNotFound
+			} else if errors.Is(err, &backend.VersionConflictError{}) {
+				status = http.StatusConflict
 			} else if errors.Is(err, &schema.ValidationError{}) {
 				status = http.StatusBadRequest
 			}
@@ -45,6 +48,14 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 			if status >= http.StatusInternalServerError {
 				reqLog.Err(err)
 			}
+
+			// maybe translate errors into api errors
+			vcErr := &backend.VersionConflictError{}
+			if errors.As(err, &vcErr) {
+				err = newVersionConflictError(vcErr)
+			}
+
+			// log the error
 			log := middleware.LoggerFromContext(r.Context())
 			logRequestError(log, status, err)
 			w.WriteHeader(status)

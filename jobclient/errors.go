@@ -42,3 +42,11 @@ func (e *APIError) Is(other error) bool {
 func newGenericErrorFromMessage(message *apiv1.GenericError) *APIError {
 	return &APIError{GenericError: message}
 }
+
+func IsNotFound(err error) bool {
+	gerr := &APIError{}
+	if errors.As(err, &gerr) {
+		return gerr.Kind == "not_found"
+	}
+	return false
+}

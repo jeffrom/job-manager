@@ -57,9 +57,10 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		},
 		CreatedAt: now,
 		Unique:    params.Unique,
+		V:         params.V,
 	}
 	if err := be.SaveQueue(ctx, queue); err != nil {
-		return err
+		return handleBackendErrors(err, "queue", queueID)
 	}
 	return MarshalResponse(w, r, &apiv1.SaveQueueResponse{Queue: queue})
 }
@@ -87,9 +88,16 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{Data: queues})
 }
 
-func nameMatches(name string, names []string) bool {
+func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	be := middleware.GetBackend(ctx)
+	queueID := chi.URLParam(r, "queueID")
 
-	return false
+	queue, err := be.GetQueue(ctx, queueID)
+	if err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.GetQueueResponse{Data: queue})
 }
 
 func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {
@@ -98,12 +106,12 @@ func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {
 	jobID := chi.URLParam(r, "jobID")
 	jobData, err := be.GetJobByID(ctx, jobID)
 	if err != nil {
-		return err
+		return handleBackendErrors(err, "job", jobID)
 	}
 
 	queue, err := be.GetQueue(ctx, jobData.Name)
 	if err != nil {
-		return err
+		return handleBackendErrors(err, "queue", jobData.Name)
 	}
-	return MarshalResponse(w, r, queue)
+	return MarshalResponse(w, r, &apiv1.GetQueueResponse{Data: queue})
 }

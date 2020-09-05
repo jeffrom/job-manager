@@ -52,6 +52,16 @@
           "extensions": [],
           "fields": [
             {
+              "name": "kind",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "message",
               "description": "",
               "label": "",
@@ -363,6 +373,16 @@
               "type": "bytes",
               "longType": "bytes",
               "fullType": "bytes",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "unique",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "defaultValue": ""
             }
@@ -989,6 +1009,16 @@
               "type": "Schema",
               "longType": "Schema",
               "fullType": "job.v1.Schema",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "unique",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "defaultValue": ""
             },

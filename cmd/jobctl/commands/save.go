@@ -15,6 +15,9 @@ type saveCmd struct {
 
 func (c *saveCmd) Cmd() *cobra.Command { return c.Command }
 func (c *saveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return cmd.Usage()
+	}
 	return c.saveQueueCmd.Execute(ctx, cfg, cmd, args)
 }
 
@@ -22,6 +25,7 @@ func newSaveCmd(cfg *jobclient.Config) *saveCmd {
 	savec := newSaveQueueCmd(cfg)
 	cmd := savec.Cmd()
 	cmd.Use = "save"
+	cmd.Args = cobra.MaximumNArgs(1)
 	c := &saveCmd{
 		saveQueueCmd: savec,
 		Command:      cmd,

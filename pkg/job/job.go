@@ -26,3 +26,11 @@ func HasStatus(job *Job, statuses []Status) bool {
 	}
 	return false
 }
+
+func IsComplete(status Status) bool {
+	switch status {
+	case StatusComplete, StatusCancelled, StatusInvalid, StatusDead:
+		return true
+	}
+	return false
+}

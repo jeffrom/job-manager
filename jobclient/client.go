@@ -125,12 +125,12 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-	case http.StatusNotFound:
+	case http.StatusNotFound, http.StatusConflict:
 		msg := &apiv1.GenericError{}
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-		return newNotFoundErrorProto(msg)
+		return newGenericErrorFromMessage(msg)
 	case http.StatusBadRequest:
 		msg := &apiv1.ValidationErrorResponse{}
 		if err := unmarshalProto(res, msg); err != nil {

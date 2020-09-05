@@ -17,6 +17,7 @@ message SaveQueueParamArgs {
   bytes arg_schema = 6;
   bytes data_schema = 7;
   bytes result_schema = 8;
+  bool unique = 9;
 }
 
 message SaveQueueParams {

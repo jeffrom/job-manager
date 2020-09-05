@@ -18,10 +18,11 @@ message Queue {
   google.protobuf.Duration duration = 5;
   map<string, string> labels = 6;
   Schema schema = 7;
+  bool unique = 8;
 
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
-  google.protobuf.Timestamp deleted_at = 10;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  google.protobuf.Timestamp deleted_at = 11;
 }
 
 message Queues {

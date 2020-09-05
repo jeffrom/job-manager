@@ -43,6 +43,7 @@ func newSaveQueueCmd(cfg *jobclient.Config) *saveQueueCmd {
 	flags.DurationVarP(&opts.JobDuration, "duration", "d", 0, "job max duration")
 	flags.StringArrayVarP(&opts.LabelFlags, "label", "l", nil, "set label `name=value`")
 	flags.StringVarP(&opts.SchemaPath, "schema", "S", "", "path to json schema")
+	flags.BoolVarP(&opts.Unique, "unique", "U", false, "run one unique arg list concurrently")
 
 	return c
 }
@@ -58,6 +59,7 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		return err
 	}
 	// TODO reading the schema from stdin could be cool too
+	// TODO clean this up, just get the whole schema at once
 	var scm *schema.Schema
 	if p := opts.SchemaPath; p != "" {
 		b, err := ioutil.ReadFile(p)
@@ -96,6 +98,7 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		ArgSchema:    argSchema,
 		DataSchema:   dataSchema,
 		ResultSchema: resultSchema,
+		Unique:       opts.Unique,
 	})
 	if err != nil {
 		return err

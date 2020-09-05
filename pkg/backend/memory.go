@@ -8,14 +8,16 @@ import (
 
 // Memory is an in-memory backend intended for testing.
 type Memory struct {
-	configs map[string]*job.Queue
-	jobs    map[string]*job.Job
+	configs    map[string]*job.Queue
+	jobs       map[string]*job.Job
+	uniqueness map[string]bool
 }
 
 func NewMemory() *Memory {
 	return &Memory{
-		configs: make(map[string]*job.Queue),
-		jobs:    make(map[string]*job.Job),
+		configs:    make(map[string]*job.Queue),
+		jobs:       make(map[string]*job.Job),
+		uniqueness: make(map[string]bool),
 	}
 }
 
@@ -85,6 +87,24 @@ func (m *Memory) AckJobs(ctx context.Context, results *job.Acks) error {
 	// for k := range m.jobs {
 	// 	fmt.Println(k, m.jobs[k].Status)
 	// }
+	return nil
+}
+
+func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
+	for _, key := range keys {
+		_, ok := m.uniqueness[key]
+		m.uniqueness[key] = true
+		if ok {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (m *Memory) DeleteJobKeys(ctx context.Context, keys []string) error {
+	for _, key := range keys {
+		delete(m.uniqueness, key)
+	}
 	return nil
 }
 

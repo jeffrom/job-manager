@@ -6,24 +6,18 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var internalServerErrorProto = &GenericError{
-	Message: "internal server error",
-}
-
-var notFoundErrorProto = &GenericError{
-	Message: "not found",
-}
-
 type Error struct {
 	status   int
 	msg      string
+	kind     string
+	resource string
 	origErr  error
-	protoMsg proto.Message
 }
 
 func NewError(msg string) *Error {
 	return &Error{
 		msg:    msg,
+		kind:   "internal",
 		status: 500,
 	}
 }
@@ -31,19 +25,31 @@ func NewError(msg string) *Error {
 func NewInternalServerError(err error) *Error {
 	e := NewError("handler: internal server error")
 	e.status = 500
+	e.kind = "internal"
 	e.origErr = err
-	e.protoMsg = internalServerErrorProto
+	return e
+}
+
+func NewConflictError(resource string) *Error {
+	msg := "conflict"
+	if resource != "" {
+		msg = resource + " " + msg
+	}
+	e := NewError(msg)
+	e.kind = "conflict"
+	e.status = 409
 	return e
 }
 
 func NewNotFoundError(resource string) *Error {
 	msg := "not found"
 	if resource != "" {
-		msg = resource + msg
+		msg = resource + " " + msg
 	}
 	e := NewError(msg)
+	e.kind = "not_found"
+	e.resource = resource
 	e.status = 404
-	e.protoMsg = notFoundErrorProto
 	return e
 }
 
@@ -60,4 +66,10 @@ func (e *Error) Error() string {
 
 func (e *Error) Status() int { return e.status }
 
-func (e *Error) Message() proto.Message { return e.protoMsg }
+func (e *Error) Message() proto.Message {
+	return &GenericError{
+		Kind:     e.kind,
+		Message:  e.msg,
+		Resource: e.resource,
+	}
+}

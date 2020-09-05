@@ -12,11 +12,6 @@ type listCmd struct {
 	*cobra.Command
 }
 
-func (c *listCmd) Cmd() *cobra.Command { return c.Command }
-func (c *listCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	return runListQueues(ctx, cfg, cmd, args)
-}
-
 func newListCmd(cfg *jobclient.Config) *listCmd {
 	c := &listCmd{
 		Command: &cobra.Command{
@@ -29,4 +24,9 @@ func newListCmd(cfg *jobclient.Config) *listCmd {
 		newListQueuesCmd(cfg),
 	)
 	return c
+}
+
+func (c *listCmd) Cmd() *cobra.Command { return c.Command }
+func (c *listCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+	return runListQueues(ctx, cfg, cmd, args)
 }

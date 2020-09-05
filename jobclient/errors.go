@@ -9,23 +9,33 @@ import (
 
 var ErrInternal = errors.New("jobclient: internal server error")
 
-type NotFoundError struct {
+type GenericError struct {
 	*apiv1.GenericError
-	// Resource string `json:"resource"`
 }
 
-func (e *NotFoundError) Is(other error) bool {
-	_, ok := other.(*NotFoundError)
-	return ok
-}
-
-func (e *NotFoundError) Error() string {
-	if e.GenericError == nil {
-		return "api/v1: not found"
+func (e *GenericError) Error() string {
+	if e.Resource != "" {
+		return fmt.Sprintf("api/v1: %s %s", e.Resource, e.Message)
 	}
-	return fmt.Sprintf("api/v1: %q not found", e.GenericError.Resource)
+	return fmt.Sprintf("api/v1: %s", e.Message)
 }
 
-func newNotFoundErrorProto(message *apiv1.GenericError) *NotFoundError {
-	return &NotFoundError{GenericError: message}
+func (e *GenericError) Is(other error) bool {
+	if e == nil || other == nil {
+		return e == other
+	}
+
+	otherGeneric, ok := other.(*GenericError)
+	if !ok {
+		return false
+	}
+
+	if e.Kind != otherGeneric.Kind {
+		return false
+	}
+	return e.Resource == otherGeneric.Resource
+}
+
+func newGenericErrorFromMessage(message *apiv1.GenericError) *GenericError {
+	return &GenericError{GenericError: message}
 }

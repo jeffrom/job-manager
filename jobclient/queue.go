@@ -24,6 +24,7 @@ type SaveQueueOpts struct {
 	ArgSchema    []byte
 	DataSchema   []byte
 	ResultSchema []byte
+	Unique       bool
 }
 
 func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*job.Queue, error) {
@@ -61,6 +62,7 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 		}
 		args.ResultSchema = resSchema
 	}
+	args.Unique = opts.Unique
 
 	uri := fmt.Sprintf("/api/v1/queues/%s", name)
 	req, err := c.newRequestProto("PUT", uri, args)

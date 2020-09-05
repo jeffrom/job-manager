@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"context"
+	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"net/http"
 
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
@@ -49,21 +53,16 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			// var maxRetries int32
-			// if jobArg.Retries > 0 {
-			// 	maxRetries = jobArg.Retries
-			// } else if queue != nil && queue.MaxRetries > 0 {
-			// 	maxRetries = queue.MaxRetries
-			// }
-
-			// var dur *durationpb.Duration
-			// if jobArg.Duration != nil {
-			// 	dur = jobArg.Duration
-			// } else if d := queue.Duration; d != nil && (d.Seconds > 0 || d.Nanos > 0) {
-			// 	dur = queue.Duration
-			// } else {
-			// 	dur = durationpb.New(10 * time.Minute)
-			// }
+			if queue.Unique {
+				unique, err := checkArgUniqueness(ctx, be, scm, jobArg.Args)
+				if err != nil {
+					return err
+				}
+				if unique {
+					// return conflict error
+					return apiv1.NewConflictError(queue.Id)
+				}
+			}
 
 			id := job.NewID()
 			jobs.Jobs[i] = &job.Job{
@@ -85,4 +84,32 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Jobs: ids,
 		})
 	})(w, r)
+}
+
+func checkArgUniqueness(ctx context.Context, be backend.Interface, scm *schema.Schema, args []*structpb.Value) (bool, error) {
+	iargs := make([]interface{}, len(args))
+	for i, arg := range args {
+		iargs[i] = arg.AsInterface()
+	}
+	key, err := uniquenessKeyFromArgs(iargs)
+	if err != nil {
+		return false, err
+	}
+	found, err := be.GetSetJobKeys(ctx, []string{key})
+	if err != nil {
+		return false, err
+	}
+	if found {
+		return true, nil
+	}
+	return false, nil
+}
+
+func uniquenessKeyFromArgs(args []interface{}) (string, error) {
+	b, err := json.Marshal(args)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(b)
+	return string(sum[:]), nil
 }

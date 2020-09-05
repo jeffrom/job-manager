@@ -14,8 +14,9 @@ message ErrorResponse {
 }
 
 message GenericError {
-  string message = 1;
-  string resource = 2;
+  string kind = 1;
+  string message = 2;
+  string resource = 3;
 }
 
 message ValidationErrorArg {

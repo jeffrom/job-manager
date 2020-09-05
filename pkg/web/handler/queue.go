@@ -56,6 +56,7 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 			Result: params.ResultSchema,
 		},
 		CreatedAt: now,
+		Unique:    params.Unique,
 	}
 	if err := be.SaveQueue(ctx, queue); err != nil {
 		return err

@@ -10,16 +10,19 @@ import (
 
 var internalServerErrorProto = &apiv1.GenericError{
 	Message: "internal server error",
+	Kind:    "internal",
 }
 
 var notFoundErrorProto = &apiv1.GenericError{
 	Message: "not found",
+	Kind:    "not_found",
 }
 
 type Error struct {
 	status   int
 	msg      string
 	origErr  error
+	resource string
 	protoMsg proto.Message
 }
 
@@ -45,6 +48,7 @@ func NewNotFoundError(resource string) *Error {
 	}
 	e := NewError(msg)
 	e.status = 404
+	e.resource = resource
 	e.protoMsg = notFoundErrorProto
 	return e
 }

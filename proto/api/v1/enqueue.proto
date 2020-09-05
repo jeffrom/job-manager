@@ -3,7 +3,6 @@ package api.v1;
 
 import "google/protobuf/struct.proto";
 
-import "job/v1/job.proto";
 import "job/v1/data.proto";
 import "api/v1/errors.proto";
 

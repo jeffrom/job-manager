@@ -48,12 +48,14 @@ func NewConflictError(resource, resourceID, reason string) *Error {
 	}
 }
 
-func NewUnprocessableEntityError(resource string) *Error {
+func NewUnprocessableEntityError(resource, resourceID, reason string) *Error {
 	return &Error{
-		status:   422,
-		msg:      "unprocessable entity",
-		kind:     "unprocessable_entity",
-		resource: resource,
+		status:     422,
+		msg:        "unprocessable entity",
+		kind:       "unprocessable_entity",
+		resource:   resource,
+		resourceID: resourceID,
+		reason:     reason,
 	}
 }
 
@@ -69,34 +71,17 @@ func NewNotFoundError(resource string) *Error {
 	return e
 }
 
-func ErrorFromProto(msg proto.Message) (*Error, error) {
-	return nil, nil
-}
+// func ErrorFromProto(msg proto.Message) (*Error, error) {
+// 	return nil, nil
+// }
 
 func (e *Error) Error() string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf("api/v1 %s: %s", e.kind, e.msg))
-	if e.reason != "" {
-		b.WriteString(". ")
-		b.WriteString(e.reason)
-	}
-	if e.resource != "" {
-		b.WriteString(" (resource: ")
-		b.WriteString(e.resource)
-	}
-	if e.resourceID != "" {
-		b.WriteString(", id: ")
-		b.WriteString(e.resourceID)
-	}
-	if e.resource != "" || e.resourceID != "" {
-		b.WriteString(")")
-	}
-
+	s := ErrorMessage(e.Message().(*GenericError))
 	if orig := e.origErr; orig != nil {
-		b.WriteString(fmt.Sprintf(" (original error: %v)", orig))
+		s += fmt.Sprintf(" (original error: %v)", orig)
 	}
 
-	return b.String()
+	return s
 }
 
 func (e *Error) Unwrap() error { return e.origErr }
@@ -134,4 +119,30 @@ func (e *Error) Message() proto.Message {
 		ResourceId: e.resourceID,
 		Reason:     e.reason,
 	}
+}
+
+func ErrorMessage(e *GenericError) string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("api/v1: %s:", e.Message))
+	if e.Reason != "" {
+		b.WriteString(" ")
+		b.WriteString(e.Reason)
+	}
+	if e.Resource != "" {
+		b.WriteString(" (resource: ")
+		b.WriteString(e.Resource)
+	}
+	if e.ResourceId != "" {
+		b.WriteString(", id: ")
+		b.WriteString(e.ResourceId)
+	}
+	if e.Resource != "" || e.ResourceId != "" {
+		b.WriteString(")")
+	}
+
+	// if orig := e.origErr; orig != nil {
+	// 	b.WriteString(fmt.Sprintf(" (original error: %v)", orig))
+	// }
+
+	return b.String()
 }

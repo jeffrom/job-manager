@@ -2,7 +2,6 @@ package jobclient
 
 import (
 	"errors"
-	"fmt"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 )
@@ -14,10 +13,7 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string {
-	if e.Resource != "" {
-		return fmt.Sprintf("api/v1: %s %s", e.Resource, e.Message)
-	}
-	return fmt.Sprintf("api/v1: %s", e.Message)
+	return apiv1.ErrorMessage(e.GenericError)
 }
 
 func (e *APIError) Is(other error) bool {

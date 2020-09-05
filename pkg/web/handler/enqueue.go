@@ -60,7 +60,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				if unique {
 					// return conflict error
-					return apiv1.NewConflictError("queue", queue.Id, "a job with the same arguments is currently executing")
+					return apiv1.NewUnprocessableEntityError("queue", queue.Id, "A job with matching arguments is executing")
 				}
 			}
 

@@ -99,7 +99,7 @@ $(result_schema_target): $(write_jsonschema_bin) $(result_schema_deps)
 
 .PHONY: dev
 dev:
-	tulpa --ignore proto --ignore .make --ignore doc "make .make/$(server_bin) && .make/$(server_bin)"
+	tulpa -v --ignore proto --ignore .make --ignore doc "make .make/$(server_bin) && .make/$(server_bin)"
 
 $(gocoverutil):
 	GO111MODULE=off go get github.com/AlekSi/gocoverutil

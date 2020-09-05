@@ -149,7 +149,7 @@ func testSingleJob(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
-	expectErr := &jobclient.GenericError{
+	expectErr := &jobclient.APIError{
 		GenericError: &apiv1.GenericError{
 			Resource: "queue",
 			Kind:     "not_found",

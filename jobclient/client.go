@@ -138,28 +138,28 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 
 	// b, _ := httputil.DumpResponse(res, false)
 	// fmt.Println(string(b))
-	switch res.StatusCode {
-	case http.StatusOK:
+
+	switch code := res.StatusCode; {
+	case code >= 200 && code < 300:
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-	case http.StatusNotFound, http.StatusConflict:
-		msg := &apiv1.GenericError{}
-		if err := unmarshalProto(res, msg); err != nil {
-			return err
-		}
-		return newGenericErrorFromMessage(msg)
-	case http.StatusBadRequest:
+	case code == http.StatusBadRequest:
 		msg := &apiv1.ValidationErrorResponse{}
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
 		return schema.NewValidationErrorProto(msg)
-	case http.StatusInternalServerError:
+	case code == http.StatusInternalServerError:
 		return ErrInternal
 	default:
-		panic(fmt.Sprintf("unhandled exit code: %d %s", res.StatusCode, res.Status))
+		msg := &apiv1.GenericError{}
+		if err := unmarshalProto(res, msg); err != nil {
+			return err
+		}
+		return newGenericErrorFromMessage(msg)
 	}
+
 	return nil
 }
 

@@ -9,23 +9,23 @@ import (
 
 var ErrInternal = errors.New("jobclient: internal server error")
 
-type GenericError struct {
+type APIError struct {
 	*apiv1.GenericError
 }
 
-func (e *GenericError) Error() string {
+func (e *APIError) Error() string {
 	if e.Resource != "" {
 		return fmt.Sprintf("api/v1: %s %s", e.Resource, e.Message)
 	}
 	return fmt.Sprintf("api/v1: %s", e.Message)
 }
 
-func (e *GenericError) Is(other error) bool {
+func (e *APIError) Is(other error) bool {
 	if e == nil || other == nil {
 		return e == other
 	}
 
-	otherGeneric, ok := other.(*GenericError)
+	otherGeneric, ok := other.(*APIError)
 	if !ok {
 		return false
 	}
@@ -33,9 +33,16 @@ func (e *GenericError) Is(other error) bool {
 	if e.Kind != otherGeneric.Kind {
 		return false
 	}
-	return e.Resource == otherGeneric.Resource
+	if e.Resource != otherGeneric.Resource {
+		return false
+	}
+	if e.ResourceId != otherGeneric.ResourceId {
+		return false
+	}
+
+	return true
 }
 
-func newGenericErrorFromMessage(message *apiv1.GenericError) *GenericError {
-	return &GenericError{GenericError: message}
+func newGenericErrorFromMessage(message *apiv1.GenericError) *APIError {
+	return &APIError{GenericError: message}
 }

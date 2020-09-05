@@ -17,6 +17,8 @@ message GenericError {
   string kind = 1;
   string message = 2;
   string resource = 3;
+  string resource_id = 4;
+  string reason = 5;
 }
 
 message ValidationErrorArg {

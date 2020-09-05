@@ -337,6 +337,16 @@
               "defaultValue": ""
             },
             {
+              "name": "checkin_duration",
+              "description": "",
+              "label": "",
+              "type": "Duration",
+              "longType": "google.protobuf.Duration",
+              "fullType": "google.protobuf.Duration",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "labels",
               "description": "",
               "label": "repeated",
@@ -984,6 +994,16 @@
             },
             {
               "name": "duration",
+              "description": "",
+              "label": "",
+              "type": "Duration",
+              "longType": "google.protobuf.Duration",
+              "fullType": "google.protobuf.Duration",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "checkin_duration",
               "description": "",
               "label": "",
               "type": "Duration",

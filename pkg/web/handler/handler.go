@@ -45,6 +45,8 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 			if status >= http.StatusInternalServerError {
 				reqLog.Err(err)
 			}
+			log := middleware.LoggerFromContext(r.Context())
+			logRequestError(log, status, err)
 			w.WriteHeader(status)
 
 			if pr, ok := err.(protoError); ok {
@@ -120,4 +122,15 @@ func MarshalResponse(w http.ResponseWriter, r *http.Request, v proto.Message) er
 		return err
 	}
 	return err
+}
+
+func logRequestError(log *middleware.Logger, status int, err error) {
+	ev := log.Warn()
+	if status >= http.StatusInternalServerError {
+		ev = log.Error()
+	}
+
+	ev.Err(err)
+
+	ev.Msg("request error")
 }

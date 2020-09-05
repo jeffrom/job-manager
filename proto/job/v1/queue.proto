@@ -16,13 +16,14 @@ message Queue {
   int32 concurrency = 3;
   int32 retries = 4;
   google.protobuf.Duration duration = 5;
-  map<string, string> labels = 6;
-  Schema schema = 7;
-  bool unique = 8;
+  google.protobuf.Duration checkin_duration = 6;
+  map<string, string> labels = 7;
+  Schema schema = 8;
+  bool unique = 9;
 
-  google.protobuf.Timestamp created_at = 9;
-  google.protobuf.Timestamp updated_at = 10;
-  google.protobuf.Timestamp deleted_at = 11;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp deleted_at = 12;
 }
 
 message Queues {

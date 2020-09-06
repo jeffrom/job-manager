@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jeffrom/job-manager/jobclient"
-	"github.com/jeffrom/job-manager/pkg/job"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -90,7 +90,7 @@ func TestIntegrationSaveQueue(t *testing.T) {
 	}
 }
 
-func checkSaveQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOpts) *job.Queue {
+func checkSaveQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOpts) *jobv1.Queue {
 	t.Helper()
 	q, err := c.SaveQueue(ctx, name, opts)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -45,7 +45,7 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	now := timestamppb.Now()
-	queue := &job.Queue{
+	queue := &jobv1.Queue{
 		Id:          queueID,
 		Concurrency: concurrency,
 		Retries:     maxRetries,
@@ -74,7 +74,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
-	queues, err := be.ListQueues(ctx, &job.QueueListParams{
+	queues, err := be.ListQueues(ctx, &jobv1.QueueListParams{
 		Names:     params.Names,
 		Selectors: params.Selectors,
 	})

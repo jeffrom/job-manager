@@ -6,7 +6,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/job"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
@@ -18,7 +18,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	results := &job.Acks{Acks: make([]*job.Ack, len(params.Acks))}
+	results := &jobv1.Acks{Acks: make([]*jobv1.Ack, len(params.Acks))}
 	for i, ackParam := range params.Acks {
 		id := ackParam.Id
 		jobData, err := be.GetJobByID(ctx, id)
@@ -29,7 +29,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		scm, err := job.ParseSchema(queue)
+		scm, err := jobv1.ParseSchema(queue)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		results.Acks[i] = &job.Ack{
+		results.Acks[i] = &jobv1.Ack{
 			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,
@@ -53,19 +53,19 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*job.Ack) error {
+func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*jobv1.Ack) error {
 	var keys []string
 	for _, ack := range acks {
-		if !job.IsComplete(ack.Status) {
+		if !jobv1.IsComplete(ack.Status) {
 			continue
 		}
 
-		job, err := be.GetJobByID(ctx, ack.Id)
+		jobData, err := be.GetJobByID(ctx, ack.Id)
 		if err != nil {
 			return err
 		}
-		iargs := make([]interface{}, len(job.Args))
-		for i, arg := range job.Args {
+		iargs := make([]interface{}, len(jobData.Args))
+		for i, arg := range jobData.Args {
 			iargs[i] = arg.AsInterface()
 		}
 		ukey, err := uniquenessKeyFromArgs(iargs)

@@ -10,7 +10,7 @@ import "job/v1/data.proto";
 import "job/v1/checkin.proto";
 import "job/v1/result.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/job";
+option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
 
 
 message Job {

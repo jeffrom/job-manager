@@ -8,7 +8,7 @@ package v1
 
 import (
 	proto "github.com/golang/protobuf/proto"
-	job "github.com/jeffrom/job-manager/pkg/job"
+	v1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -94,7 +94,7 @@ type DequeueResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Jobs   *job.Jobs        `protobuf:"bytes,1,opt,name=jobs,proto3" json:"jobs,omitempty"`
+	Jobs   *v1.Jobs         `protobuf:"bytes,1,opt,name=jobs,proto3" json:"jobs,omitempty"`
 	Errors []*ErrorResponse `protobuf:"bytes,2,rep,name=errors,proto3" json:"errors,omitempty"`
 }
 
@@ -130,7 +130,7 @@ func (*DequeueResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_dequeue_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *DequeueResponse) GetJobs() *job.Jobs {
+func (x *DequeueResponse) GetJobs() *v1.Jobs {
 	if x != nil {
 		return x.Jobs
 	}
@@ -185,7 +185,7 @@ var file_api_v1_dequeue_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_api_v1_dequeue_proto_goTypes = []interface{}{
 	(*DequeueParams)(nil),   // 0: api.v1.DequeueParams
 	(*DequeueResponse)(nil), // 1: api.v1.DequeueResponse
-	(*job.Jobs)(nil),        // 2: job.v1.Jobs
+	(*v1.Jobs)(nil),         // 2: job.v1.Jobs
 	(*ErrorResponse)(nil),   // 3: api.v1.ErrorResponse
 }
 var file_api_v1_dequeue_proto_depIdxs = []int32{

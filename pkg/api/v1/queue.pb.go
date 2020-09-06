@@ -9,7 +9,7 @@ package v1
 import (
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"
-	job "github.com/jeffrom/job-manager/pkg/job"
+	v1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -190,7 +190,7 @@ type SaveQueueResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Queue *job.Queue `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+	Queue *v1.Queue `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
 }
 
 func (x *SaveQueueResponse) Reset() {
@@ -225,7 +225,7 @@ func (*SaveQueueResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_queue_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *SaveQueueResponse) GetQueue() *job.Queue {
+func (x *SaveQueueResponse) GetQueue() *v1.Queue {
 	if x != nil {
 		return x.Queue
 	}
@@ -292,7 +292,7 @@ type ListQueuesResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Data *job.Queues `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Data *v1.Queues `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (x *ListQueuesResponse) Reset() {
@@ -327,7 +327,7 @@ func (*ListQueuesResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_queue_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListQueuesResponse) GetData() *job.Queues {
+func (x *ListQueuesResponse) GetData() *v1.Queues {
 	if x != nil {
 		return x.Data
 	}
@@ -339,7 +339,7 @@ type GetQueueResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Data *job.Queue `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Data *v1.Queue `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (x *GetQueueResponse) Reset() {
@@ -374,7 +374,7 @@ func (*GetQueueResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_queue_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetQueueResponse) GetData() *job.Queue {
+func (x *GetQueueResponse) GetData() *v1.Queue {
 	if x != nil {
 		return x.Data
 	}
@@ -463,8 +463,8 @@ var file_api_v1_queue_proto_goTypes = []interface{}{
 	(*GetQueueResponse)(nil),   // 5: api.v1.GetQueueResponse
 	nil,                        // 6: api.v1.SaveQueueParamArgs.LabelsEntry
 	(*duration.Duration)(nil),  // 7: google.protobuf.Duration
-	(*job.Queue)(nil),          // 8: job.v1.Queue
-	(*job.Queues)(nil),         // 9: job.v1.Queues
+	(*v1.Queue)(nil),           // 8: job.v1.Queue
+	(*v1.Queues)(nil),          // 9: job.v1.Queues
 }
 var file_api_v1_queue_proto_depIdxs = []int32{
 	7, // 0: api.v1.SaveQueueParamArgs.duration:type_name -> google.protobuf.Duration

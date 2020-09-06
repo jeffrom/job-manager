@@ -6,7 +6,7 @@ import "google/protobuf/duration.proto";
 
 import "job/v1/job.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/job";
+option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
 
 
 message Queue {

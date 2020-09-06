@@ -9,7 +9,7 @@ package v1
 import (
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"
-	job "github.com/jeffrom/job-manager/pkg/job"
+	v1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -34,7 +34,7 @@ type EnqueueParamArgs struct {
 
 	Job  string           `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
 	Args []*_struct.Value `protobuf:"bytes,2,rep,name=args,proto3" json:"args,omitempty"`
-	Data *job.Data        `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	Data *v1.Data         `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (x *EnqueueParamArgs) Reset() {
@@ -83,7 +83,7 @@ func (x *EnqueueParamArgs) GetArgs() []*_struct.Value {
 	return nil
 }
 
-func (x *EnqueueParamArgs) GetData() *job.Data {
+func (x *EnqueueParamArgs) GetData() *v1.Data {
 	if x != nil {
 		return x.Data
 	}
@@ -242,7 +242,7 @@ var file_api_v1_enqueue_proto_goTypes = []interface{}{
 	(*EnqueueParams)(nil),    // 1: api.v1.EnqueueParams
 	(*EnqueueResponse)(nil),  // 2: api.v1.EnqueueResponse
 	(*_struct.Value)(nil),    // 3: google.protobuf.Value
-	(*job.Data)(nil),         // 4: job.v1.Data
+	(*v1.Data)(nil),          // 4: job.v1.Data
 	(*ErrorResponse)(nil),    // 5: api.v1.ErrorResponse
 }
 var file_api_v1_enqueue_proto_depIdxs = []int32{

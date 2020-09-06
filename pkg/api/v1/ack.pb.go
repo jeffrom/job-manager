@@ -9,7 +9,7 @@ package v1
 import (
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"
-	job "github.com/jeffrom/job-manager/pkg/job"
+	v1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -33,7 +33,7 @@ type AckParamArgs struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id     string         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Status job.Status     `protobuf:"varint,2,opt,name=status,proto3,enum=job.v1.Status" json:"status,omitempty"`
+	Status v1.Status      `protobuf:"varint,2,opt,name=status,proto3,enum=job.v1.Status" json:"status,omitempty"`
 	Data   *_struct.Value `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
@@ -76,11 +76,11 @@ func (x *AckParamArgs) GetId() string {
 	return ""
 }
 
-func (x *AckParamArgs) GetStatus() job.Status {
+func (x *AckParamArgs) GetStatus() v1.Status {
 	if x != nil {
 		return x.Status
 	}
-	return job.Status_STATUS_UNSPECIFIED
+	return v1.Status_STATUS_UNSPECIFIED
 }
 
 func (x *AckParamArgs) GetData() *_struct.Value {
@@ -177,7 +177,7 @@ var file_api_v1_ack_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_api_v1_ack_proto_goTypes = []interface{}{
 	(*AckParamArgs)(nil),  // 0: api.v1.AckParamArgs
 	(*AckParams)(nil),     // 1: api.v1.AckParams
-	(job.Status)(0),       // 2: job.v1.Status
+	(v1.Status)(0),        // 2: job.v1.Status
 	(*_struct.Value)(nil), // 3: google.protobuf.Value
 }
 var file_api_v1_ack_proto_depIdxs = []int32{

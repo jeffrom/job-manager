@@ -1,5 +1,5 @@
 // Package job contains the protocol for working with jobs and queues.
-package job
+package v1
 
 import (
 	uuid "github.com/satori/go.uuid"

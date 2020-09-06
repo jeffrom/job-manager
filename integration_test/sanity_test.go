@@ -10,8 +10,8 @@ import (
 	"github.com/qri-io/jsonschema"
 
 	"github.com/jeffrom/job-manager/jobclient"
-	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/resource"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -35,7 +35,7 @@ func (tc *sanityTestCase) wrap(ctx context.Context, fn func(ctx context.Context,
 	}
 }
 
-func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOpts) *job.Queue {
+func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOpts) *jobv1.Queue {
 	t.Helper()
 	q, err := tc.ctx.client.SaveQueue(ctx, name, opts)
 	if err != nil {
@@ -53,7 +53,7 @@ func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name str
 	return id
 }
 
-func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string, selectors ...string) *job.Jobs {
+func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string, selectors ...string) *jobv1.Jobs {
 	t.Helper()
 	jobs, err := tc.ctx.client.DequeueJobs(ctx, num, name, selectors...)
 	if err != nil {
@@ -62,21 +62,21 @@ func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int
 	return jobs
 }
 
-func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, status job.Status) {
+func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, status jobv1.Status) {
 	t.Helper()
 	if err := tc.ctx.client.AckJob(ctx, id, status); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id string, status job.Status, opts jobclient.AckJobOpts) {
+func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id string, status jobv1.Status, opts jobclient.AckJobOpts) {
 	t.Helper()
 	if err := tc.ctx.client.AckJobOpts(ctx, id, status, opts); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *job.Job {
+func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *jobv1.Job {
 	t.Helper()
 	jobData, err := tc.ctx.client.GetJob(ctx, id)
 	if err != nil {
@@ -233,7 +233,7 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	checkJob(t, jobArg)
 
 	id := jobArg.Id
-	tc.ackJobOpts(ctx, t, id, job.StatusComplete, jobclient.AckJobOpts{
+	tc.ackJobOpts(ctx, t, id, jobv1.StatusComplete, jobclient.AckJobOpts{
 		Data: jobArg.Args[0].GetStringValue(),
 	})
 
@@ -309,7 +309,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	}
 
 	for _, id := range ids {
-		tc.ackJob(ctx, t, id, job.StatusFailed)
+		tc.ackJob(ctx, t, id, jobv1.StatusFailed)
 	}
 
 	jobs = tc.dequeueJobs(ctx, t, n, "cool")
@@ -321,7 +321,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	checkJob(t, jobs.Jobs[2])
 
 	for _, id := range ids {
-		tc.ackJob(ctx, t, id, job.StatusComplete)
+		tc.ackJob(ctx, t, id, jobv1.StatusComplete)
 	}
 
 	jobs = tc.dequeueJobs(ctx, t, n, "cool")
@@ -483,7 +483,7 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	id := tc.enqueueJob(ctx, t, "validat0r", "nice", true)
-	tc.ackJob(ctx, t, id, job.StatusComplete)
+	tc.ackJob(ctx, t, id, jobv1.StatusComplete)
 }
 
 func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []*resource.ValidationError {
@@ -556,20 +556,20 @@ func checkSchemaString(t testing.TB, v interface{}, expect string) {
 	}
 }
 
-func checkJob(t testing.TB, jobData *job.Job) {
+func checkJob(t testing.TB, jobData *jobv1.Job) {
 	if jobData.EnqueuedAt == nil {
-		t.Errorf("job.EnqueuedAt was nil")
+		t.Errorf("jobv1.EnqueuedAt was nil")
 	} else if !jobData.EnqueuedAt.IsValid() {
-		t.Errorf("job.EnqueuedAt is invalid: %v", jobData.EnqueuedAt.CheckValid())
+		t.Errorf("jobv1.EnqueuedAt is invalid: %v", jobData.EnqueuedAt.CheckValid())
 	} else if jobData.EnqueuedAt.AsTime().IsZero() {
-		t.Errorf("job.EnqueuedAt is zero")
+		t.Errorf("jobv1.EnqueuedAt is zero")
 	}
 
-	if jobData.Status == job.StatusUnknown {
-		t.Errorf("job.Status is %s", job.StatusUnknown)
+	if jobData.Status == jobv1.StatusUnknown {
+		t.Errorf("jobv1.Status is %s", jobv1.StatusUnknown)
 	}
 	if jobData.Attempt < 0 {
-		t.Errorf("job.Attempt was %d", jobData.Attempt)
+		t.Errorf("jobv1.Attempt was %d", jobData.Attempt)
 	}
 }
 

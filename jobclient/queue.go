@@ -8,12 +8,12 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 type Queue struct {
-	*job.Queue
+	*jobv1.Queue
 }
 
 type SaveQueueOpts struct {
@@ -29,7 +29,7 @@ type SaveQueueOpts struct {
 	V            int32
 }
 
-func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*job.Queue, error) {
+func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error) {
 	args := &apiv1.SaveQueueParamArgs{
 		Name:   name,
 		Labels: opts.Labels,
@@ -71,7 +71,7 @@ type ListQueuesOpts struct {
 	Selectors []string
 }
 
-func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*job.Queues, error) {
+func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error) {
 	params := &apiv1.ListQueuesRequest{
 		Names:     opts.Names,
 		Selectors: opts.Selectors,
@@ -89,7 +89,7 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*job.Queu
 	return resp.Data, nil
 }
 
-func (c *Client) GetQueue(ctx context.Context, id string) (*job.Queue, error) {
+func (c *Client) GetQueue(ctx context.Context, id string) (*jobv1.Queue, error) {
 	uri := fmt.Sprintf("/api/v1/queues/%s", id)
 	req, err := c.newRequestProto("GET", uri, nil)
 	if err != nil {

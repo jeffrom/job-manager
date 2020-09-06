@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{}) (string, error) {
@@ -39,7 +39,7 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 	return resp.Jobs[0], nil
 }
 
-func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selectors ...string) (*job.Jobs, error) {
+func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selectors ...string) (*jobv1.Jobs, error) {
 	params := &apiv1.DequeueParams{
 		Selectors: selectors,
 	}
@@ -71,11 +71,11 @@ type AckJobOpts struct {
 	Data interface{}
 }
 
-func (c *Client) AckJob(ctx context.Context, id string, status job.Status) error {
+func (c *Client) AckJob(ctx context.Context, id string, status jobv1.Status) error {
 	return c.AckJobOpts(ctx, id, status, AckJobOpts{})
 }
 
-func (c *Client) AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error {
+func (c *Client) AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error {
 	args := &apiv1.AckParamArgs{
 		Id:     id,
 		Status: status,
@@ -97,14 +97,14 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status job.Status, o
 	return c.doRequest(ctx, req, nil)
 }
 
-func (c *Client) GetJob(ctx context.Context, id string) (*job.Job, error) {
+func (c *Client) GetJob(ctx context.Context, id string) (*jobv1.Job, error) {
 	uri := fmt.Sprintf("/api/v1/jobs/%s", id)
 	req, err := c.newRequestProto("GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	jobData := &job.Job{}
+	jobData := &jobv1.Job{}
 	if err := c.doRequest(ctx, req, jobData); err != nil {
 		return nil, err
 	}

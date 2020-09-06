@@ -5,7 +5,7 @@ import "job/v1/status.proto";
 
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/job";
+option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
 
 
 message Ack {

@@ -13,28 +13,28 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/querystring"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 type Interface interface {
 	// Resource(name string) resource.Interface
 	Ping(ctx context.Context) error
 
-	// EnqueueJobs(ctx context.Context, jobs *job.Jobs) ([]string, error)
-	// EnqueueJobsOpts(ctx context.Context, jobs *job.Jobs, opts EnqueueOpts) ([]string, error)
+	// EnqueueJobs(ctx context.Context, jobs *jobv1.Jobs) ([]string, error)
+	// EnqueueJobsOpts(ctx context.Context, jobs *jobv1.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
-	// EnqueueJobOpts(ctx context.Context, jobData *job.Job, opts EnqueueOpts) error
-	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*job.Jobs, error)
-	AckJob(ctx context.Context, id string, status job.Status) error
-	AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error
-	// AckJobs(ctx context.Context, results *job.Results) error
+	// EnqueueJobOpts(ctx context.Context, jobData *jobv1.Job, opts EnqueueOpts) error
+	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*jobv1.Jobs, error)
+	AckJob(ctx context.Context, id string, status jobv1.Status) error
+	AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error
+	// AckJobs(ctx context.Context, results *jobv1.Results) error
 
-	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*job.Queue, error)
-	// SaveQueues(ctx context.Context, queue *job.Queues) error
-	ListQueues(ctx context.Context, opts ListQueuesOpts) (*job.Queues, error)
-	GetQueue(ctx context.Context, id string) (*job.Queue, error)
-	GetJob(ctx context.Context, id string) (*job.Job, error)
+	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error)
+	// SaveQueues(ctx context.Context, queue *jobv1.Queues) error
+	ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error)
+	GetQueue(ctx context.Context, id string) (*jobv1.Queue, error)
+	GetJob(ctx context.Context, id string) (*jobv1.Job, error)
 }
 
 type providerFunc func(c *Client) *Client

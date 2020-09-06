@@ -11,8 +11,8 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/resource"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -30,7 +30,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		jobs := &job.Jobs{Jobs: make([]*job.Job, len(params.Jobs))}
+		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
 		ids := make([]string, len(params.Jobs))
 		now := timestamppb.Now()
 		for i, jobArg := range params.Jobs {
@@ -40,7 +40,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// validate args if there is a schema
-			scm, err := job.ParseSchema(queue)
+			scm, err := jobv1.ParseSchema(queue)
 			if err != nil {
 				return err
 			}
@@ -60,13 +60,13 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			id := job.NewID()
-			jobs.Jobs[i] = &job.Job{
+			id := jobv1.NewID()
+			jobs.Jobs[i] = &jobv1.Job{
 				Id:         id,
 				Name:       jobArg.Job,
 				Args:       jobArg.Args,
 				Data:       jobArg.Data,
-				Status:     job.StatusQueued,
+				Status:     jobv1.StatusQueued,
 				EnqueuedAt: now,
 			}
 			ids[i] = id

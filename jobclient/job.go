@@ -7,7 +7,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
+	"github.com/jeffrom/job-manager/jobclient/internal"
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/label"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
@@ -26,6 +28,11 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 		return "", err
 	}
 
+	if mockNow := internal.GetMockTime(ctx); mockNow != nil {
+		timeStr := fmt.Sprint(mockNow.Unix())
+		req.Header.Set("fake-time", timeStr)
+	}
+
 	resp := &apiv1.EnqueueResponse{}
 	err = c.doRequest(ctx, req, resp)
 	if err != nil {
@@ -39,15 +46,24 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 	return resp.Jobs[0], nil
 }
 
-func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selectors ...string) (*jobv1.Jobs, error) {
+type DequeueOpts struct {
+	Queues    []string
+	Selectors []string
+	Claims    label.Claims
+}
+
+func (c *Client) DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*jobv1.Jobs, error) {
+	queueID := ""
+	if len(opts.Queues) == 1 {
+		queueID = opts.Queues[0]
+	}
 	params := &apiv1.DequeueRequest{
-		Selectors: selectors,
+		Queues:    opts.Queues,
+		Selectors: opts.Selectors,
+		Claims:    opts.Claims.Format(),
 	}
 	if num > 0 {
 		params.Num = int32(num)
-	}
-	if queueID != "" {
-		params.Job = queueID
 	}
 
 	uri := "/api/v1/jobs/dequeue"
@@ -65,6 +81,10 @@ func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selec
 		return nil, err
 	}
 	return resp.Jobs, nil
+}
+
+func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string) (*jobv1.Jobs, error) {
+	return c.DequeueJobsOpts(ctx, num, DequeueOpts{Queues: []string{queueID}})
 }
 
 type AckJobOpts struct {

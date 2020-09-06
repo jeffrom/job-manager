@@ -38,7 +38,8 @@ type Jobs struct {
 }
 
 type JobData struct {
-	Data interface{} `json:"data,omitempty"`
+	Claims label.Claims `json:"claims,omitempty"`
+	Data   interface{}  `json:"data,omitempty"`
 }
 
 type JobCheckin struct {

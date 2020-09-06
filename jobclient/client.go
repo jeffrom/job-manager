@@ -25,7 +25,8 @@ type Interface interface {
 	// EnqueueJobsOpts(ctx context.Context, jobs *jobv1.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
 	// EnqueueJobOpts(ctx context.Context, jobData *jobv1.Job, opts EnqueueOpts) error
-	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*jobv1.Jobs, error)
+	DequeueJobs(ctx context.Context, num int, id string) (*jobv1.Jobs, error)
+	DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*jobv1.Jobs, error)
 	AckJob(ctx context.Context, id string, status jobv1.Status) error
 	AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error
 	// AckJobs(ctx context.Context, results *jobv1.Results) error

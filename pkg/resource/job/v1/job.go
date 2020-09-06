@@ -93,6 +93,7 @@ func NewJobFromProto(msg *Job) *resource.Job {
 	if msg.Data != nil && msg.Data.Data != nil {
 		d = msg.Data.Data.AsInterface()
 	}
+	// TODO parse, set claims
 	return &resource.Job{
 		ID:           msg.Id,
 		Version:      resource.NewVersion(msg.V),
@@ -100,6 +101,7 @@ func NewJobFromProto(msg *Job) *resource.Job {
 		QueueVersion: resource.NewVersion(msg.QueueV),
 		Args:         lv.AsSlice(),
 		Data: &resource.JobData{
+			// Claims:
 			Data: d,
 		},
 		Status:     jobStatusFromProto(msg.Status),

@@ -704,9 +704,9 @@
               "defaultValue": ""
             },
             {
-              "name": "job",
+              "name": "queues",
               "description": "",
-              "label": "",
+              "label": "repeated",
               "type": "string",
               "longType": "string",
               "fullType": "string",
@@ -1344,6 +1344,16 @@
           "hasFields": true,
           "extensions": [],
           "fields": [
+            {
+              "name": "claims",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
             {
               "name": "data",
               "description": "",

@@ -7,5 +7,6 @@ option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
 
 
 message Data {
-  google.protobuf.Value data = 1;
+  repeated string claims = 1;
+  google.protobuf.Value data = 2;
 }

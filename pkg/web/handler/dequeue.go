@@ -20,8 +20,9 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if err := UnmarshalBody(r, &params, queueID == ""); err != nil {
 		return err
 	}
-	if queueID != "" {
-		params.Job = queueID
+	// TODO error if queueID url param is set and there are more than one queue
+	if queueID != "" && len(params.Queues) == 0 {
+		params.Queues = []string{queueID}
 	}
 	var num int = 1
 	if params.Num > 0 {
@@ -33,9 +34,11 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	_, err = be.GetQueue(ctx, queueID)
-	if err != nil {
-		return err
+	for _, qName := range params.Queues {
+		_, err = be.GetQueue(ctx, qName)
+		if err != nil {
+			return err
+		}
 	}
 
 	listOpts := &resource.JobListParams{Claims: claims}

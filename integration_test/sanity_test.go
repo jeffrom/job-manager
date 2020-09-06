@@ -53,12 +53,27 @@ func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name str
 	return id
 }
 
-func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string, selectors ...string) *jobv1.Jobs {
+type tcDequeueOpts struct {
+	MockNow time.Time
+}
+
+func (tc *sanityTestCase) dequeueJobsOpts(ctx context.Context, t testing.TB, num int, opts jobclient.DequeueOpts) *jobv1.Jobs {
 	t.Helper()
-	jobs, err := tc.ctx.client.DequeueJobs(ctx, num, name, selectors...)
+	jobs, err := tc.ctx.client.DequeueJobsOpts(ctx, num, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("dequeued %d jobs", len(jobs.Jobs))
+	return jobs
+}
+
+func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string) *jobv1.Jobs {
+	t.Helper()
+	jobs, err := tc.ctx.client.DequeueJobs(ctx, num, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("dequeued %d jobs", len(jobs.Jobs))
 	return jobs
 }
 
@@ -489,6 +504,12 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	tc.ackJob(ctx, t, id, jobv1.StatusComplete)
 }
 
+// testClaims tests behavior around claim windows. it should work as follows:
+//
+// - if the claim window has not elapsed, job-manager shouldn't dequeue jobs
+// without matching claims.
+// - the claim window should be reset when a job fails.
+// - if the claim window has elapsed, claims should be ignored.
 func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	q := tc.saveQueue(ctx, t, "claimz", jobclient.SaveQueueOpts{
 		ClaimDuration: 1 * time.Second,
@@ -496,7 +517,33 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q == nil {
 		t.Fatal("no queue was saved")
 	}
+	mockNow := time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
+	ctx = jobclient.SetMockTime(ctx, mockNow)
+	id := tc.enqueueJob(ctx, t, "claimz")
+	jobs := tc.dequeueJobs(ctx, t, 1, "claimz")
+	if len(jobs.Jobs) != 0 {
+		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
+	}
 
+	claimJobs := tc.dequeueJobsOpts(ctx, t, 1, jobclient.DequeueOpts{
+		Claims: nil,
+	})
+	if len(claimJobs.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
+	}
+
+	// fail the job
+	tc.ackJobOpts(ctx, t, id, jobv1.StatusFailed, jobclient.AckJobOpts{
+		// Claims: nil,
+	})
+
+	// try to dequeue again, ensure claim window is reset
+
+	// dequeue after claim window has elapsed
+
+	tc.ackJobOpts(ctx, t, id, jobv1.StatusComplete, jobclient.AckJobOpts{
+		// Claims: nil,
+	})
 }
 
 func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []*resource.ValidationError {

@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/jeffrom/job-manager/pkg/internal"
 )
@@ -20,7 +22,15 @@ func Time(t internal.TimeProvider, tick internal.Ticker) func(next http.Handler)
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			if h := r.Header.Get(mockTimeHeader); h != "" {
-				t = &internal.MockTime{}
+				uts, err := strconv.ParseInt(h, 10, 64)
+				if err != nil {
+					panic(err)
+					return
+				}
+				ts := time.Unix(uts, 0)
+				mt := &internal.MockTime{}
+				mt.SetNow(ts)
+				t = mt
 			}
 			if h := r.Header.Get(mockTickerHeader); h != "" {
 				tick = internal.NewMockTick(0)

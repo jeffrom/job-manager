@@ -6,7 +6,7 @@ import "api/v1/errors.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
-message DequeueParams {
+message DequeueRequest {
   int32 num = 1;
   string job = 2;
   repeated string selectors = 3;

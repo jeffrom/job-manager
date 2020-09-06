@@ -12,7 +12,6 @@ import (
 	"github.com/jeffrom/job-manager/jobclient"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -507,24 +506,6 @@ func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, 
 	}
 	t.Logf("validation errors: %s", string(b))
 	return rerr.Invalid
-}
-
-func getKeyErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []jsonschema.KeyError {
-	t.Helper()
-	id, err := tc.ctx.client.EnqueueJob(ctx, queue, args...)
-	if err == nil {
-		t.Fatal("expected validation error")
-	}
-	if id != "" {
-		t.Fatal("expected empty id, got", id)
-	}
-
-	verr := &schema.ValidationError{}
-	if !errors.As(err, &verr) {
-		t.Fatalf("expected error type %T, got %#v", verr, err)
-	}
-
-	return verr.KeyErrors()
 }
 
 func checkArgsSchema(t testing.TB, verr *resource.ValidationError, expectPath string) {

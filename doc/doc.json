@@ -231,9 +231,30 @@
       "extensions": [],
       "messages": [
         {
-          "name": "AckParamArgs",
-          "longName": "AckParamArgs",
-          "fullName": "api.v1.AckParamArgs",
+          "name": "AckRequest",
+          "longName": "AckRequest",
+          "fullName": "api.v1.AckRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "acks",
+              "description": "",
+              "label": "repeated",
+              "type": "AckRequestArgs",
+              "longType": "AckRequestArgs",
+              "fullType": "api.v1.AckRequestArgs",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AckRequestArgs",
+          "longName": "AckRequestArgs",
+          "fullName": "api.v1.AckRequestArgs",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -266,27 +287,6 @@
               "type": "Value",
               "longType": "google.protobuf.Value",
               "fullType": "google.protobuf.Value",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "AckParams",
-          "longName": "AckParams",
-          "fullName": "api.v1.AckParams",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "acks",
-              "description": "",
-              "label": "repeated",
-              "type": "AckParamArgs",
-              "longType": "AckParamArgs",
-              "fullType": "api.v1.AckParamArgs",
               "ismap": false,
               "defaultValue": ""
             }
@@ -568,9 +568,30 @@
       "extensions": [],
       "messages": [
         {
-          "name": "EnqueueParamArgs",
-          "longName": "EnqueueParamArgs",
-          "fullName": "api.v1.EnqueueParamArgs",
+          "name": "EnqueueRequest",
+          "longName": "EnqueueRequest",
+          "fullName": "api.v1.EnqueueRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "jobs",
+              "description": "",
+              "label": "repeated",
+              "type": "EnqueueRequestArgs",
+              "longType": "EnqueueRequestArgs",
+              "fullType": "api.v1.EnqueueRequestArgs",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "EnqueueRequestArgs",
+          "longName": "EnqueueRequestArgs",
+          "fullName": "api.v1.EnqueueRequestArgs",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -603,27 +624,6 @@
               "type": "Data",
               "longType": "job.v1.Data",
               "fullType": "job.v1.Data",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "EnqueueParams",
-          "longName": "EnqueueParams",
-          "fullName": "api.v1.EnqueueParams",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "jobs",
-              "description": "",
-              "label": "repeated",
-              "type": "EnqueueParamArgs",
-              "longType": "EnqueueParamArgs",
-              "fullType": "api.v1.EnqueueParamArgs",
               "ismap": false,
               "defaultValue": ""
             }
@@ -675,9 +675,9 @@
       "extensions": [],
       "messages": [
         {
-          "name": "DequeueParams",
-          "longName": "DequeueParams",
-          "fullName": "api.v1.DequeueParams",
+          "name": "DequeueRequest",
+          "longName": "DequeueRequest",
+          "fullName": "api.v1.DequeueRequest",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -761,9 +761,9 @@
       "extensions": [],
       "messages": [
         {
-          "name": "Empty",
-          "longName": "Empty",
-          "fullName": "api.v1.Empty",
+          "name": "AckResponse",
+          "longName": "AckResponse",
+          "fullName": "api.v1.AckResponse",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -781,9 +781,9 @@
             {
               "name": "Enqueue",
               "description": "",
-              "requestType": "EnqueueParams",
-              "requestLongType": "EnqueueParams",
-              "requestFullType": "api.v1.EnqueueParams",
+              "requestType": "EnqueueRequest",
+              "requestLongType": "EnqueueRequest",
+              "requestFullType": "api.v1.EnqueueRequest",
               "requestStreaming": false,
               "responseType": "EnqueueResponse",
               "responseLongType": "EnqueueResponse",
@@ -793,9 +793,9 @@
             {
               "name": "Dequeue",
               "description": "",
-              "requestType": "DequeueParams",
-              "requestLongType": "DequeueParams",
-              "requestFullType": "api.v1.DequeueParams",
+              "requestType": "DequeueRequest",
+              "requestLongType": "DequeueRequest",
+              "requestFullType": "api.v1.DequeueRequest",
               "requestStreaming": false,
               "responseType": "DequeueResponse",
               "responseLongType": "DequeueResponse",
@@ -805,13 +805,13 @@
             {
               "name": "Ack",
               "description": "",
-              "requestType": "AckParams",
-              "requestLongType": "AckParams",
-              "requestFullType": "api.v1.AckParams",
+              "requestType": "AckRequest",
+              "requestLongType": "AckRequest",
+              "requestFullType": "api.v1.AckRequest",
               "requestStreaming": false,
-              "responseType": "Empty",
-              "responseLongType": "Empty",
-              "responseFullType": "api.v1.Empty",
+              "responseType": "AckResponse",
+              "responseLongType": "AckResponse",
+              "responseFullType": "api.v1.AckResponse",
               "responseStreaming": false
             }
           ]

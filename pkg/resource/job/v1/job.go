@@ -1,4 +1,4 @@
-// Package job contains the protocol for working with jobs and queues.
+// Package v1 contains the protocol for working with jobs and queues.
 package v1
 
 import (

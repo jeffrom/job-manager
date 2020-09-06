@@ -15,7 +15,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
 	queueID := chi.URLParam(r, "queueID")
-	var params apiv1.DequeueParams
+	var params apiv1.DequeueRequest
 	if err := UnmarshalBody(r, &params, queueID == ""); err != nil {
 		return err
 	}

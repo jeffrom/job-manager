@@ -58,9 +58,8 @@ test: $(gen) $(gofiles) | $(staticcheck) $(buf)
 .PHONY: lint
 lint: lint.go lint.proto lint.jsonschema
 
-.PHONY: lint.go
 lint.go: $(gen) | $(staticcheck)
-	GO111MODULE=on $(staticcheck) -f stylish -checks all ./...
+	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring)
 
 .PHONY: lint.proto
 lint.proto: $(buf)

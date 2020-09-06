@@ -8,10 +8,10 @@ import "api/v1/ack.proto";
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
-message Empty {}
+message AckResponse {}
 
 service JobService {
-  rpc Enqueue(EnqueueParams) returns (EnqueueResponse);
-  rpc Dequeue(DequeueParams) returns (DequeueResponse);
-  rpc Ack(AckParams) returns (Empty);
+  rpc Enqueue(EnqueueRequest) returns (EnqueueResponse);
+  rpc Dequeue(DequeueRequest) returns (DequeueResponse);
+  rpc Ack(AckRequest) returns (AckResponse);
 }

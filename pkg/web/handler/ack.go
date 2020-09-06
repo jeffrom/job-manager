@@ -15,7 +15,7 @@ import (
 func Ack(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
-	var params apiv1.AckParams
+	var params apiv1.AckRequest
 	if err := UnmarshalBody(r, &params, true); err != nil {
 		return err
 	}

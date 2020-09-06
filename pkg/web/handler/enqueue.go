@@ -26,7 +26,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	Func(func(w http.ResponseWriter, r *http.Request) error {
 		ctx := r.Context()
 		be := middleware.GetBackend(ctx)
-		var params apiv1.EnqueueParams
+		var params apiv1.EnqueueRequest
 		if err := UnmarshalBody(r, &params, true); err != nil {
 			return err
 		}

@@ -9,14 +9,14 @@ import "api/v1/errors.proto";
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
-message EnqueueParamArgs {
+message EnqueueRequestArgs {
   string job = 1;
   repeated google.protobuf.Value args = 2;
   job.v1.Data data = 3;
 }
 
-message EnqueueParams {
-  repeated EnqueueParamArgs jobs = 1;
+message EnqueueRequest {
+  repeated EnqueueRequestArgs jobs = 1;
 }
 
 message EnqueueResponse {

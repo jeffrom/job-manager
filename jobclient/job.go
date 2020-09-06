@@ -16,8 +16,8 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 	if err != nil {
 		return "", err
 	}
-	params := &apiv1.EnqueueParams{
-		Jobs: []*apiv1.EnqueueParamArgs{{Job: name, Args: argList.Values}},
+	params := &apiv1.EnqueueRequest{
+		Jobs: []*apiv1.EnqueueRequestArgs{{Job: name, Args: argList.Values}},
 	}
 
 	uri := fmt.Sprintf("/api/v1/queues/%s/enqueue", name)
@@ -40,7 +40,7 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 }
 
 func (c *Client) DequeueJobs(ctx context.Context, num int, queueID string, selectors ...string) (*jobv1.Jobs, error) {
-	params := &apiv1.DequeueParams{
+	params := &apiv1.DequeueRequest{
 		Selectors: selectors,
 	}
 	if num > 0 {
@@ -76,7 +76,7 @@ func (c *Client) AckJob(ctx context.Context, id string, status jobv1.Status) err
 }
 
 func (c *Client) AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error {
-	args := &apiv1.AckParamArgs{
+	args := &apiv1.AckRequestArgs{
 		Id:     id,
 		Status: status,
 	}
@@ -89,7 +89,7 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status jobv1.Status,
 	}
 
 	uri := "/api/v1/jobs/ack"
-	params := &apiv1.AckParams{Acks: []*apiv1.AckParamArgs{args}}
+	params := &apiv1.AckRequest{Acks: []*apiv1.AckRequestArgs{args}}
 	req, err := c.newRequestProto("POST", uri, params)
 	if err != nil {
 		return err

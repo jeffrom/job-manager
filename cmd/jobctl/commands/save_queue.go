@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 
@@ -58,32 +57,15 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 	if err != nil {
 		return err
 	}
-	// TODO reading the schema from stdin could be cool too
-	// TODO clean this up, just get the whole schema at once
-	var scm *schema.Schema
+	// TODO reading the schema, or whole queue cfg from stdin could be cool too
+	var scmb []byte
 	if p := opts.SchemaPath; p != "" {
-		b, err := ioutil.ReadFile(p)
+		var err error
+		scmb, err = ioutil.ReadFile(p)
 		if err != nil {
 			return err
 		}
-		scm, err = schema.Parse(b)
-		if err != nil {
-			return err
-		}
-	}
-	var argSchema []byte
-	var dataSchema []byte
-	var resultSchema []byte
-	if scm != nil {
-		argSchema, err = json.Marshal(scm.Args)
-		if err != nil {
-			return err
-		}
-		dataSchema, err = json.Marshal(scm.Data)
-		if err != nil {
-			return err
-		}
-		resultSchema, err = json.Marshal(scm.Result)
+		_, err = schema.Parse(scmb)
 		if err != nil {
 			return err
 		}
@@ -102,15 +84,13 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 	}
 
 	q, err := client.SaveQueue(ctx, id, jobclient.SaveQueueOpts{
-		Concurrency:  opts.Concurrency,
-		MaxRetries:   opts.MaxRetries,
-		JobDuration:  opts.JobDuration,
-		Labels:       labels,
-		ArgSchema:    argSchema,
-		DataSchema:   dataSchema,
-		ResultSchema: resultSchema,
-		Unique:       opts.Unique,
-		V:            v,
+		Concurrency: opts.Concurrency,
+		MaxRetries:  opts.MaxRetries,
+		JobDuration: opts.JobDuration,
+		Labels:      labels,
+		Schema:      scmb,
+		Unique:      opts.Unique,
+		V:           v,
 	})
 	if err != nil {
 		return err

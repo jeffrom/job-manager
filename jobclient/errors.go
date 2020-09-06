@@ -66,7 +66,7 @@ func newResourceErrorFromMessage(message *apiv1.GenericError) *resource.Error {
 }
 
 func IsNotFound(err error) bool {
-	gerr := &APIError{}
+	gerr := &resource.Error{}
 	if errors.As(err, &gerr) {
 		return gerr.Kind == "not_found"
 	}

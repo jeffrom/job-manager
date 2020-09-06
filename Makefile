@@ -20,7 +20,8 @@ gocoverutil := $(GOPATH)/bin/gocoverutil
 staticcheck := $(GOPATH)/bin/staticcheck
 gomodoutdated := $(GOPATH)/bin/go-mod-outdated
 tulpa := $(GOPATH)/bin/tulpa
-spectral = $(shell which spectral)
+spectral := $(shell which spectral)
+goda := $(GOPATH)/bin/goda
 
 ifeq ($(buf),)
 	buf = must-rebuild
@@ -103,10 +104,20 @@ $(self_schema_target): $(write_jsonschema_bin) $(self_schema_deps)
 
 .PHONY: dev
 dev:
-	tulpa -v --ignore proto --ignore .make --ignore doc "make .make/$(server_bin) && .make/$(server_bin)"
+	$(tulpa) -v --ignore proto --ignore .make --ignore doc "make .make/$(server_bin) && .make/$(server_bin)"
+
+.PHONY: code
+code: code.depgraph
+
+.PHONY: code.depgraph
+code.depgraph: $(goda)
+	$(goda) graph -cluster ./...:root | dot -Tsvg -o graph.svg
 
 $(gocoverutil):
 	GO111MODULE=off go get github.com/AlekSi/gocoverutil
+
+$(goda):
+	GO111MODULE=off go get github.com/loov/goda
 
 $(staticcheck):
 	cd $(TMPDIR) && GO111MODULE=on go get honnef.co/go/tools/cmd/staticcheck@2020.1.5

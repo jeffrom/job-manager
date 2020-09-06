@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-playground/form v3.1.4+incompatible
-	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.4.2
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.11
@@ -15,9 +14,9 @@ require (
 	github.com/rs/zerolog v1.19.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.0.0
-	github.com/spf13/pflag v1.0.5
 	github.com/tdewolff/minify/v2 v2.9.1
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
 
 replace github.com/jeffrom/job-manager/jobclient => ./jobclient

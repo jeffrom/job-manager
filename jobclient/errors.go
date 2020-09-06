@@ -4,11 +4,10 @@ import (
 	"errors"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/qri-io/jsonschema"
 )
-
-var ErrInternal = errors.New("jobclient: internal server error")
 
 type APIError struct {
 	*apiv1.GenericError
@@ -41,8 +40,28 @@ func (e *APIError) Is(other error) bool {
 	return true
 }
 
-func newGenericErrorFromMessage(message *apiv1.GenericError) *APIError {
-	return &APIError{GenericError: message}
+func newResourceErrorFromMessage(message *apiv1.GenericError) *resource.Error {
+	var code int = 500
+	switch message.Kind {
+	case "not_found":
+		code = 404
+	case "internal":
+		code = 500
+	case "conflict":
+		code = 409
+	case "unprocessable_entity":
+		code = 422
+	case "invalid":
+		code = 400
+	}
+	return &resource.Error{
+		Status:     code,
+		Kind:       message.Kind,
+		Message:    message.Message,
+		Resource:   message.Resource,
+		ResourceID: message.ResourceId,
+		Reason:     message.Reason,
+	}
 }
 
 func IsNotFound(err error) bool {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -37,10 +36,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		for i, jobArg := range params.Jobs {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
 			if err != nil {
-				if errors.Is(err, backend.ErrNotFound) {
-					return resource.NewNotFoundError("queue", jobArg.Job, "")
-				}
-				return err
+				return handleBackendErrors(err, "queue", jobArg.Job)
 			}
 
 			// validate args if there is a schema

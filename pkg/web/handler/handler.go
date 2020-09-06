@@ -11,7 +11,9 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
+	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -36,6 +38,7 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 				status = herr.Status()
 			} else if errors.Is(err, io.ErrUnexpectedEOF) {
 				status = http.StatusBadRequest
+				// XXX these below should not be needed
 			} else if errors.Is(err, backend.ErrNotFound) {
 				status = http.StatusNotFound
 			} else if errors.Is(err, &backend.VersionConflictError{}) {
@@ -44,12 +47,18 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 				status = http.StatusBadRequest
 			}
 
+			rerr := &resource.Error{}
+			if errors.As(err, &rerr) {
+				err = apiv1.ErrorProto(rerr)
+			}
+
 			reqLog.Str("err_type", fmt.Sprintf("%T", err))
 			if status >= http.StatusInternalServerError {
 				reqLog.Err(err)
 			}
 
 			// maybe translate errors into api errors
+			// XXX this shouldn't be needed
 			vcErr := &backend.VersionConflictError{}
 			if errors.As(err, &vcErr) {
 				err = newVersionConflictError(vcErr)
@@ -61,6 +70,7 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 			w.WriteHeader(status)
 
 			if pr, ok := err.(protoError); ok {
+				// fmt.Printf("handler: %T %+v\n", pr.Message(), pr.Message())
 				if err := MarshalResponse(w, r, pr.Message()); err != nil {
 					middleware.LoggerFromContext(r.Context()).Error().Err(err).Msg("marshal response failed")
 				}

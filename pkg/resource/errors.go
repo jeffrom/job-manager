@@ -31,6 +31,7 @@ type Error struct {
 
 func NewInternalServerError(err error) *Error {
 	return &Error{
+		Status:  500,
 		Kind:    "internal",
 		Message: "internal server error",
 		Orig:    err,

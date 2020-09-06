@@ -3,6 +3,9 @@ package v1
 import (
 	"fmt"
 	"strings"
+
+	"github.com/jeffrom/job-manager/pkg/resource"
+	"google.golang.org/protobuf/proto"
 )
 
 func ErrorMessage(e *GenericError) string {
@@ -29,4 +32,28 @@ func ErrorMessage(e *GenericError) string {
 	// }
 
 	return b.String()
+}
+
+type protoError struct {
+	rerr *resource.Error
+}
+
+func (e *protoError) Error() string {
+	return e.rerr.Error()
+}
+
+func (e *protoError) Message() proto.Message {
+	return &GenericError{
+		Message:    e.rerr.Message,
+		Kind:       e.rerr.Kind,
+		Resource:   e.rerr.Resource,
+		ResourceId: e.rerr.ResourceID,
+		Reason:     e.rerr.Reason,
+	}
+}
+
+func ErrorProto(rerr *resource.Error) *protoError {
+	return &protoError{
+		rerr: rerr,
+	}
 }

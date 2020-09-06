@@ -9,8 +9,8 @@ import (
 	"github.com/qri-io/jsonschema"
 
 	"github.com/jeffrom/job-manager/jobclient"
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -149,14 +149,16 @@ func testSingleJob(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
-	expectErr := &jobclient.APIError{
-		GenericError: &apiv1.GenericError{
-			Resource: "queue",
-			Kind:     "not_found",
-		},
+	expectErr := &resource.Error{
+		Status:     404,
+		Kind:       "not_found",
+		Resource:   "queue",
+		ResourceID: "cool",
 	}
 	id, err := c.EnqueueJob(ctx, "cool", "nice")
 	if !errors.Is(err, expectErr) {
+		// fmt.Printf("e: %#v\n", expectErr)
+		// fmt.Printf("g: %#v\n", err)
 		t.Errorf("expected error %T, got %#v", expectErr, err)
 	}
 	if id != "" {

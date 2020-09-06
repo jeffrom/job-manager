@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/jeffrom/job-manager/cmd/jobctl/commands"
 
 func main() {
-	fmt.Println("vim-go")
+	commands.Execute()
 }

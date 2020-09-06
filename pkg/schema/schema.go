@@ -6,48 +6,53 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/qri-io/jsonschema"
 	jsonmin "github.com/tdewolff/minify/v2/json"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
-var ArgSchema *jsonschema.Schema = &jsonschema.Schema{}
-var DataSchema *jsonschema.Schema = &jsonschema.Schema{}
-var ResultSchema *jsonschema.Schema = &jsonschema.Schema{}
+var SelfSchema *jsonschema.Schema = &jsonschema.Schema{}
 
 func init() {
 	min := jsonmin.DefaultMinifier
 	min.Precision = 0
 
-	if err := json.Unmarshal(argSchemaRaw, ArgSchema); err != nil {
-		panic(err)
-	}
-	if err := json.Unmarshal(dataSchemaRaw, DataSchema); err != nil {
-		panic(err)
-	}
-	if err := json.Unmarshal(resultSchemaRaw, ResultSchema); err != nil {
+	if err := json.Unmarshal(selfSchemaRaw, SelfSchema); err != nil {
 		panic(err)
 	}
 }
 
 type Schema struct {
-	Args   *jsonschema.Schema
-	Data   *jsonschema.Schema
-	Result *jsonschema.Schema
+	Args   *jsonschema.Schema `json:"args,omitempty"`
+	Data   *jsonschema.Schema `json:"data,omitempty"`
+	Result *jsonschema.Schema `json:"result,omitempty"`
 }
 
-// func (s *Schema) Validate(ctx context.Context,
+func (s *Schema) Validate(ctx context.Context, args, data, result interface{}) error {
+	merr := &multierror.Error{}
+	if err := s.ValidateArgs(ctx, args); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	if err := s.ValidateData(ctx, data); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	if err := s.ValidateResult(ctx, result); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	return merr.ErrorOrNil()
+}
 
 func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
-	if s.Args == nil {
+	if s == nil || s.Args == nil {
 		return nil
 	}
+
 	jsonData, err := marshalToJSON(arg)
 	if err != nil {
 		return err
 	}
-
 	keyErrs, err := s.Args.ValidateBytes(ctx, jsonData)
 	if err != nil {
 		return err
@@ -59,7 +64,7 @@ func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
 }
 
 func (s *Schema) ValidateResult(ctx context.Context, arg interface{}) error {
-	if s.Result == nil {
+	if s == nil || s.Result == nil {
 		return nil
 	}
 
@@ -79,7 +84,7 @@ func (s *Schema) ValidateResult(ctx context.Context, arg interface{}) error {
 }
 
 func (s *Schema) ValidateData(ctx context.Context, arg interface{}) error {
-	if s.Data == nil {
+	if s == nil || s.Data == nil {
 		return nil
 	}
 
@@ -116,3 +121,11 @@ func Canonicalize(data []byte) ([]byte, error) {
 	}
 	return b.Bytes(), nil
 }
+
+// func Equals(a, b *Schema) bool {
+// 	if a == nil || b == nil {
+// 		return a == b
+// 	}
+// 	// TODO quick solution is to serialize em to compare
+// 	return false
+// }

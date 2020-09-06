@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/resource"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -12,12 +15,13 @@ import (
 func Ack(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
-	var params apiv1.AckParams
+	var params apiv1.AckRequest
 	if err := UnmarshalBody(r, &params, true); err != nil {
 		return err
 	}
 
-	results := &job.Results{Results: make([]*job.Result, len(params.Acks))}
+	resources := &resource.Acks{Acks: make([]*resource.Ack, len(params.Acks))}
+	results := &jobv1.Acks{Acks: make([]*jobv1.Ack, len(params.Acks))}
 	for i, ackParam := range params.Acks {
 		id := ackParam.Id
 		jobData, err := be.GetJobByID(ctx, id)
@@ -28,7 +32,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		scm, err := schema.Parse(queue)
+		scm, err := schema.Parse(queue.SchemaRaw)
 		if err != nil {
 			return err
 		}
@@ -36,15 +40,44 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		results.Results[i] = &job.Result{
+		ack := &jobv1.Ack{
 			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,
 		}
+		results.Acks[i] = ack
+		resources.Acks[i] = jobv1.AckFromProto(ack)
 	}
 
-	if err := be.AckJobs(ctx, results); err != nil {
+	if err := be.AckJobs(ctx, resources); err != nil {
+		return err
+	}
+	if err := deleteArgUniqueness(ctx, be, resources.Acks); err != nil {
 		return err
 	}
 	return nil
+}
+
+func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*resource.Ack) error {
+	var keys []string
+	for _, ack := range acks {
+		if !resource.StatusIsAttempted(ack.Status) {
+			continue
+		}
+
+		jobData, err := be.GetJobByID(ctx, ack.ID)
+		if err != nil {
+			return err
+		}
+		iargs := make([]interface{}, len(jobData.Args))
+		for i, arg := range jobData.Args {
+			iargs[i] = arg
+		}
+		ukey, err := uniquenessKeyFromArgs(iargs)
+		if err != nil {
+			return err
+		}
+		keys = append(keys, ukey)
+	}
+	return be.DeleteJobKeys(ctx, keys)
 }

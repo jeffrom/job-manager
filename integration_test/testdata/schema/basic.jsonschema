@@ -1,13 +1,15 @@
 {
-    "type": "array",
-    "minItems": 2,
-    "maxItems": 2,
-    "items": [
-        {
-            "type": "string"
-        },
-        {
-            "type": "boolean"
-        }
-    ]
+    "args": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "boolean"
+            }
+        ]
+    }
 }

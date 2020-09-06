@@ -1,0 +1,27 @@
+syntax = "proto3";
+package api.v1;
+
+import "google/protobuf/struct.proto";
+
+import "job/v1/data.proto";
+import "api/v1/errors.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
+
+
+message EnqueueRequestArgs {
+  string job = 1;
+  repeated google.protobuf.Value args = 2;
+  job.v1.Data data = 3;
+}
+
+message EnqueueRequest {
+  repeated EnqueueRequestArgs jobs = 1;
+}
+
+message EnqueueResponse {
+  repeated string jobs = 1;
+  repeated ErrorResponse errors = 2;
+}
+
+// NOTE additional specific error responses could still be defined here

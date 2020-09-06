@@ -3,20 +3,41 @@ package api.v1;
 
 import "google/protobuf/duration.proto";
 
+import "job/v1/queue.proto";
+
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
 message SaveQueueParamArgs {
   string name = 1;
-  int32 concurrency = 2;
-  int32 max_retries = 3;
-  google.protobuf.Duration duration = 4;
-  map<string, string> labels = 5;
-  bytes arg_schema = 6;
-  bytes data_schema = 7;
-  bytes result_schema = 8;
+  int32 v = 2;
+  int32 concurrency = 3;
+  int32 max_retries = 4;
+  google.protobuf.Duration duration = 5;
+  google.protobuf.Duration checkin_duration = 6;
+  map<string, string> labels = 7;
+  bytes schema = 8;
+  bool unique = 12;
 }
 
 message SaveQueueParams {
   repeated SaveQueueParamArgs queues = 1;
+}
+
+message SaveQueueResponse {
+  job.v1.Queue queue = 1;
+}
+
+
+message ListQueuesRequest {
+  repeated string names = 1;
+  repeated string selectors = 2;
+}
+
+message ListQueuesResponse {
+  job.v1.Queues data = 1;
+}
+
+message GetQueueResponse {
+  job.v1.Queue data = 1;
 }

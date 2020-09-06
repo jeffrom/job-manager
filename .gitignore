@@ -3,6 +3,6 @@
 
 dist/
 
-job-manager
-jobctl
-proc-consume
+/job-manager
+/jobctl
+/proc-consume

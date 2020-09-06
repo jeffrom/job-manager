@@ -44,6 +44,7 @@ func (l *Logger) Middleware(next http.Handler) http.Handler {
 
 		reqLog := l.Info()
 		reqLog.Timestamp().
+			Str("method", r.Method).
 			Str("path", r.URL.EscapedPath()).
 			Str("ip", r.RemoteAddr).
 			Str("req_id", reqID)
@@ -57,13 +58,20 @@ func (l *Logger) Middleware(next http.Handler) http.Handler {
 			reqLog.
 				Int64("took", time.Since(begin).Milliseconds()).
 				Int("status", status)
-				//.Strs("queries", queries)
 
-				// if status != http.StatusNotFound {
-				// 	reqLog.Str("response", body)
-				// }
+			query := r.URL.Query().Encode()
+			if query != "" {
+				reqLog.Str("query", query)
+			}
+			// if len(queries) > 0 {
+			// 	reqLog.Strs("queries", queries)
+			// }
 
-				// if status >= 500 && status < 600 {
+			// if status != http.StatusNotFound {
+			// 	reqLog.Str("response", body)
+			// }
+
+			// if status >= 500 && status < 600 {
 			reqLog.Msg("request")
 			// }
 

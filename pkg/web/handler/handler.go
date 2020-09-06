@@ -11,14 +11,15 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
+	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/schema"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 type httpError interface {
 	error
-	Status() int
+	GetStatus() int
 }
 
 type protoError interface {
@@ -29,15 +30,13 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := fn(w, r); err != nil {
 			reqLog := middleware.RequestLogFromContext(r.Context())
+			// fmt.Printf("req error: %T %+v\n", err, err)
 
+			// set status depending on the error returned
 			status := http.StatusInternalServerError
 			if herr, ok := err.(httpError); ok {
-				status = herr.Status()
+				status = herr.GetStatus()
 			} else if errors.Is(err, io.ErrUnexpectedEOF) {
-				status = http.StatusBadRequest
-			} else if errors.Is(err, backend.ErrNotFound) {
-				status = http.StatusNotFound
-			} else if errors.Is(err, &schema.ValidationError{}) {
 				status = http.StatusBadRequest
 			}
 
@@ -45,9 +44,26 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 			if status >= http.StatusInternalServerError {
 				reqLog.Err(err)
 			}
+
+			// maybe translate errors into api errors
+			// XXX this shouldn't be needed
+			vcErr := &backend.VersionConflictError{}
+			if errors.As(err, &vcErr) {
+				err = newVersionConflictError(vcErr)
+			}
+
+			rerr := &resource.Error{}
+			if errors.As(err, &rerr) {
+				err = apiv1.ErrorProto(rerr)
+			}
+
+			// log the error
+			log := middleware.LoggerFromContext(r.Context())
+			logRequestError(log, status, err)
 			w.WriteHeader(status)
 
 			if pr, ok := err.(protoError); ok {
+				// fmt.Printf("handler: %T %+v\n", pr.Message(), pr.Message())
 				if err := MarshalResponse(w, r, pr.Message()); err != nil {
 					middleware.LoggerFromContext(r.Context()).Error().Err(err).Msg("marshal response failed")
 				}
@@ -57,19 +73,24 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 }
 
 func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
+	log := middleware.LoggerFromContext(r.Context())
 	defer r.Body.Close()
 	ct := r.Header.Get("content-type")
-	log := middleware.LoggerFromContext(r.Context())
-
-	b, rerr := ioutil.ReadAll(r.Body)
-	if rerr != nil {
-		return rerr
-	}
-	if len(b) == 0 {
-		if required {
-			return io.ErrUnexpectedEOF
+	var b []byte
+	if r.Method == "GET" {
+		ct = "application/x-www-form-urlencoded"
+	} else {
+		var rerr error
+		b, rerr = ioutil.ReadAll(r.Body)
+		if rerr != nil {
+			return rerr
 		}
-		return nil
+		if len(b) == 0 {
+			if required {
+				return io.ErrUnexpectedEOF
+			}
+			return nil
+		}
 	}
 
 	var err error
@@ -78,6 +99,11 @@ func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
 		err = json.Unmarshal(b, v)
 	case "application/protobuf":
 		err = proto.Unmarshal(b, v.(proto.Message))
+	case "application/x-www-form-urlencoded":
+		if err := r.ParseForm(); err != nil {
+			return err
+		}
+		err = formDecoder.Decode(v, r.Form)
 	default:
 		panic("handler: unknown content-type: " + ct)
 	}
@@ -112,4 +138,15 @@ func MarshalResponse(w http.ResponseWriter, r *http.Request, v proto.Message) er
 		return err
 	}
 	return err
+}
+
+func logRequestError(log *middleware.Logger, status int, err error) {
+	ev := log.Warn()
+	if status >= http.StatusInternalServerError {
+		ev = log.Error()
+	}
+
+	ev.Err(err)
+
+	ev.Msg("request error")
 }

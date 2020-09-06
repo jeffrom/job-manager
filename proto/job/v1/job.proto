@@ -5,48 +5,41 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/job";
+import "job/v1/status.proto";
+import "job/v1/data.proto";
+import "job/v1/checkin.proto";
+import "job/v1/result.proto";
 
+option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
 
-enum Status {
-  STATUS_UNSPECIFIED = 0;
-  STATUS_QUEUED = 1;
-  STATUS_RUNNING = 2;
-  STATUS_COMPLETE = 3;
-  STATUS_DEAD = 4;
-  STATUS_CANCELLED = 5;
-  STATUS_INVALID = 6;
-  STATUS_FAILED = 7;
-}
 
 message Job {
   string id = 1;
-  string name = 2;
+  int32 v = 2;
+  int32 queue_v = 3;
+  string name = 4;
 
-  repeated google.protobuf.Value args = 3;
-  map<string, string> data = 4;
+  repeated google.protobuf.Value args = 5;
+  Data data = 6;
 
-  int32 attempt = 5;
-  int32 max_retries = 6;
-  google.protobuf.Duration duration = 7;
+  int32 attempt = 7;
 
   Status status = 8;
 
-  map<string, google.protobuf.Value> result_data = 9;
+  repeated Checkin checkins = 9;
+  repeated Result results = 10;
 
-  google.protobuf.Timestamp enqueued_at = 10;
+  google.protobuf.Timestamp enqueued_at = 11;
 }
 
 message Jobs {
   repeated Job jobs = 1;
 }
 
-message Result {
-  string id = 1;
-  Status status = 2;
-  map<string, google.protobuf.Value> data = 3;
-}
-
-message Results {
-  repeated Result results = 1;
+message JobListParams {
+  repeated string names = 1;
+  repeated Status statuses = 2;
+  repeated string selectors = 3;
+  google.protobuf.Timestamp created_since = 4;
+  google.protobuf.Timestamp created_until = 5;
 }

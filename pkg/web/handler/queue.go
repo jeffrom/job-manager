@@ -5,9 +5,12 @@ import (
 
 	"github.com/go-chi/chi"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/label"
+	"github.com/jeffrom/job-manager/pkg/resource"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -17,15 +20,15 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	cfg := middleware.ConfigFromContext(ctx)
 	reqLog := middleware.RequestLogFromContext(ctx)
 	be := middleware.GetBackend(ctx)
-	name := chi.URLParam(r, "queueName")
-	reqLog.Str("queue", name)
+	queueID := chi.URLParam(r, "queueID")
+	reqLog.Str("queue", queueID)
 
 	var params apiv1.SaveQueueParamArgs
 	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
 
-	if err := schema.ValidateSchema(ctx, params.ArgSchema, params.DataSchema, params.ResultSchema); err != nil {
+	if err := schema.ValidateSchema(ctx, params.Schema); err != nil {
 		return err
 	}
 
@@ -43,19 +46,23 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		dur = d
 	}
 
-	queue := &job.Queue{
-		Name:            name,
-		Concurrency:     concurrency,
-		MaxRetries:      maxRetries,
-		Labels:          params.Labels,
-		Duration:        dur,
-		ArgSchemaRaw:    params.ArgSchema,
-		ResultSchemaRaw: params.ResultSchema,
+	now := timestamppb.Now()
+	queue := &jobv1.Queue{
+		Id:          queueID,
+		Concurrency: concurrency,
+		Retries:     maxRetries,
+		Labels:      params.Labels,
+		Duration:    dur,
+		Schema:      params.Schema,
+		CreatedAt:   now,
+		Unique:      params.Unique,
+		V:           params.V,
 	}
-	if err := be.SaveQueue(ctx, queue); err != nil {
-		return err
+	res := jobv1.NewQueueFromProto(queue)
+	if err := be.SaveQueue(ctx, res); err != nil {
+		return handleBackendErrors(err, "queue", queueID)
 	}
-	return MarshalResponse(w, r, queue)
+	return MarshalResponse(w, r, &apiv1.SaveQueueResponse{Queue: queue})
 }
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
@@ -63,13 +70,43 @@ func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
 }
 
 func ListQueues(w http.ResponseWriter, r *http.Request) error {
-	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
-	jobs, err := be.ListQueues(ctx, nil)
+	var params apiv1.ListQueuesRequest
+	if err := UnmarshalBody(r, &params, false); err != nil {
+		return err
+	}
+
+	sels, err := label.ParseSelectorStringArray(params.Selectors)
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, jobs)
+
+	ctx := r.Context()
+	be := middleware.GetBackend(ctx)
+	queues, err := be.ListQueues(ctx, &resource.QueueListParams{
+		Names:     params.Names,
+		Selectors: sels,
+	})
+	if err != nil {
+		return err
+	}
+
+	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{
+		Data: &jobv1.Queues{
+			Queues: jobv1.NewQueuesFromResources(queues.Queues),
+		},
+	})
+}
+
+func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	be := middleware.GetBackend(ctx)
+	queueID := chi.URLParam(r, "queueID")
+
+	queue, err := be.GetQueue(ctx, queueID)
+	if err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.GetQueueResponse{Data: jobv1.NewQueueFromResource(queue)})
 }
 
 func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {
@@ -78,12 +115,12 @@ func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {
 	jobID := chi.URLParam(r, "jobID")
 	jobData, err := be.GetJobByID(ctx, jobID)
 	if err != nil {
-		return err
+		return handleBackendErrors(err, "job", jobID)
 	}
 
 	queue, err := be.GetQueue(ctx, jobData.Name)
 	if err != nil {
-		return err
+		return handleBackendErrors(err, "queue", jobData.Name)
 	}
-	return MarshalResponse(w, r, queue)
+	return MarshalResponse(w, r, &apiv1.GetQueueResponse{Data: jobv1.NewQueueFromResource(queue)})
 }

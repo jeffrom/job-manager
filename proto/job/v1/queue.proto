@@ -4,24 +4,32 @@ package job.v1;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/job";
+import "job/v1/job.proto";
+
+option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
 
 
 message Queue {
-  string name = 1;
-  int32 concurrency = 2;
-  int32 max_retries = 3;
-  google.protobuf.Duration duration = 4;
-  map<string, string> labels = 5;
-  bytes arg_schema_raw = 6;
-  bytes data_schema_raw = 7;
-  bytes result_schema_raw = 8;
+  string id = 1;
+  int32 v = 2;
+  int32 concurrency = 3;
+  int32 retries = 4;
+  google.protobuf.Duration duration = 5;
+  google.protobuf.Duration checkin_duration = 6;
+  map<string, string> labels = 7;
+  bytes schema = 8;
+  bool unique = 9;
 
-  google.protobuf.Timestamp created_at = 9;
-  google.protobuf.Timestamp updated_at = 10;
-  google.protobuf.Timestamp deleted_at = 11;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp deleted_at = 12;
 }
 
 message Queues {
   repeated Queue queues = 1;
+}
+
+message QueueListParams {
+  repeated string names = 1;
+  repeated string selectors = 2;
 }

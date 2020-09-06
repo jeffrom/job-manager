@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "job-manager Self schema",
+    "type": "object",
+    "properties": {
+        "args": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "pattern": "^array$" },
+                "items": { "type": "array" },
+                "minItems": { "type": "number" },
+                "maxItems": { "type": "number" }
+            },
+            "additionalProperties": false,
+            "required": ["type"]
+        },
+        "data": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "pattern": "^object$" },
+                "properties": { "type": "object" },
+                "propertyNames": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": { "type": "string" }
+                    },
+                    "required": ["pattern"]
+                },
+                "minProperties": { "type": "number" },
+                "maxProperties": { "type": "number" },
+                "dependencies": {
+                    "type": "object",
+                    "additionalProperties": { "type": "array" }
+                }
+            },
+            "additionalProperties": false,
+            "required": ["type", "properties"]
+        },
+        "checkin": { "type": "object" },
+        "result": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "pattern": "^object$" },
+                "properties": { "type": "object" },
+                "propertyNames": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": { "type": "string" }
+                    },
+                    "required": ["pattern"]
+                },
+                "minProperties": { "type": "number" },
+                "maxProperties": { "type": "number" },
+                "dependencies": {
+                    "type": "object",
+                    "additionalProperties": { "type": "array" }
+                }
+            },
+            "additionalProperties": false,
+            "required": ["type", "properties"]
+        }
+    },
+    "additionalProperties": false,
+    "required": []
+}

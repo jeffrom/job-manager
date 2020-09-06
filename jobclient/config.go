@@ -2,8 +2,9 @@ package jobclient
 
 // Config holds configuration data for the job client.
 type Config struct {
+	Addr string `envconfig:"addr" json:"addr"`
 }
 
-func getDefaultConfig() Config {
-	return Config{}
+var ConfigDefaults = Config{
+	Addr: ":1874",
 }

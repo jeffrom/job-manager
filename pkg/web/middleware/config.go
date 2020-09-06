@@ -20,6 +20,7 @@ func init() {
 
 type Config struct {
 	LogJSON         bool          `json:"log_json"`
+	DebugLog        bool          `json:"debug_log"`
 	Backend         string        `json:"backend"`
 	ShutdownTimeout time.Duration `json:"shutdown_timeout"`
 
@@ -36,6 +37,7 @@ func NewConfig() Config {
 	out := os.Stdout
 	c := Config{
 		LogOutput:            out,
+		DebugLog:             true,
 		Backend:              "memory",
 		ShutdownTimeout:      30 * time.Second,
 		DefaultMaxJobTimeout: 10 * time.Minute,

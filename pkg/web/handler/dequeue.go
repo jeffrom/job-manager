@@ -6,23 +6,24 @@ import (
 	"github.com/go-chi/chi"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/resource"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := middleware.GetBackend(ctx)
-	queueName := chi.URLParam(r, "queueName")
-	var params apiv1.DequeueParams
-	if err := UnmarshalBody(r, &params, queueName == ""); err != nil {
+	queueID := chi.URLParam(r, "queueID")
+	var params apiv1.DequeueRequest
+	if err := UnmarshalBody(r, &params, queueID == ""); err != nil {
 		return err
 	}
-	if queueName != "" {
-		params.Job = queueName
+	if queueID != "" {
+		params.Job = queueID
 	}
 
-	_, err := be.GetQueue(ctx, queueName)
+	_, err := be.GetQueue(ctx, queueID)
 	if err != nil {
 		return err
 	}
@@ -31,10 +32,17 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if params.Num > 0 {
 		num = int(params.Num)
 	}
-	listOpts := &job.ListOpts{Statuses: []job.Status{job.StatusQueued}}
+	listOpts := &resource.JobListParams{Statuses: []resource.Status{resource.StatusQueued}}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, jobs)
+
+	jobsResp, err := jobv1.NewJobsFromResource(jobs.Jobs)
+	if err != nil {
+		return err
+	}
+	return MarshalResponse(w, r, &apiv1.DequeueResponse{
+		Jobs: &jobv1.Jobs{Jobs: jobsResp},
+	})
 }

@@ -13,39 +13,42 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/job"
-	"github.com/jeffrom/job-manager/pkg/schema"
+	"github.com/jeffrom/job-manager/pkg/querystring"
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 type Interface interface {
+	// Resource(name string) resource.Interface
 	Ping(ctx context.Context) error
 
-	// EnqueueJobs(ctx context.Context, jobs *job.Jobs) ([]string, error)
-	// EnqueueJobsOpts(ctx context.Context, jobs *job.Jobs, opts EnqueueOpts) ([]string, error)
+	// EnqueueJobs(ctx context.Context, jobs *jobv1.Jobs) ([]string, error)
+	// EnqueueJobsOpts(ctx context.Context, jobs *jobv1.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
-	// EnqueueJobOpts(ctx context.Context, jobData *job.Job, opts EnqueueOpts) error
-	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*job.Jobs, error)
-	AckJob(ctx context.Context, id string, status job.Status) error
-	AckJobOpts(ctx context.Context, id string, status job.Status, opts AckJobOpts) error
-	// AckJobs(ctx context.Context, results *job.Results) error
+	// EnqueueJobOpts(ctx context.Context, jobData *jobv1.Job, opts EnqueueOpts) error
+	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*jobv1.Jobs, error)
+	AckJob(ctx context.Context, id string, status jobv1.Status) error
+	AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error
+	// AckJobs(ctx context.Context, results *jobv1.Results) error
 
-	SaveQueue(ctx context.Context, name string, opts SaveQueueOptions) (*job.Queue, error)
-	// SaveQueues(ctx context.Context, queue *job.Queues) error
-	GetJob(ctx context.Context, id string) (*job.Job, error)
+	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error)
+	// SaveQueues(ctx context.Context, queue *jobv1.Queues) error
+	ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error)
+	GetQueue(ctx context.Context, id string) (*jobv1.Queue, error)
+	GetJob(ctx context.Context, id string) (*jobv1.Job, error)
 }
 
 type providerFunc func(c *Client) *Client
 
 type Client struct {
 	addr   string
-	cfg    Config
+	cfg    *Config
 	client *http.Client
 }
 
 func New(addr string, providers ...providerFunc) *Client {
 	c := &Client{
 		addr:   addr,
-		cfg:    getDefaultConfig(),
+		cfg:    &ConfigDefaults,
 		client: defaultClient(),
 	}
 
@@ -62,12 +65,16 @@ func WithHTTPClient(client *http.Client) providerFunc {
 	}
 }
 
-func WithConfig(cfg Config) providerFunc {
+func WithConfig(cfg *Config) providerFunc {
 	return func(c *Client) *Client {
 		c.cfg = cfg
 		return c
 	}
 }
+
+// func (c *Client) Resource(name string) resource.Interface {
+// 	return nil
+// }
 
 func (c *Client) Ping(ctx context.Context) error {
 	req, err := c.newRequest("GET", "/internal/ready", nil)
@@ -100,13 +107,28 @@ func (c *Client) newRequest(method, uri string, body io.Reader) (*http.Request, 
 func (c *Client) newRequestProto(method, uri string, msg proto.Message) (*http.Request, error) {
 	var r io.Reader
 	if msg != nil {
-		b, err := proto.Marshal(msg)
-		if err != nil {
-			return nil, err
+		if method == "GET" {
+			vals, err := querystring.Values(msg)
+			if err != nil {
+				return nil, err
+			}
+			uri += "?" + vals.Encode()
+		} else {
+			b, err := proto.Marshal(msg)
+			if err != nil {
+				return nil, err
+			}
+			r = bytes.NewReader(b)
 		}
-		r = bytes.NewReader(b)
 	}
-	return c.newRequest(method, uri, r)
+	// fmt.Printf("uri: %q\n", uri)
+	req, err := c.newRequest(method, uri, r)
+	if method == "GET" {
+		// req.Header.Set("content-type", "application/x-www-form-urlencoded")
+	}
+	// b, _ := httputil.DumpRequest(req, false)
+	// fmt.Println(string(b))
+	return req, err
 }
 
 func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Message) error {
@@ -115,29 +137,22 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 		return err
 	}
 
-	switch res.StatusCode {
-	case http.StatusOK:
+	// b, _ := httputil.DumpResponse(res, false)
+	// fmt.Println(string(b))
+
+	switch code := res.StatusCode; {
+	case code >= 200 && code < 300:
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-	case http.StatusNotFound:
-		msg := &apiv1.NotFoundErrorResponse{}
-		if err := unmarshalProto(res, msg); err != nil {
-			return err
-		}
-		return apiv1.NewNotFoundErrorProto(msg)
-	case http.StatusBadRequest:
-		msg := &apiv1.ValidationErrorResponse{}
-		if err := unmarshalProto(res, msg); err != nil {
-			return err
-		}
-		return schema.NewValidationErrorProto(msg)
-	case http.StatusInternalServerError:
-		// XXX handle 500 error
-		return fmt.Errorf("XXX 500 errorrr!")
 	default:
-		panic(fmt.Sprintf("unhandled exit code: %d %s", res.StatusCode, res.Status))
+		msg := &apiv1.GenericError{}
+		if err := unmarshalProto(res, msg); err != nil {
+			return err
+		}
+		return newResourceErrorFromMessage(msg)
 	}
+
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
@@ -40,13 +41,20 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
+		claims, err := label.ParseClaims(ackParam.Claims)
+		if err != nil {
+			return err
+		}
+
 		ack := &jobv1.Ack{
 			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,
 		}
 		results.Acks[i] = ack
-		resources.Acks[i] = jobv1.AckFromProto(ack)
+		ackRes := jobv1.AckFromProto(ack)
+		ackRes.Claims = claims
+		resources.Acks[i] = ackRes
 	}
 
 	if err := be.AckJobs(ctx, resources); err != nil {

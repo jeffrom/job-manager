@@ -17,16 +17,18 @@ type Queue struct {
 }
 
 type SaveQueueOpts struct {
-	Concurrency  int
-	MaxRetries   int
-	JobDuration  time.Duration
-	Labels       map[string]string
-	Schema       []byte
-	ArgSchema    []byte
-	DataSchema   []byte
-	ResultSchema []byte
-	Unique       bool
-	V            int32
+	Concurrency     int
+	MaxRetries      int
+	JobDuration     time.Duration
+	CheckinDuration time.Duration
+	ClaimDuration   time.Duration
+	Labels          map[string]string
+	Schema          []byte
+	ArgSchema       []byte
+	DataSchema      []byte
+	ResultSchema    []byte
+	Unique          bool
+	V               int32
 }
 
 func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error) {

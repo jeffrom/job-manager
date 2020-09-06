@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/qri-io/jsonschema"
 
@@ -126,6 +127,9 @@ func TestIntegrationSanity(t *testing.T) {
 			// checkins
 
 			// claim windows
+			if !t.Run("claims", tc.wrap(ctx, testClaims)) {
+				return
+			}
 		})
 	}
 }
@@ -483,6 +487,16 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 	id := tc.enqueueJob(ctx, t, "validat0r", "nice", true)
 	tc.ackJob(ctx, t, id, jobv1.StatusComplete)
+}
+
+func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
+	q := tc.saveQueue(ctx, t, "claimz", jobclient.SaveQueueOpts{
+		ClaimDuration: 1 * time.Second,
+	})
+	if q == nil {
+		t.Fatal("no queue was saved")
+	}
+
 }
 
 func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []*resource.ValidationError {

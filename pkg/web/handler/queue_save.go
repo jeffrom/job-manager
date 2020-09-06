@@ -44,7 +44,7 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		dur = d
 	}
 
-	now := timestamppb.Now()
+	now := timestamppb.New(middleware.GetTime(ctx).Now())
 	queue := &jobv1.Queue{
 		Id:          queueID,
 		Concurrency: concurrency,

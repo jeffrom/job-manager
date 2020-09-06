@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -34,7 +33,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		resources := &resource.Jobs{Jobs: make([]*resource.Job, len(params.Jobs))}
 		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
 		ids := make([]string, len(params.Jobs))
-		now := timestamppb.Now()
+		now := timestamppb.New(middleware.GetTime(ctx).Now())
 		for i, jobArg := range params.Jobs {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
 			if err != nil {
@@ -48,7 +47,6 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if err := scm.ValidateArgs(ctx, jobArg.Args); err != nil {
-				fmt.Println("ASDF", err)
 				return handleSchemaErrors(err, "job", "", "invalid job arguments")
 			}
 

@@ -14,6 +14,7 @@ type Queue struct {
 	Retries         int           `json:"retries,omitempty"`
 	Duration        time.Duration `json:"duration,omitempty"`
 	CheckinDuration time.Duration `json:"checkin_duration,omitempty"`
+	ClaimDuration   time.Duration `json:"claim_duration,omitempty"`
 	Unique          bool          `json:"unique,omitempty"`
 	Labels          label.Labels  `json:"labels,omitempty"`
 	SchemaRaw       []byte        `json:"schema_raw,omitempty"`
@@ -29,6 +30,7 @@ func (q *Queue) Equals(other *Queue) bool {
 		q.Retries == other.Retries &&
 		q.Duration == other.Duration &&
 		q.CheckinDuration == other.CheckinDuration &&
+		q.ClaimDuration == other.ClaimDuration &&
 		q.Unique == other.Unique &&
 		q.Labels.Equals(other.Labels) &&
 		bytes.Equal(q.SchemaRaw, other.SchemaRaw)

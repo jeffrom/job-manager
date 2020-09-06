@@ -54,10 +54,19 @@ clean:
 test: $(gen) $(gofiles) | $(staticcheck) $(buf)
 	GO111MODULE=on go test -short ./...
 
-.PHONY: test.lint
-test.lint: $(gen) $(gofiles) | $(staticcheck) $(buf)
+.PHONY: lint
+lint: lint.go lint.proto lint.jsonschema
+
+.PHONY: lint.go
+lint.go: $(gen) | $(staticcheck)
 	GO111MODULE=on $(staticcheck) -f stylish -checks all ./...
+
+.PHONY: lint.proto
+lint.proto: $(buf)
 	$(buf) check lint
+
+.PHONY: lint.jsonschema
+lint.jsonschema: $(spectral)
 	$(spectral) lint jsonschema/*
 
 .PHONY: test.cover

@@ -1,13 +1,13 @@
-package schema
+package job
 
 import (
 	"encoding/json"
 
-	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/qri-io/jsonschema"
 )
 
-func Parse(q *job.Queue) (*Schema, error) {
+func Parse(q *Queue) (*schema.Schema, error) {
 	var argSchema *jsonschema.Schema
 	var dataSchema *jsonschema.Schema
 	var resultSchema *jsonschema.Schema
@@ -31,15 +31,15 @@ func Parse(q *job.Queue) (*Schema, error) {
 		}
 	}
 
-	return &Schema{
+	return &schema.Schema{
 		Args:   argSchema,
 		Data:   dataSchema,
 		Result: resultSchema,
 	}, nil
 }
 
-func ParseBytes(b []byte) (*Schema, error) {
-	q := &job.Queue{}
+func ParseBytes(b []byte) (*schema.Schema, error) {
+	q := &Queue{}
 	if err := json.Unmarshal(b, q); err != nil {
 		return nil, err
 	}

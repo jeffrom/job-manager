@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/schema"
+	"github.com/qri-io/jsonschema"
 )
 
 var ErrInternal = errors.New("jobclient: internal server error")
@@ -49,4 +51,16 @@ func IsNotFound(err error) bool {
 		return gerr.Kind == "not_found"
 	}
 	return false
+}
+
+func newSchemaValidationErrorProto(resp *apiv1.ValidationErrorResponse) *schema.ValidationError {
+	ve := &schema.ValidationError{}
+	for _, verr := range resp.Errs {
+		ve.Errors = append(ve.Errors, jsonschema.KeyError{
+			PropertyPath: verr.Path,
+			InvalidValue: verr.Value.AsInterface(),
+			Message:      verr.Message,
+		})
+	}
+	return ve
 }

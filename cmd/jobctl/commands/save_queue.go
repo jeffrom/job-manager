@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
@@ -66,7 +67,7 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		if err != nil {
 			return err
 		}
-		scm, err = schema.ParseBytes(b)
+		scm, err = job.ParseBytes(b)
 		if err != nil {
 			return err
 		}

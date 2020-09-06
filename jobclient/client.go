@@ -15,7 +15,6 @@ import (
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/job"
 	"github.com/jeffrom/job-manager/pkg/querystring"
-	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 type Interface interface {
@@ -151,7 +150,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-		return schema.NewValidationErrorProto(msg)
+		return newSchemaValidationErrorProto(msg)
 	case code == http.StatusInternalServerError:
 		return ErrInternal
 	default:

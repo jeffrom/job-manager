@@ -7,7 +7,6 @@ import (
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/job"
-	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
@@ -30,7 +29,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		scm, err := schema.Parse(queue)
+		scm, err := job.Parse(queue)
 		if err != nil {
 			return err
 		}

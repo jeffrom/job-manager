@@ -1,7 +1,11 @@
 // Package job contains the protocol for working with jobs and queues.
 package job
 
-import uuid "github.com/satori/go.uuid"
+import (
+	uuid "github.com/satori/go.uuid"
+
+	"github.com/jeffrom/job-manager/pkg/resource"
+)
 
 const (
 	StatusUnknown   = Status_STATUS_UNSPECIFIED
@@ -33,4 +37,11 @@ func IsComplete(status Status) bool {
 		return true
 	}
 	return false
+}
+
+func FromProto(msg *Job) *resource.Job {
+	return &resource.Job{
+		ID: msg.Id,
+		// Version: resource.NewVersion(msg.V),
+	}
 }

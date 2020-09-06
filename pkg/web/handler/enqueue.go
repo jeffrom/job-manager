@@ -13,6 +13,7 @@ import (
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/job"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -37,13 +38,13 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
 			if err != nil {
 				if errors.Is(err, backend.ErrNotFound) {
-					return apiv1.NewNotFoundError("queue", jobArg.Job, "")
+					return resource.NewNotFoundError("queue", jobArg.Job, "")
 				}
 				return err
 			}
 
 			// validate args if there is a schema
-			scm, err := schema.Parse(queue)
+			scm, err := job.Parse(queue)
 			if err != nil {
 				return err
 			}
@@ -60,7 +61,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				if unique {
 					// return conflict error
-					return apiv1.NewUnprocessableEntityError("queue", queue.Id, "A job with matching arguments is executing")
+					return resource.NewUnprocessableEntityError("queue", queue.Id, "A job with matching arguments is executing")
 				}
 			}
 

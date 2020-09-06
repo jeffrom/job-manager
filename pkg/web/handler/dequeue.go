@@ -22,16 +22,16 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if queueID != "" {
 		params.Job = queueID
 	}
+	var num int = 1
+	if params.Num > 0 {
+		num = int(params.Num)
+	}
 
 	_, err := be.GetQueue(ctx, queueID)
 	if err != nil {
 		return err
 	}
 
-	var num int = 1
-	if params.Num > 0 {
-		num = int(params.Num)
-	}
 	listOpts := &resource.JobListParams{Statuses: []resource.Status{resource.StatusQueued}}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)
 	if err != nil {

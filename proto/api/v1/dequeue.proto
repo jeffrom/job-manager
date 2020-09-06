@@ -10,6 +10,7 @@ message DequeueRequest {
   int32 num = 1;
   string job = 2;
   repeated string selectors = 3;
+  repeated string claims = 4;
 }
 
 message DequeueResponse {

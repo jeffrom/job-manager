@@ -289,6 +289,16 @@
               "fullType": "google.protobuf.Value",
               "ismap": false,
               "defaultValue": ""
+            },
+            {
+              "name": "claims",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
             }
           ]
         }
@@ -705,6 +715,16 @@
             },
             {
               "name": "selectors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "claims",
               "description": "",
               "label": "repeated",
               "type": "string",

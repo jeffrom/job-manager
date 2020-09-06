@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/qri-io/jsonschema"
 )
 
@@ -43,6 +44,16 @@ func (ve *ValidationError) Error() string {
 
 func (ve *ValidationError) KeyErrors() []jsonschema.KeyError {
 	return ve.Errors
+}
+
+func ErrorFromKeyErrors(resourceName, resourceID string, errs []jsonschema.KeyError) *resource.Error {
+	verrs := make([]*resource.ValidationError, len(errs))
+	for i, err := range errs {
+		verrs[i] = &resource.ValidationError{
+			Message: err.Message,
+		}
+	}
+	return resource.NewValidationError(resourceName, resourceID, verrs)
 }
 
 func NewValidationErrorKeyErrs(errs []jsonschema.KeyError) *ValidationError {

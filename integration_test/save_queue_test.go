@@ -13,61 +13,62 @@ import (
 func TestIntegrationSaveQueue(t *testing.T) {
 	tcs := []struct {
 		name       string
+		schema     string
 		argSchema  string
 		dataSchema string
 		resSchema  string
 	}{
 		{
-			name:      "arg-empty-object",
-			argSchema: "{}",
+			name:   "arg-empty-object",
+			schema: `{"args": {}}`,
 		},
 		{
-			name:      "arg-type-missing",
-			argSchema: `{"minItems": 2}`,
+			name:   "arg-type-missing",
+			schema: `{"args": {"minItems": 2}}`,
 		},
 		{
-			name:      "arg-type-object",
-			argSchema: `{"type": "object"}`,
+			name:   "arg-type-object",
+			schema: `{"args": {"type": "object"}}`,
 		},
 		{
-			name:      "arg-type-invalid",
-			argSchema: `{"type": "arrayy"}`,
+			name:   "arg-type-invalid",
+			schema: `{"args": {"type": "arrayy"}}`,
 		},
 		{
-			name:      "arg-extra",
-			argSchema: `{"type": "array", "zorp": true}`,
+			name:   "arg-extra",
+			schema: `{"args": {"type": "array", "zorp": true}}`,
 		},
 		{
-			name:      "arg-minItems-string",
-			argSchema: `{"type": "array", "minItems": "boop"}`,
+			name:   "arg-minItems-string",
+			schema: `{"args": {"type": "array", "minItems": "boop"}}`,
 		},
 		{
-			name:      "arg-maxItems-string",
-			argSchema: `{"type": "array", "maxItems": "boop"}`,
+			name:   "arg-maxItems-string",
+			schema: `{"args": {"type": "array", "maxItems": "boop"}}`,
 		},
 		{
-			name:      "arg-items-string",
-			argSchema: `{"type": "array", "items": "boop"}`,
+			name:   "arg-items-string",
+			schema: `{"args": {"type": "array", "items": "boop"}}`,
 		},
 		{
-			name:      "arg-items-object",
-			argSchema: `{"type": "array", "items": {}}`,
+			name:   "arg-items-object",
+			schema: `{"args": {"type": "array", "items": {}}}`,
 		},
 		{
-			name:       "data-not-type-object",
-			dataSchema: `{"type": "array"}`,
+			name:   "data-not-type-object",
+			schema: `{"data": {"type": "array"}}`,
 		},
 		{
-			name:       "data-properties-array",
-			dataSchema: `{"type": "object", "properties": []}`,
+			name:   "data-properties-array",
+			schema: `{"data": {"type": "object", "properties": []}}`,
 		},
 		{
-			name:      "result-not-type-object",
-			resSchema: `{"type": "array"}`,
+			name:   "result-not-type-object",
+			schema: `{"result": {"type": "array"}}`,
 		},
 		{
-			name:      "result-properties-array",
-			resSchema: `{"type": "object", "properties": []}`,
+			name:   "result-properties-array",
+			schema: `{"result": {"type": "object", "properties": []}}`,
 		},
 	}
 
@@ -80,9 +81,10 @@ func TestIntegrationSaveQueue(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			checkSaveInvalidQueue(ctx, t, c, tc.name, jobclient.SaveQueueOpts{
-				ArgSchema:    []byte(tc.argSchema),
-				DataSchema:   []byte(tc.dataSchema),
-				ResultSchema: []byte(tc.resSchema),
+				Schema: []byte(tc.schema),
+				// ArgSchema:    []byte(tc.argSchema),
+				// DataSchema:   []byte(tc.dataSchema),
+				// ResultSchema: []byte(tc.resSchema),
 			})
 		})
 	}

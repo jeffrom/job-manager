@@ -21,6 +21,7 @@ type SaveQueueOpts struct {
 	MaxRetries   int
 	JobDuration  time.Duration
 	Labels       map[string]string
+	Schema       []byte
 	ArgSchema    []byte
 	DataSchema   []byte
 	ResultSchema []byte
@@ -42,26 +43,12 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 	if opts.JobDuration > 0 {
 		args.Duration = durationpb.New(opts.JobDuration)
 	}
-	if len(opts.ArgSchema) > 0 {
-		cargsSchema, err := schema.Canonicalize(opts.ArgSchema)
+	if len(opts.Schema) > 0 {
+		cSchema, err := schema.Canonicalize(opts.Schema)
 		if err != nil {
 			return nil, err
 		}
-		args.ArgSchema = cargsSchema
-	}
-	if len(opts.DataSchema) > 0 {
-		dataSchema, err := schema.Canonicalize(opts.DataSchema)
-		if err != nil {
-			return nil, err
-		}
-		args.DataSchema = dataSchema
-	}
-	if len(opts.ResultSchema) > 0 {
-		resSchema, err := schema.Canonicalize(opts.ResultSchema)
-		if err != nil {
-			return nil, err
-		}
-		args.ResultSchema = resSchema
+		args.Schema = cSchema
 	}
 	args.Unique = opts.Unique
 	args.V = opts.V

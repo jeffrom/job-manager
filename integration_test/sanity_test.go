@@ -332,7 +332,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 // TODO move this to its own test
 func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	q := tc.saveQueue(ctx, t, "validat0r", jobclient.SaveQueueOpts{
-		ArgSchema: testenv.ReadFile(t, "testdata/schema/basic.jsonschema"),
+		Schema: testenv.ReadFile(t, "testdata/schema/basic.jsonschema"),
 	})
 	if q == nil {
 		t.Fatal("no queue was saved")

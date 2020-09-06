@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -40,13 +41,13 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// validate args if there is a schema
-			scm, err := job.Parse(queue)
+			scm, err := job.ParseSchema(queue)
 			if err != nil {
 				return err
 			}
 
 			if err := scm.ValidateArgs(ctx, jobArg.Args); err != nil {
-				// fmt.Printf("VALIDERRRR: %+v\n", err)
+				fmt.Printf("VALIDERRRR: %+v\n", err)
 				return err
 			}
 

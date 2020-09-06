@@ -47,11 +47,6 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 				status = http.StatusBadRequest
 			}
 
-			rerr := &resource.Error{}
-			if errors.As(err, &rerr) {
-				err = apiv1.ErrorProto(rerr)
-			}
-
 			reqLog.Str("err_type", fmt.Sprintf("%T", err))
 			if status >= http.StatusInternalServerError {
 				reqLog.Err(err)
@@ -62,6 +57,11 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 			vcErr := &backend.VersionConflictError{}
 			if errors.As(err, &vcErr) {
 				err = newVersionConflictError(vcErr)
+			}
+
+			rerr := &resource.Error{}
+			if errors.As(err, &rerr) {
+				err = apiv1.ErrorProto(rerr)
 			}
 
 			// log the error

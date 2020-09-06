@@ -18,6 +18,13 @@ var ErrGenericNotFound = &Error{
 	Kind:    "not_found",
 }
 
+type ValidationError struct {
+	Message  string      `json:"message"`
+	Path     string      `json:"path,omitempty"`
+	ValueRaw string      `json:"value_raw,omitempty"`
+	Value    interface{} `json:"value,omitempty"`
+}
+
 type Error struct {
 	Status     int                `json:"status,omitempty"`
 	Message    string             `json:"message"`
@@ -27,6 +34,16 @@ type Error struct {
 	Reason     string             `json:"reason,omitempty"`
 	Orig       error              `json:"orig,omitempty"`
 	Invalid    []*ValidationError `json:"invalid,omitempty"`
+}
+
+func NewValidationError(resource, resourceID string, verrs []*ValidationError) *Error {
+	return &Error{
+		Status:     http.StatusBadRequest,
+		Kind:       "invalid",
+		Resource:   resource,
+		ResourceID: resourceID,
+		Invalid:    verrs,
+	}
 }
 
 func NewInternalServerError(err error) *Error {
@@ -130,10 +147,3 @@ func (e *Error) Is(iother error) bool {
 }
 
 func (e *Error) GetStatus() int { return e.Status }
-
-type ValidationError struct {
-	Message  string      `json:"message"`
-	Path     string      `json:"path,omitempty"`
-	ValueRaw string      `json:"value_raw,omitempty"`
-	Value    interface{} `json:"value,omitempty"`
-}

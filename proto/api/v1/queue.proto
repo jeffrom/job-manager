@@ -16,10 +16,12 @@ message SaveQueueParamArgs {
   google.protobuf.Duration duration = 5;
   google.protobuf.Duration checkin_duration = 6;
   map<string, string> labels = 7;
-  bytes arg_schema = 8;
-  bytes data_schema = 9;
-  bytes result_schema = 10;
-  bool unique = 11;
+  bytes schema = 8;
+  // XXX remove these
+  bytes arg_schema = 9;
+  bytes data_schema = 10;
+  bytes result_schema = 11;
+  bool unique = 12;
 }
 
 message SaveQueueParams {

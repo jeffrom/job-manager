@@ -29,7 +29,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		scm, err := job.Parse(queue)
+		scm, err := job.ParseSchema(queue)
 		if err != nil {
 			return err
 		}

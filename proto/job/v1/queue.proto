@@ -5,7 +5,6 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
 import "job/v1/job.proto";
-import "job/v1/schema.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/job";
 
@@ -18,7 +17,7 @@ message Queue {
   google.protobuf.Duration duration = 5;
   google.protobuf.Duration checkin_duration = 6;
   map<string, string> labels = 7;
-  Schema schema = 8;
+  bytes schema = 8;
   bool unique = 9;
 
   google.protobuf.Timestamp created_at = 10;

@@ -26,7 +26,7 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err := schema.ValidateSchema(ctx, params.ArgSchema, params.DataSchema, params.ResultSchema); err != nil {
+	if err := schema.ValidateSchema(ctx, params.Schema); err != nil {
 		return err
 	}
 
@@ -51,13 +51,10 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		Retries:     maxRetries,
 		Labels:      params.Labels,
 		Duration:    dur,
-		Schema: &job.Schema{
-			Args:   params.ArgSchema,
-			Result: params.ResultSchema,
-		},
-		CreatedAt: now,
-		Unique:    params.Unique,
-		V:         params.V,
+		Schema:      params.Schema,
+		CreatedAt:   now,
+		Unique:      params.Unique,
+		V:           params.V,
 	}
 	if err := be.SaveQueue(ctx, queue); err != nil {
 		return handleBackendErrors(err, "queue", queueID)

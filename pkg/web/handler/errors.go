@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 func newVersionConflictError(e *backend.VersionConflictError) *resource.Error {
@@ -29,6 +30,14 @@ func handleBackendErrors(err error, resourceName, resourceID string) error {
 		return resource.NewNotFoundError(resourceName, resourceID, "")
 	case errors.As(err, &cerr):
 		return newVersionConflictError(cerr)
+	}
+	return err
+}
+
+func handleSchemaErrors(err error, resourceName, resourceID string) error {
+	verr := &schema.ValidationError{}
+	if errors.As(err, verr) {
+		return resource.NewValidationError(resourceName, resourceID, nil)
 	}
 	return err
 }

@@ -13,21 +13,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var ArgSchema *jsonschema.Schema = &jsonschema.Schema{}
-var DataSchema *jsonschema.Schema = &jsonschema.Schema{}
-var ResultSchema *jsonschema.Schema = &jsonschema.Schema{}
+var SelfSchema *jsonschema.Schema = &jsonschema.Schema{}
 
 func init() {
 	min := jsonmin.DefaultMinifier
 	min.Precision = 0
 
-	if err := json.Unmarshal(argSchemaRaw, ArgSchema); err != nil {
-		panic(err)
-	}
-	if err := json.Unmarshal(dataSchemaRaw, DataSchema); err != nil {
-		panic(err)
-	}
-	if err := json.Unmarshal(resultSchemaRaw, ResultSchema); err != nil {
+	if err := json.Unmarshal(selfSchemaRaw, SelfSchema); err != nil {
 		panic(err)
 	}
 }
@@ -56,11 +48,11 @@ func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
 	if s.Args == nil {
 		return nil
 	}
+
 	jsonData, err := marshalToJSON(arg)
 	if err != nil {
 		return err
 	}
-
 	keyErrs, err := s.Args.ValidateBytes(ctx, jsonData)
 	if err != nil {
 		return err

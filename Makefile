@@ -9,6 +9,8 @@ protofiles := $(wildcard proto/*.proto proto/**/*.proto proto/**/**/*.proto prot
 prototargets := $(wildcard doc/doc.json *.pb.go **/*.pb.go **/**/*.pb.go **/**/**/*.pb.go)
 
 write_jsonschema_bin := script/write_jsonschema.sh
+self_schema_target := pkg/schema/self_schema.go
+self_schema_deps := jsonschema/Self.json
 args_schema_target := pkg/schema/args_schema.go
 args_schema_deps := jsonschema/Args.json
 data_schema_target := pkg/schema/data_schema.go
@@ -24,12 +26,16 @@ gocoverutil := $(GOPATH)/bin/gocoverutil
 staticcheck := $(GOPATH)/bin/staticcheck
 gomodoutdated := $(GOPATH)/bin/go-mod-outdated
 tulpa := $(GOPATH)/bin/tulpa
+spectral = $(shell which spectral)
 
 ifeq ($(buf),)
 	buf = must-rebuild
 endif
 ifeq ($(protoc),)
 	protoc = must-rebuild
+endif
+ifeq ($(spectral),)
+	spectral = must-rebuild
 endif
 
 all: build
@@ -58,6 +64,7 @@ test: $(gen) $(gofiles) | $(staticcheck) $(buf)
 test.lint: $(gen) $(gofiles) | $(staticcheck) $(buf)
 	GO111MODULE=on $(staticcheck) -f stylish -checks all ./...
 	$(buf) check lint
+	$(spectral) lint jsonschema/*
 
 .PHONY: test.cover
 test.cover: $(gen) $(gofiles) | $(gocoverutil)
@@ -86,7 +93,10 @@ $(prototargets): $(protofiles) | $(protoc_gen_go) $(protoc_gen_doc)
 	protoc -I=proto --go_out=${GOPATH}/src ${protofiles}
 	protoc -I=proto --doc_opt=json,doc.json --doc_out=doc ${protofiles}
 
-gen.jsonschema: $(args_schema_target) $(data_schema_target) $(result_schema_target)
+gen.jsonschema: $(self_schema_target) $(args_schema_target) $(data_schema_target) $(result_schema_target)
+
+$(self_schema_target): $(write_jsonschema_bin) $(self_schema_deps)
+	script/write_jsonschema.sh Self selfSchemaRaw $(self_schema_target)
 
 $(args_schema_target): $(write_jsonschema_bin) $(args_schema_deps)
 	script/write_jsonschema.sh Args argSchemaRaw $(args_schema_target)
@@ -118,6 +128,10 @@ $(protoc_gen_doc):
 
 $(buf):
 	@echo "Please install buf: https://buf.build/docs/installation/"
+	@exit 1
+
+$(spectral):
+	@echo "Please install spectral: npm install -g @stoplight/spectral"
 	@exit 1
 
 $(protoc):

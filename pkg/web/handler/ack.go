@@ -6,7 +6,9 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
@@ -18,6 +20,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	resources := &resource.Acks{Acks: make([]*resource.Ack, len(params.Acks))}
 	results := &jobv1.Acks{Acks: make([]*jobv1.Ack, len(params.Acks))}
 	for i, ackParam := range params.Acks {
 		id := ackParam.Id
@@ -29,7 +32,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		scm, err := jobv1.ParseSchema(queue)
+		scm, err := schema.Parse(queue.SchemaRaw)
 		if err != nil {
 			return err
 		}
@@ -37,36 +40,38 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		results.Acks[i] = &jobv1.Ack{
+		ack := &jobv1.Ack{
 			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,
 		}
+		results.Acks[i] = ack
+		resources.Acks[i] = jobv1.AckFromProto(ack)
 	}
 
-	if err := be.AckJobs(ctx, results); err != nil {
+	if err := be.AckJobs(ctx, resources); err != nil {
 		return err
 	}
-	if err := deleteArgUniqueness(ctx, be, results.Acks); err != nil {
+	if err := deleteArgUniqueness(ctx, be, resources.Acks); err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*jobv1.Ack) error {
+func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*resource.Ack) error {
 	var keys []string
 	for _, ack := range acks {
-		if !jobv1.IsComplete(ack.Status) {
+		if !resource.StatusIsAttempted(ack.Status) {
 			continue
 		}
 
-		jobData, err := be.GetJobByID(ctx, ack.Id)
+		jobData, err := be.GetJobByID(ctx, ack.ID)
 		if err != nil {
 			return err
 		}
 		iargs := make([]interface{}, len(jobData.Args))
 		for i, arg := range jobData.Args {
-			iargs[i] = arg.AsInterface()
+			iargs[i] = arg
 		}
 		ukey, err := uniquenessKeyFromArgs(iargs)
 		if err != nil {

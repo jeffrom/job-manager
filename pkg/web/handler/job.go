@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+
+	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
@@ -16,5 +18,9 @@ func GetJobByID(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, job)
+	respJob, err := jobv1.NewJobFromResource(job)
+	if err != nil {
+		return err
+	}
+	return MarshalResponse(w, r, respJob)
 }

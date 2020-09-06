@@ -1,71 +1,70 @@
 package backend
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"strconv"
 
 	"github.com/jeffrom/job-manager/pkg/label"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 // Memory is an in-memory backend intended for testing.
 type Memory struct {
-	configs    map[string]*jobv1.Queue
-	jobs       map[string]*jobv1.Job
+	// mu         sync.Mutex
+	queues     map[string]*resource.Queue
+	jobs       map[string]*resource.Job
 	uniqueness map[string]bool
 }
 
 func NewMemory() *Memory {
 	return &Memory{
-		configs:    make(map[string]*jobv1.Queue),
-		jobs:       make(map[string]*jobv1.Job),
+		queues:     make(map[string]*resource.Queue),
+		jobs:       make(map[string]*resource.Job),
 		uniqueness: make(map[string]bool),
 	}
 }
 
-func (m *Memory) GetQueue(ctx context.Context, name string) (*jobv1.Queue, error) {
-	if cfg, ok := m.configs[name]; ok {
+func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, error) {
+	if cfg, ok := m.queues[name]; ok {
 		return cfg, nil
 	}
 	return nil, ErrNotFound
 }
 
-func (m *Memory) SaveQueue(ctx context.Context, queue *jobv1.Queue) error {
+func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) error {
 	// if it already exists and no version was supplied, or if version was
 	// supplied but they don't match, return conflict
-	prev, ok := m.configs[queue.Id]
+	prev, ok := m.queues[queue.ID]
 	// fmt.Printf("prev: %+v, found: %v\n", prev, ok)
 	if ok {
-		if queue.V == 0 || queue.V != prev.V {
+		if queue.Version.Raw() == 0 || queue.Version.Raw() != prev.Version.Raw() {
 			return &VersionConflictError{
 				Resource:   "queue",
-				ResourceID: queue.Id,
-				Prev:       strconv.FormatInt(int64(prev.V), 10),
-				Curr:       strconv.FormatInt(int64(queue.V), 10),
+				ResourceID: queue.ID,
+				Prev:       prev.Version.String(),
+				Curr:       queue.Version.String(),
 			}
 		}
 	}
 	// fmt.Printf("---\nprev: %s\ncurr: %s\nequal: %v\n\n", prev.String(), queue.String(), proto.Equal(queue, prev))
-	if prev == nil || !queuesEqual(queue, prev) {
-		queue.V++
+	if prev == nil || !queue.Equals(prev) {
+		queue.Version.Inc()
 	}
-	m.configs[queue.Id] = queue
+	m.queues[queue.ID] = queue
 	return nil
 }
 
-func (m *Memory) ListQueues(ctx context.Context, opts *jobv1.QueueListParams) (*jobv1.Queues, error) {
+func (m *Memory) ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error) {
 	if opts == nil {
-		opts = &jobv1.QueueListParams{}
+		opts = &resource.QueueListParams{}
 	}
-	sels, err := label.ParseSelectorStringArray(opts.Selectors)
-	if err != nil {
-		return nil, err
-	}
+	sels := opts.Selectors
+	// sels, err := label.ParseSelectorStringArray(opts.Selectors)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	queues := &jobv1.Queues{}
-	for _, queue := range m.configs {
+	queues := &resource.Queues{}
+	for _, queue := range m.queues {
 		if m.filterQueue(queue, opts.Names, sels) {
 			continue
 		}
@@ -74,25 +73,25 @@ func (m *Memory) ListQueues(ctx context.Context, opts *jobv1.QueueListParams) (*
 	return queues, nil
 }
 
-func (m *Memory) filterQueue(queue *jobv1.Queue, names []string, sels *label.Selectors) bool {
-	if len(names) > 0 && !valIn(queue.Id, names) {
+func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.Selectors) bool {
+	if len(names) > 0 && !valIn(queue.ID, names) {
 		return true
 	}
 	return !sels.Match(queue.Labels)
 }
 
-func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *jobv1.Jobs) error {
+func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) error {
 	for _, jobArg := range jobArgs.Jobs {
-		m.jobs[jobArg.Id] = jobArg
+		m.jobs[jobArg.ID] = jobArg
 	}
 	return nil
 }
 
-func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *jobv1.JobListParams) (*jobv1.Jobs, error) {
+func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobListParams) (*resource.Jobs, error) {
 	if opts == nil {
-		opts = &jobv1.JobListParams{}
+		opts = &resource.JobListParams{}
 	}
-	opts.Statuses = []jobv1.Status{jobv1.StatusQueued, jobv1.StatusFailed}
+	opts.Statuses = []resource.Status{resource.StatusQueued, resource.StatusFailed}
 
 	jobs, err := m.ListJobs(ctx, opts)
 	if err != nil {
@@ -103,19 +102,19 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *jobv1.JobListPa
 	}
 
 	for _, jobData := range jobs.Jobs {
-		jobData.Status = jobv1.StatusRunning
+		jobData.Status = resource.StatusRunning
 	}
 	return jobs, nil
 }
 
-func (m *Memory) AckJobs(ctx context.Context, results *jobv1.Acks) error {
+func (m *Memory) AckJobs(ctx context.Context, results *resource.Acks) error {
 	for _, res := range results.Acks {
-		jobData, ok := m.jobs[res.Id]
+		jobData, ok := m.jobs[res.ID]
 		if !ok {
 			return ErrNotFound
 		}
 		if res.Data != nil {
-			jobData.Results = []*jobv1.Result{
+			jobData.Results = []*resource.JobResult{
 				{
 					Data: res.Data,
 				},
@@ -148,7 +147,7 @@ func (m *Memory) DeleteJobKeys(ctx context.Context, keys []string) error {
 	return nil
 }
 
-func (m *Memory) GetJobByID(ctx context.Context, id string) (*jobv1.Job, error) {
+func (m *Memory) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
 	jobData, ok := m.jobs[id]
 	if !ok {
 		return nil, ErrNotFound
@@ -156,13 +155,13 @@ func (m *Memory) GetJobByID(ctx context.Context, id string) (*jobv1.Job, error) 
 	return jobData, nil
 }
 
-func (m *Memory) ListJobs(ctx context.Context, opts *jobv1.JobListParams) (*jobv1.Jobs, error) {
+func (m *Memory) ListJobs(ctx context.Context, opts *resource.JobListParams) (*resource.Jobs, error) {
 	if opts == nil {
-		opts = &jobv1.JobListParams{}
+		opts = &resource.JobListParams{}
 	}
-	res := &jobv1.Jobs{}
+	res := &resource.Jobs{}
 	for _, jobData := range m.jobs {
-		if statuses := opts.Statuses; len(statuses) > 0 && !jobv1.HasStatus(jobData, statuses) {
+		if statuses := opts.Statuses; len(statuses) > 0 && !jobData.HasStatus(statuses...) {
 			continue
 		}
 		res.Jobs = append(res.Jobs, jobData)
@@ -177,35 +176,4 @@ func valIn(val string, vals []string) bool {
 		}
 	}
 	return false
-}
-
-func queuesEqual(a, b *jobv1.Queue) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-	ac := &*a
-	bc := &*b
-	ac.CreatedAt = nil
-	bc.CreatedAt = nil
-	abuf, err := json.Marshal(ac)
-	if err != nil {
-		return false
-	}
-	bbuf, err := json.Marshal(bc)
-	if err != nil {
-		return false
-	}
-	return bytes.Equal(abuf, bbuf)
-}
-
-func labelsEqual(a, b map[string]string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k, v := range a {
-		if b[k] != v {
-			return false
-		}
-	}
-	return true
 }

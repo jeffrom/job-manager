@@ -12,3 +12,11 @@ const (
 	StatusInvalid
 	StatusFailed
 )
+
+func StatusIsAttempted(status Status) bool {
+	switch status {
+	case StatusComplete, StatusCancelled, StatusInvalid, StatusDead:
+		return true
+	}
+	return false
+}

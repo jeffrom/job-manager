@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -31,10 +32,17 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if params.Num > 0 {
 		num = int(params.Num)
 	}
-	listOpts := &jobv1.JobListParams{Statuses: []jobv1.Status{jobv1.StatusQueued}}
+	listOpts := &resource.JobListParams{Statuses: []resource.Status{resource.StatusQueued}}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)
 	if err != nil {
 		return err
 	}
-	return MarshalResponse(w, r, &apiv1.DequeueResponse{Jobs: jobs})
+
+	jobsResp, err := jobv1.NewJobsFromResource(jobs.Jobs)
+	if err != nil {
+		return err
+	}
+	return MarshalResponse(w, r, &apiv1.DequeueResponse{
+		Jobs: &jobv1.Jobs{Jobs: jobsResp},
+	})
 }

@@ -5,6 +5,18 @@ import "strings"
 
 type Labels map[string]string
 
+func (l Labels) Equals(other Labels) bool {
+	if len(l) != len(other) {
+		return false
+	}
+	for k, v := range l {
+		if other[k] != v {
+			return false
+		}
+	}
+	return true
+}
+
 func ParseStringArray(labels []string) (Labels, error) {
 	l := make(Labels)
 	for _, lbl := range labels {

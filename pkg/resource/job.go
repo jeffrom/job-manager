@@ -17,12 +17,18 @@ type Job struct {
 	Attempt      int           `json:"attempt,omitempty"`
 	Checkins     []*JobCheckin `json:"checkins,omitempty"`
 	Results      []*JobResult  `json:"results,omitempty"`
+	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty"`
 }
 
 func (jb *Job) IsAttempted() bool {
-	switch jb.Status {
-	case StatusComplete, StatusCancelled, StatusInvalid, StatusDead:
-		return true
+	return StatusIsAttempted(jb.Status)
+}
+
+func (jb *Job) HasStatus(statuses ...Status) bool {
+	for _, st := range statuses {
+		if jb.Status == st {
+			return true
+		}
 	}
 	return false
 }
@@ -50,7 +56,7 @@ type JobResult struct {
 
 type JobListParams struct {
 	Names         []string        `json:"names,omitempty"`
-	Statuses      []string        `json:"statuses,omitempty"`
+	Statuses      []Status        `json:"statuses,omitempty"`
 	Selectors     label.Selectors `json:"selectors,omitempty"`
 	EnqueuedSince time.Time       `json:"enqueued_since,omitempty"`
 	EnqueuedUntil time.Time       `json:"enqueued_until,omitempty"`

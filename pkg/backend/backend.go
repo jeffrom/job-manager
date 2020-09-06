@@ -4,20 +4,20 @@ package backend
 import (
 	"context"
 
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 type Interface interface {
-	GetQueue(ctx context.Context, job string) (*jobv1.Queue, error)
-	SaveQueue(ctx context.Context, queue *jobv1.Queue) error
-	ListQueues(ctx context.Context, opts *jobv1.QueueListParams) (*jobv1.Queues, error)
+	GetQueue(ctx context.Context, job string) (*resource.Queue, error)
+	SaveQueue(ctx context.Context, queue *resource.Queue) error
+	ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error)
 
-	EnqueueJobs(ctx context.Context, jobs *jobv1.Jobs) error
-	DequeueJobs(ctx context.Context, num int, opts *jobv1.JobListParams) (*jobv1.Jobs, error)
-	AckJobs(ctx context.Context, results *jobv1.Acks) error
+	EnqueueJobs(ctx context.Context, jobs *resource.Jobs) error
+	DequeueJobs(ctx context.Context, num int, opts *resource.JobListParams) (*resource.Jobs, error)
+	AckJobs(ctx context.Context, results *resource.Acks) error
 	GetSetJobKeys(ctx context.Context, keys []string) (bool, error)
 	DeleteJobKeys(ctx context.Context, keys []string) error
 
-	GetJobByID(ctx context.Context, id string) (*jobv1.Job, error)
-	ListJobs(ctx context.Context, opts *jobv1.JobListParams) (*jobv1.Jobs, error)
+	GetJobByID(ctx context.Context, id string) (*resource.Job, error)
+	ListJobs(ctx context.Context, opts *resource.JobListParams) (*resource.Jobs, error)
 }

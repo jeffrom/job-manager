@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -30,6 +31,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
+		resources := &resource.Jobs{Jobs: make([]*resource.Job, len(params.Jobs))}
 		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
 		ids := make([]string, len(params.Jobs))
 		now := timestamppb.Now()
@@ -40,12 +42,13 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// validate args if there is a schema
-			scm, err := jobv1.ParseSchema(queue)
+			scm, err := schema.Parse(queue.SchemaRaw)
 			if err != nil {
 				return err
 			}
 
 			if err := scm.ValidateArgs(ctx, jobArg.Args); err != nil {
+				fmt.Println("ASDF", err)
 				return handleSchemaErrors(err, "job", "", "invalid job arguments")
 			}
 
@@ -56,12 +59,12 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				if unique {
 					// return conflict error
-					return resource.NewUnprocessableEntityError("queue", queue.Id, "A job with matching arguments is executing")
+					return resource.NewUnprocessableEntityError("queue", queue.ID, "A job with matching arguments is executing")
 				}
 			}
 
 			id := jobv1.NewID()
-			jobs.Jobs[i] = &jobv1.Job{
+			jb := &jobv1.Job{
 				Id:         id,
 				Name:       jobArg.Job,
 				Args:       jobArg.Args,
@@ -69,11 +72,13 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Status:     jobv1.StatusQueued,
 				EnqueuedAt: now,
 			}
+			jobs.Jobs[i] = jb
 			ids[i] = id
+			resources.Jobs[i] = jobv1.NewJobFromProto(jb)
 			// fmt.Printf("JOB: %+v\n", jobs.Jobs[i])
 		}
 
-		if err := be.EnqueueJobs(ctx, jobs); err != nil {
+		if err := be.EnqueueJobs(ctx, resources); err != nil {
 			return err
 		}
 		return MarshalResponse(w, r, &apiv1.EnqueueResponse{

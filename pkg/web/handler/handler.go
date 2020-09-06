@@ -14,13 +14,12 @@ import (
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/resource"
-	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 type httpError interface {
 	error
-	Status() int
+	GetStatus() int
 }
 
 type protoError interface {
@@ -31,19 +30,13 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := fn(w, r); err != nil {
 			reqLog := middleware.RequestLogFromContext(r.Context())
+			// fmt.Printf("req error: %T %+v\n", err, err)
 
 			// set status depending on the error returned
 			status := http.StatusInternalServerError
 			if herr, ok := err.(httpError); ok {
-				status = herr.Status()
+				status = herr.GetStatus()
 			} else if errors.Is(err, io.ErrUnexpectedEOF) {
-				status = http.StatusBadRequest
-				// XXX these below should not be needed
-			} else if errors.Is(err, backend.ErrNotFound) {
-				status = http.StatusNotFound
-			} else if errors.Is(err, &backend.VersionConflictError{}) {
-				status = http.StatusConflict
-			} else if errors.Is(err, &schema.ValidationError{}) {
 				status = http.StatusBadRequest
 			}
 

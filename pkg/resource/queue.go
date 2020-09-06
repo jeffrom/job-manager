@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/jeffrom/job-manager/pkg/label"
@@ -21,11 +22,23 @@ type Queue struct {
 	DeletedAt       time.Time     `json:"deleted_at,omitempty"`
 }
 
+func (q *Queue) Equals(other *Queue) bool {
+	return q.ID == other.ID &&
+		q.Version == other.Version &&
+		q.Concurrency == other.Concurrency &&
+		q.Retries == other.Retries &&
+		q.Duration == other.Duration &&
+		q.CheckinDuration == other.CheckinDuration &&
+		q.Unique == other.Unique &&
+		q.Labels.Equals(other.Labels) &&
+		bytes.Equal(q.SchemaRaw, other.SchemaRaw)
+}
+
 type Queues struct {
 	Queues []*Queue `json:"queues"`
 }
 
 type QueueListParams struct {
-	Names     []string        `json:"names,omitempty"`
-	Selectors label.Selectors `json:"selectors,omitempty"`
+	Names     []string         `json:"names,omitempty"`
+	Selectors *label.Selectors `json:"selectors,omitempty"`
 }

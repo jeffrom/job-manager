@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http/httptest"
 	"testing"
@@ -18,7 +19,7 @@ import (
 
 type sanityContext struct {
 	srv    *httptest.Server
-	client *jobclient.Client
+	client jobclient.Interface
 }
 
 type sanityTestCase struct {
@@ -343,11 +344,21 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		queue   string
 		args    []interface{}
 		keyErrs []jsonschema.KeyError
+		errs    []*resource.ValidationError
 	}{
 		{
 			name:  "basic",
 			queue: "validat0r",
 			args:  jobArgs(-1),
+			errs: []*resource.ValidationError{
+				{
+					Path:  "/0",
+					Value: -1,
+				},
+				{
+					Path: "/",
+				},
+			},
 			keyErrs: []jsonschema.KeyError{
 				{
 					PropertyPath: "/0",
@@ -362,6 +373,11 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 			name:  "noargs",
 			queue: "validat0r",
 			args:  jobArgs(),
+			errs: []*resource.ValidationError{
+				{
+					Path: "/",
+				},
+			},
 			keyErrs: []jsonschema.KeyError{
 				{
 					PropertyPath: "/",
@@ -372,6 +388,12 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 			name:  "incomplete",
 			queue: "validat0r",
 			args:  jobArgs("nice"),
+			errs: []*resource.ValidationError{
+				{
+					Path:  "/",
+					Value: jobArgs("nice"),
+				},
+			},
 			keyErrs: []jsonschema.KeyError{
 				{
 					PropertyPath: "/",
@@ -384,6 +406,12 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 			name:  "wrong-type",
 			queue: "validat0r",
 			args:  jobArgs("nice", -1),
+			errs: []*resource.ValidationError{
+				{
+					Path:  "/1",
+					Value: -1,
+				},
+			},
 			keyErrs: []jsonschema.KeyError{
 				{
 					PropertyPath: "/1",
@@ -395,6 +423,16 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 			name:  "wrong-types",
 			queue: "validat0r",
 			args:  jobArgs(true, -1),
+			errs: []*resource.ValidationError{
+				{
+					Path:  "/0",
+					Value: true,
+				},
+				{
+					Path:  "/1",
+					Value: -1,
+				},
+			},
 			keyErrs: []jsonschema.KeyError{
 				{
 					PropertyPath: "/0",
@@ -410,26 +448,26 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	for _, vtc := range vtcs {
 		t.Run(vtc.name, func(t *testing.T) {
 			t.Log(vtc.queue, vtc.args)
-			keyErrs := getKeyErrors(ctx, t, tc, vtc.queue, vtc.args...)
-			if len(keyErrs) != len(vtc.keyErrs) {
-				t.Fatalf("expected %d jsonschema KeyError, got %d (%s)", len(vtc.keyErrs), len(keyErrs), keyErrs)
+			verrs := getValidationErrors(ctx, t, tc, vtc.queue, vtc.args...)
+			if len(verrs) != len(vtc.errs) {
+				t.Fatalf("expected %d ValidationErrors, got %d (%+v)", len(vtc.errs), len(verrs), verrs)
 			}
-			for i, expectErr := range vtc.keyErrs {
-				keyErr := keyErrs[i]
-				if path := expectErr.PropertyPath; path != "" {
-					checkArgsSchema(t, keyErr, path)
-				} else if len(vtc.args) == 0 && keyErr.PropertyPath != "/" {
-					t.Errorf("#%d: expected path to be %q, was %q", i, "/", keyErr.PropertyPath)
+			for i, expectErr := range vtc.errs {
+				verr := verrs[i]
+				if path := expectErr.Path; path != "" {
+					checkArgsSchema(t, verr, path)
+				} else if len(vtc.args) == 0 && verr.Path != "/" {
+					t.Errorf("#%d: expected path to be %q, was %q", i, "/", verr.Path)
 				}
 
-				if ival := expectErr.InvalidValue; ival != nil {
+				if ival := expectErr.Value; ival != nil {
 					switch val := ival.(type) {
 					case int:
-						checkSchemaNumber(t, keyErr.InvalidValue, float64(val))
+						checkSchemaNumber(t, verr.Value, float64(val))
 					case float64:
-						checkSchemaNumber(t, keyErr.InvalidValue, val)
+						checkSchemaNumber(t, verr.Value, val)
 					case string:
-						checkSchemaString(t, keyErr.InvalidValue, val)
+						checkSchemaString(t, verr.Value, val)
 					}
 				}
 			}
@@ -446,6 +484,29 @@ func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 	id := tc.enqueueJob(ctx, t, "validat0r", "nice", true)
 	tc.ackJob(ctx, t, id, job.StatusComplete)
+}
+
+func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []*resource.ValidationError {
+	t.Helper()
+	id, err := tc.ctx.client.EnqueueJob(ctx, queue, args...)
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+	if id != "" {
+		t.Fatal("expected empty id, got", id)
+	}
+
+	rerr := &resource.Error{}
+	if !errors.As(err, &rerr) {
+		t.Fatalf("expected error type %T, got %#v", rerr, err)
+	}
+
+	b, err := json.Marshal(rerr.Invalid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("validation errors: %s", string(b))
+	return rerr.Invalid
 }
 
 func getKeyErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []jsonschema.KeyError {
@@ -466,10 +527,10 @@ func getKeyErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue s
 	return verr.KeyErrors()
 }
 
-func checkArgsSchema(t testing.TB, keyErr jsonschema.KeyError, expectPath string) {
+func checkArgsSchema(t testing.TB, verr *resource.ValidationError, expectPath string) {
 	t.Helper()
-	if keyErr.PropertyPath != expectPath {
-		t.Errorf("expected path %q, got %q", expectPath, keyErr.PropertyPath)
+	if verr.Path != expectPath {
+		t.Errorf("expected path %q, got %q", expectPath, verr.Path)
 	}
 }
 

@@ -11,12 +11,6 @@ prototargets := $(wildcard doc/doc.json *.pb.go **/*.pb.go **/**/*.pb.go **/**/*
 write_jsonschema_bin := script/write_jsonschema.sh
 self_schema_target := pkg/schema/self_schema.go
 self_schema_deps := jsonschema/Self.json
-args_schema_target := pkg/schema/args_schema.go
-args_schema_deps := jsonschema/Args.json
-data_schema_target := pkg/schema/data_schema.go
-data_schema_deps := jsonschema/Data.json
-result_schema_target := pkg/schema/result_schema.go
-result_schema_deps := jsonschema/Result.json
 
 buf := $(shell which buf)
 protoc := $(shell which protoc)
@@ -93,19 +87,10 @@ $(prototargets): $(protofiles) | $(protoc_gen_go) $(protoc_gen_doc)
 	protoc -I=proto --go_out=${GOPATH}/src ${protofiles}
 	protoc -I=proto --doc_opt=json,doc.json --doc_out=doc ${protofiles}
 
-gen.jsonschema: $(self_schema_target) $(args_schema_target) $(data_schema_target) $(result_schema_target)
+gen.jsonschema: $(self_schema_target)
 
 $(self_schema_target): $(write_jsonschema_bin) $(self_schema_deps)
 	script/write_jsonschema.sh Self selfSchemaRaw $(self_schema_target)
-
-$(args_schema_target): $(write_jsonschema_bin) $(args_schema_deps)
-	script/write_jsonschema.sh Args argSchemaRaw $(args_schema_target)
-
-$(data_schema_target): $(write_jsonschema_bin) $(data_schema_deps)
-	script/write_jsonschema.sh Data dataSchemaRaw $(data_schema_target)
-
-$(result_schema_target): $(write_jsonschema_bin) $(result_schema_deps)
-	script/write_jsonschema.sh Result resultSchemaRaw $(result_schema_target)
 
 .PHONY: dev
 dev:

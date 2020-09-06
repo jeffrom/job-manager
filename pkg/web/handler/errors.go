@@ -34,10 +34,11 @@ func handleBackendErrors(err error, resourceName, resourceID string) error {
 	return err
 }
 
-func handleSchemaErrors(err error, resourceName, resourceID string) error {
+func handleSchemaErrors(err error, resourceName, resourceID, reason string) error {
 	verr := &schema.ValidationError{}
-	if errors.As(err, verr) {
-		return resource.NewValidationError(resourceName, resourceID, nil)
+	if errors.As(err, &verr) {
+		fmt.Printf("handler: %#v\n", verr)
+		return schema.ErrorFromKeyErrors(resourceName, resourceID, reason, verr.Errors)
 	}
 	return err
 }

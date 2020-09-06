@@ -19,6 +19,13 @@ message GenericError {
   string resource = 3;
   string resource_id = 4;
   string reason = 5;
+  repeated ValidationError invalid = 6;
+}
+
+message ValidationError {
+  string path = 1;
+  string message = 2;
+  google.protobuf.Value value = 3;
 }
 
 message ValidationErrorArg {

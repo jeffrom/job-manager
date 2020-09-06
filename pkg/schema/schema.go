@@ -45,7 +45,7 @@ func (s *Schema) Validate(ctx context.Context, args, data, result interface{}) e
 }
 
 func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
-	if s.Args == nil {
+	if s == nil || s.Args == nil {
 		return nil
 	}
 
@@ -64,7 +64,7 @@ func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
 }
 
 func (s *Schema) ValidateResult(ctx context.Context, arg interface{}) error {
-	if s.Result == nil {
+	if s == nil || s.Result == nil {
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func (s *Schema) ValidateResult(ctx context.Context, arg interface{}) error {
 }
 
 func (s *Schema) ValidateData(ctx context.Context, arg interface{}) error {
-	if s.Data == nil {
+	if s == nil || s.Data == nil {
 		return nil
 	}
 

@@ -61,6 +61,7 @@ func newResourceErrorFromMessage(message *apiv1.GenericError) *resource.Error {
 		Resource:   message.Resource,
 		ResourceID: message.ResourceId,
 		Reason:     message.Reason,
+		Invalid:    newResourceValidationErrorsProto(message.Invalid),
 	}
 }
 
@@ -70,6 +71,18 @@ func IsNotFound(err error) bool {
 		return gerr.Kind == "not_found"
 	}
 	return false
+}
+
+func newResourceValidationErrorsProto(resp []*apiv1.ValidationError) []*resource.ValidationError {
+	ve := make([]*resource.ValidationError, len(resp))
+	for i, respErr := range resp {
+		ve[i] = &resource.ValidationError{
+			Path:    respErr.Path,
+			Message: respErr.Message,
+			Value:   respErr.Value.AsInterface(),
+		}
+	}
+	return ve
 }
 
 func newSchemaValidationErrorProto(resp *apiv1.ValidationErrorResponse) *schema.ValidationError {

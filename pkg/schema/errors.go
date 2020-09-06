@@ -46,14 +46,16 @@ func (ve *ValidationError) KeyErrors() []jsonschema.KeyError {
 	return ve.Errors
 }
 
-func ErrorFromKeyErrors(resourceName, resourceID string, errs []jsonschema.KeyError) *resource.Error {
+func ErrorFromKeyErrors(resourceName, resourceID, reason string, errs []jsonschema.KeyError) *resource.Error {
 	verrs := make([]*resource.ValidationError, len(errs))
-	for i, err := range errs {
+	for i, serr := range errs {
 		verrs[i] = &resource.ValidationError{
-			Message: err.Message,
+			Message: serr.Message,
+			Path:    serr.PropertyPath,
+			Value:   serr.InvalidValue,
 		}
 	}
-	return resource.NewValidationError(resourceName, resourceID, verrs)
+	return resource.NewValidationError(resourceName, resourceID, reason, verrs)
 }
 
 func NewValidationErrorKeyErrs(errs []jsonschema.KeyError) *ValidationError {

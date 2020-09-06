@@ -36,12 +36,14 @@ type Error struct {
 	Invalid    []*ValidationError `json:"invalid,omitempty"`
 }
 
-func NewValidationError(resource, resourceID string, verrs []*ValidationError) *Error {
+func NewValidationError(resource, resourceID, reason string, verrs []*ValidationError) *Error {
 	return &Error{
 		Status:     http.StatusBadRequest,
 		Kind:       "invalid",
+		Message:    "invalid request",
 		Resource:   resource,
 		ResourceID: resourceID,
+		Reason:     reason,
 		Invalid:    verrs,
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -47,8 +46,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if err := scm.ValidateArgs(ctx, jobArg.Args); err != nil {
-				fmt.Printf("VALIDERRRR: %+v\n", err)
-				return err
+				return handleSchemaErrors(err, "job", "", "invalid job arguments")
 			}
 
 			if queue.Unique {

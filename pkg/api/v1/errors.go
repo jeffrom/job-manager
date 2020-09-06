@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jeffrom/job-manager/pkg/resource"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
+
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 func ErrorMessage(e *GenericError) string {
@@ -49,6 +51,7 @@ func (e *protoError) Message() proto.Message {
 		Resource:   e.rerr.Resource,
 		ResourceId: e.rerr.ResourceID,
 		Reason:     e.rerr.Reason,
+		Invalid:    invalidErrProto(e.rerr.Invalid),
 	}
 }
 
@@ -56,4 +59,20 @@ func ErrorProto(rerr *resource.Error) *protoError {
 	return &protoError{
 		rerr: rerr,
 	}
+}
+
+func invalidErrProto(rerrs []*resource.ValidationError) []*ValidationError {
+	verrs := make([]*ValidationError, len(rerrs))
+	for i, errItem := range rerrs {
+		v, err := structpb.NewValue(errItem.Value)
+		if err != nil {
+			return nil
+		}
+		verrs[i] = &ValidationError{
+			Path:    errItem.Path,
+			Message: errItem.Message,
+			Value:   v,
+		}
+	}
+	return verrs
 }

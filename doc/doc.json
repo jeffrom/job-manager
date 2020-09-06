@@ -100,6 +100,57 @@
               "fullType": "string",
               "ismap": false,
               "defaultValue": ""
+            },
+            {
+              "name": "invalid",
+              "description": "",
+              "label": "repeated",
+              "type": "ValidationError",
+              "longType": "ValidationError",
+              "fullType": "api.v1.ValidationError",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidationError",
+          "longName": "ValidationError",
+          "fullName": "api.v1.ValidationError",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "path",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "message",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "Value",
+              "longType": "google.protobuf.Value",
+              "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
             }
           ]
         },
@@ -409,36 +460,6 @@
             },
             {
               "name": "schema",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "arg_schema",
-              "description": "XXX remove these",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "data_schema",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "result_schema",
               "description": "",
               "label": "",
               "type": "bytes",

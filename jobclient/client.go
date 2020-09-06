@@ -145,14 +145,6 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, msg proto.Mes
 		if err := unmarshalProto(res, msg); err != nil {
 			return err
 		}
-	case code == http.StatusBadRequest:
-		msg := &apiv1.ValidationErrorResponse{}
-		if err := unmarshalProto(res, msg); err != nil {
-			return err
-		}
-		return newSchemaValidationErrorProto(msg)
-	// case code == http.StatusInternalServerError:
-	// 	return resource.NewInternalServerError(err)
 	default:
 		msg := &apiv1.GenericError{}
 		if err := unmarshalProto(res, msg); err != nil {

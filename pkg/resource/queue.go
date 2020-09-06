@@ -8,7 +8,7 @@ import (
 
 type Queue struct {
 	ID              string        `json:"id"`
-	Version         Version       `json:"version"`
+	Version         *Version      `json:"version"`
 	Concurrency     int           `json:"concurrency,omitempty"`
 	Retries         int           `json:"retries,omitempty"`
 	Duration        time.Duration `json:"duration,omitempty"`

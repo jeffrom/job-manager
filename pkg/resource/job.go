@@ -4,9 +4,9 @@ import "time"
 
 type Job struct {
 	ID           string        `json:"id"`
-	Version      Version       `json:"version"`
+	Version      *Version      `json:"version"`
 	Name         string        `json:"name"`
-	QueueVersion Version       `json:"queue_version"`
+	QueueVersion *Version      `json:"queue_version"`
 	Args         []interface{} `json:"args"`
 	Data         *JobData      `json:"data,omitempty"`
 	Status       Status        `json:"status"`

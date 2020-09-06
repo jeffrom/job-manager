@@ -3,6 +3,7 @@ package v1
 
 import (
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/jeffrom/job-manager/pkg/resource"
 )
@@ -39,9 +40,68 @@ func IsComplete(status Status) bool {
 	return false
 }
 
-func FromProto(msg *Job) *resource.Job {
+func NewJobFromProto(msg *Job) *resource.Job {
+	lv := &structpb.ListValue{Values: msg.Args}
 	return &resource.Job{
-		ID: msg.Id,
-		// Version: resource.NewVersion(msg.V),
+		ID:           msg.Id,
+		Version:      resource.NewVersion(msg.V),
+		Name:         msg.Name,
+		QueueVersion: resource.NewVersion(msg.QueueV),
+		Args:         lv.AsSlice(),
+		Data: &resource.JobData{
+			Data: msg.Data.Data.AsInterface(),
+		},
+		Status:   jobStatusFromProto(msg.Status),
+		Attempt:  int(msg.Attempt),
+		Checkins: jobCheckinsFromProto(msg.Checkins),
+		Results:  jobResultsFromProto(msg.Results),
 	}
+}
+
+func jobStatusFromProto(status Status) resource.Status {
+	switch status {
+	case Status_STATUS_UNSPECIFIED:
+		return resource.StatusUnspecified
+	case Status_STATUS_QUEUED:
+		return resource.StatusQueued
+	case Status_STATUS_RUNNING:
+		return resource.StatusRunning
+	case Status_STATUS_COMPLETE:
+		return resource.StatusComplete
+	case Status_STATUS_DEAD:
+		return resource.StatusDead
+	case Status_STATUS_CANCELLED:
+		return resource.StatusCancelled
+	case Status_STATUS_INVALID:
+		return resource.StatusInvalid
+	case Status_STATUS_FAILED:
+		return resource.StatusFailed
+	default:
+		panic("job/v1: unknown status")
+	}
+}
+
+func jobCheckinsFromProto(checkins []*Checkin) []*resource.JobCheckin {
+	rcs := make([]*resource.JobCheckin, len(checkins))
+	for i, c := range checkins {
+		rcs[i] = &resource.JobCheckin{
+			Data:      c.Data.AsInterface(),
+			CreatedAt: c.CreatedAt.AsTime(),
+		}
+	}
+	return rcs
+}
+
+func jobResultsFromProto(results []*Result) []*resource.JobResult {
+	jrs := make([]*resource.JobResult, len(results))
+	for i, r := range results {
+		jrs[i] = &resource.JobResult{
+			Attempt:     int(r.Attempt),
+			Status:      jobStatusFromProto(r.Status),
+			Data:        r.Data.AsInterface(),
+			StartedAt:   r.StartedAt.AsTime(),
+			CompletedAt: r.CompletedAt.AsTime(),
+		}
+	}
+	return jrs
 }

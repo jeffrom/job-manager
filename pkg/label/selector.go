@@ -19,10 +19,10 @@ var selectorValueSplitRE = regexp.MustCompile(`, *`)
 // type Selectors map[string]selectorValue
 
 type Selectors struct {
-	Names    []string
-	NotNames []string
-	In       map[string][]string
-	NotIn    map[string][]string
+	Names    []string            `json:"names,omitempty"`
+	NotNames []string            `json:"not_names,omitempty"`
+	In       map[string][]string `json:"in,omitempty"`
+	NotIn    map[string][]string `json:"not_in,omitempty"`
 }
 
 func newSelectors() *Selectors {

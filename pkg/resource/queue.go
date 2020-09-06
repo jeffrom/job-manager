@@ -24,3 +24,8 @@ type Queue struct {
 type Queues struct {
 	Queues []*Queue `json:"queues"`
 }
+
+type QueueListParams struct {
+	Names     []string        `json:"names,omitempty"`
+	Selectors label.Selectors `json:"selectors,omitempty"`
+}

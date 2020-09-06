@@ -1,6 +1,10 @@
 package resource
 
-import "time"
+import (
+	"time"
+
+	"github.com/jeffrom/job-manager/pkg/label"
+)
 
 type Job struct {
 	ID           string        `json:"id"`
@@ -42,4 +46,12 @@ type JobResult struct {
 	Data        interface{} `json:"data,omitempty"`
 	StartedAt   time.Time   `json:"started_at"`
 	CompletedAt time.Time   `json:"completed_at"`
+}
+
+type JobListParams struct {
+	Names         []string        `json:"names,omitempty"`
+	Statuses      []string        `json:"statuses,omitempty"`
+	Selectors     label.Selectors `json:"selectors,omitempty"`
+	EnqueuedSince time.Time       `json:"enqueued_since,omitempty"`
+	EnqueuedUntil time.Time       `json:"enqueued_until,omitempty"`
 }

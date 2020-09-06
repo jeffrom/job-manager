@@ -1501,16 +1501,6 @@
               "defaultValue": ""
             },
             {
-              "name": "labels",
-              "description": "",
-              "label": "repeated",
-              "type": "LabelsEntry",
-              "longType": "JobListParams.LabelsEntry",
-              "fullType": "job.v1.JobListParams.LabelsEntry",
-              "ismap": true,
-              "defaultValue": ""
-            },
-            {
               "name": "selectors",
               "description": "",
               "label": "repeated",
@@ -1537,37 +1527,6 @@
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
               "fullType": "google.protobuf.Timestamp",
-              "ismap": false,
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "LabelsEntry",
-          "longName": "JobListParams.LabelsEntry",
-          "fullName": "job.v1.JobListParams.LabelsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
               "ismap": false,
               "defaultValue": ""
             }

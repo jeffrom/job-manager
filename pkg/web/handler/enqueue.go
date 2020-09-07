@@ -11,6 +11,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
@@ -61,6 +62,14 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			var claims label.Claims
+			if jobArg.Data != nil {
+				claims, err = label.ParseClaims(jobArg.Data.Claims)
+				if err != nil {
+					return err
+				}
+			}
+
 			id := jobv1.NewID()
 			jb := &jobv1.Job{
 				Id:         id,
@@ -72,7 +81,9 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			jobs.Jobs[i] = jb
 			ids[i] = id
-			resources.Jobs[i] = jobv1.NewJobFromProto(jb)
+
+			jobRes := jobv1.NewJobFromProto(jb, claims)
+			resources.Jobs[i] = jobRes
 			// fmt.Printf("JOB: %+v\n", jobs.Jobs[i])
 		}
 

@@ -10,6 +10,9 @@ import (
 type Claims map[string][]string
 
 func (c Claims) Format() []string {
+	if c == nil {
+		return nil
+	}
 	var claims []string
 	for k, c := range c {
 		for _, v := range c {
@@ -21,6 +24,9 @@ func (c Claims) Format() []string {
 }
 
 func ParseClaims(claims []string) (Claims, error) {
+	if len(claims) == 0 {
+		return nil, nil
+	}
 	c := make(Claims)
 	for _, cl := range claims {
 		parts := strings.SplitN(cl, "=", 2)
@@ -29,5 +35,5 @@ func ParseClaims(claims []string) (Claims, error) {
 		}
 		c[parts[0]] = append(c[parts[0]], parts[1])
 	}
-	return nil, nil
+	return c, nil
 }

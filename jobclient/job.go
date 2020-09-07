@@ -13,13 +13,39 @@ import (
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
-func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{}) (string, error) {
+type EnqueueOpts struct {
+	Data   interface{}
+	Claims label.Claims
+}
+
+func (c *Client) EnqueueJobOpts(ctx context.Context, name string, opts EnqueueOpts, args ...interface{}) (string, error) {
 	argList, err := structpb.NewList(args)
 	if err != nil {
 		return "", err
 	}
+
+	var jobData *jobv1.Data
+	if opts.Data != nil || len(opts.Claims) > 0 {
+		jobData = &jobv1.Data{}
+		if opts.Data != nil {
+			data, err := structpb.NewValue(opts.Data)
+			if err != nil {
+				return "", err
+			}
+			jobData.Data = data
+		}
+		if len(opts.Claims) > 0 {
+			jobData.Claims = opts.Claims.Format()
+		}
+	}
 	params := &apiv1.EnqueueRequest{
-		Jobs: []*apiv1.EnqueueRequestArgs{{Job: name, Args: argList.Values}},
+		Jobs: []*apiv1.EnqueueRequestArgs{
+			{
+				Job:  name,
+				Args: argList.Values,
+				Data: jobData,
+			},
+		},
 	}
 
 	uri := fmt.Sprintf("/api/v1/queues/%s/enqueue", name)
@@ -44,6 +70,10 @@ func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{
 	}
 
 	return resp.Jobs[0], nil
+}
+
+func (c *Client) EnqueueJob(ctx context.Context, name string, args ...interface{}) (string, error) {
+	return c.EnqueueJobOpts(ctx, name, EnqueueOpts{}, args...)
 }
 
 type DequeueOpts struct {

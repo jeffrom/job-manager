@@ -47,11 +47,13 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	jobsResp, err := jobv1.NewJobsFromResource(jobs.Jobs)
+	jobsResp, err := jobv1.NewJobsFromResources(jobs.Jobs)
 	if err != nil {
 		return err
 	}
 	return MarshalResponse(w, r, &apiv1.DequeueResponse{
-		Jobs: &jobv1.Jobs{Jobs: jobsResp},
+		Jobs: &jobv1.Jobs{
+			Jobs: jobsResp,
+		},
 	})
 }

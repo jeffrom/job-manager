@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -97,6 +98,12 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 	if err != nil {
 		return nil, err
 	}
+
+	// filter out jobs with an unmet claim window
+	for _, jb := range jobs.Jobs {
+		fmt.Printf("%+v\n", jb)
+	}
+
 	if num < len(jobs.Jobs) {
 		jobs.Jobs = jobs.Jobs[:num]
 	}

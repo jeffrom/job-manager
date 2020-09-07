@@ -21,16 +21,18 @@ type Interface interface {
 	// Resource(name string) resource.Interface
 	Ping(ctx context.Context) error
 
+	// consumer rpcs
 	// EnqueueJobs(ctx context.Context, jobs *jobv1.Jobs) ([]string, error)
 	// EnqueueJobsOpts(ctx context.Context, jobs *jobv1.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
-	// EnqueueJobOpts(ctx context.Context, jobData *jobv1.Job, opts EnqueueOpts) error
+	EnqueueJobOpts(ctx context.Context, job string, opts EnqueueOpts, args ...interface{}) (string, error)
 	DequeueJobs(ctx context.Context, num int, id string) (*jobv1.Jobs, error)
 	DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*jobv1.Jobs, error)
 	AckJob(ctx context.Context, id string, status jobv1.Status) error
 	AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error
 	// AckJobs(ctx context.Context, results *jobv1.Results) error
 
+	// admin rpcs
 	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error)
 	// SaveQueues(ctx context.Context, queue *jobv1.Queues) error
 	ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error)

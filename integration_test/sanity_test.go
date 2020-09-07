@@ -11,6 +11,7 @@ import (
 	"github.com/qri-io/jsonschema"
 
 	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/testenv"
@@ -44,13 +45,18 @@ func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name stri
 	return q
 }
 
-func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name string, args ...interface{}) string {
+func (tc *sanityTestCase) enqueueJobOpts(ctx context.Context, t testing.TB, name string, opts jobclient.EnqueueOpts, args ...interface{}) string {
 	t.Helper()
-	id, err := tc.ctx.client.EnqueueJob(ctx, name, args...)
+	id, err := tc.ctx.client.EnqueueJobOpts(ctx, name, opts, args...)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("enqueued %s: queue: %q args: %q opts: %+v", id, name, args, opts)
 	return id
+}
+
+func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name string, args ...interface{}) string {
+	return tc.enqueueJobOpts(ctx, t, name, jobclient.EnqueueOpts{}, args...)
 }
 
 type tcDequeueOpts struct {
@@ -519,7 +525,11 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 	mockNow := time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
 	ctx = jobclient.SetMockTime(ctx, mockNow)
-	id := tc.enqueueJob(ctx, t, "claimz")
+	id := tc.enqueueJobOpts(ctx, t, "claimz", jobclient.EnqueueOpts{
+		Claims: label.Claims(map[string][]string{
+			"coolclaim": []string{"itiscool"},
+		}),
+	})
 	jobs := tc.dequeueJobs(ctx, t, 1, "claimz")
 	if len(jobs.Jobs) != 0 {
 		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
@@ -538,6 +548,11 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	})
 
 	// try to dequeue again, ensure claim window is reset
+	nextNow := mockNow.Add(1 * time.Second)
+	ctx = jobclient.SetMockTime(ctx, nextNow)
+	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
+		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
+	}
 
 	// dequeue after claim window has elapsed
 

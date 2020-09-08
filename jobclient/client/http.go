@@ -1,4 +1,4 @@
-package jobclient
+package client
 
 import (
 	"net"

@@ -385,9 +385,9 @@
               "defaultValue": ""
             },
             {
-              "name": "claims",
+              "name": "error",
               "description": "",
-              "label": "repeated",
+              "label": "",
               "type": "string",
               "longType": "string",
               "fullType": "string",
@@ -1071,6 +1071,16 @@
               "type": "Value",
               "longType": "google.protobuf.Value",
               "fullType": "google.protobuf.Value",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "error",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "defaultValue": ""
             }

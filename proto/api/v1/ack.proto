@@ -12,7 +12,7 @@ message AckJobsRequestArgs {
   string id = 1;
   job.v1.Status status = 2;
   google.protobuf.Value data = 3;
-  repeated string claims = 4;
+  string error = 4;
 }
 
 message AckJobsRequest {

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/web"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -27,8 +27,8 @@ func NewTestControllerServer(t testing.TB, cfg middleware.Config, be backend.Int
 	return srv
 }
 
-func NewTestClient(t testing.TB, srv *httptest.Server) *jobclient.Client {
-	return jobclient.New(srv.Listener.Addr().String())
+func NewTestClient(t testing.TB, srv *httptest.Server) *client.Client {
+	return client.New(srv.Listener.Addr().String())
 }
 
 func die(t testing.TB, err error) {

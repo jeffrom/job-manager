@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
@@ -13,7 +13,7 @@ type ackCmd struct {
 	*cobra.Command
 }
 
-func newAckCmd(cfg *jobclient.Config) *ackCmd {
+func newAckCmd(cfg *client.Config) *ackCmd {
 	c := &ackCmd{
 		Command: &cobra.Command{
 			Use: "ack",
@@ -24,7 +24,7 @@ func newAckCmd(cfg *jobclient.Config) *ackCmd {
 }
 
 func (c *ackCmd) Cmd() *cobra.Command { return c.Command }
-func (c *ackCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *ackCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	client := clientFromContext(ctx)
 	status := resource.StatusComplete
 	return client.AckJob(ctx, args[0], status)

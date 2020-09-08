@@ -52,7 +52,7 @@ type MockTick struct {
 
 func NewMockTick(d time.Duration) *MockTick {
 	return &MockTick{
-		C: make(chan time.Time, 100),
+		C: make(chan time.Time),
 	}
 }
 
@@ -66,6 +66,13 @@ func (t *MockTick) Tick() {
 	now := t.nows[0]
 	if len(t.nows) > 1 {
 		t.nows = t.nows[1:]
+	}
+
+	// i believe the stdlib ticker also throws away any pending message before
+	// firing the tick.
+	select {
+	case <-t.C:
+	default:
 	}
 	t.C <- now
 }

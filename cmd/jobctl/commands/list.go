@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 )
 
 type listCmd struct {
@@ -13,7 +13,7 @@ type listCmd struct {
 	lqCmd *listQueuesCmd
 }
 
-func newListCmd(cfg *jobclient.Config) *listCmd {
+func newListCmd(cfg *client.Config) *listCmd {
 	lqCmd := newListQueuesCmd(cfg)
 	cmd := lqCmd.Cmd()
 	cmd.Use = "list"
@@ -30,6 +30,6 @@ func newListCmd(cfg *jobclient.Config) *listCmd {
 }
 
 func (c *listCmd) Cmd() *cobra.Command { return c.Command }
-func (c *listCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *listCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	return c.lqCmd.Execute(ctx, cfg, cmd, args)
 }

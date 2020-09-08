@@ -7,12 +7,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 	"github.com/jeffrom/job-manager/pkg/config"
 )
 
 type enqueueOpts struct {
-	// jobclient.EnqueueOpts
+	// client.EnqueueOpts
 }
 
 type enqueueCmd struct {
@@ -20,7 +20,7 @@ type enqueueCmd struct {
 	opts *enqueueOpts
 }
 
-func newEnqueueCmd(cfg *jobclient.Config) *enqueueCmd {
+func newEnqueueCmd(cfg *client.Config) *enqueueCmd {
 	opts := &enqueueOpts{}
 	c := &enqueueCmd{
 		Command: &cobra.Command{
@@ -45,7 +45,7 @@ func newEnqueueCmd(cfg *jobclient.Config) *enqueueCmd {
 }
 
 func (c *enqueueCmd) Cmd() *cobra.Command { return c.Command }
-func (c *enqueueCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *enqueueCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	client := clientFromContext(ctx)
 	iargs := argsToInterface(args[1:])
 	id, err := client.EnqueueJob(ctx, args[0], iargs...)
@@ -69,14 +69,14 @@ func handleCompletion(comps []string, err error) ([]string, cobra.ShellCompDirec
 }
 
 func completeQueueList(ctx context.Context, toComplete string) ([]string, error) {
-	icfg, err := config.MergeEnvFlags(&jobclient.Config{}, &jobclient.ConfigDefaults)
+	icfg, err := config.MergeEnvFlags(&client.Config{}, &client.ConfigDefaults)
 	if err != nil {
 		return nil, err
 	}
-	cfg := icfg.(*jobclient.Config)
+	cfg := icfg.(*client.Config)
 
-	client := jobclient.New(cfg.Addr, jobclient.WithConfig(cfg))
-	queues, err := client.ListQueues(ctx, jobclient.ListQueuesOpts{})
+	c := client.New(cfg.Addr, client.WithConfig(cfg))
+	queues, err := c.ListQueues(ctx, client.ListQueuesOpts{})
 	if err != nil {
 		return nil, err
 	}

@@ -7,14 +7,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 type saveQueueOpts struct {
-	jobclient.SaveQueueOpts
+	client.SaveQueueOpts
 
 	LabelFlags []string
 	SchemaPath string
@@ -25,7 +24,7 @@ type saveQueueCmd struct {
 	opts *saveQueueOpts
 }
 
-func newSaveQueueCmd(cfg *jobclient.Config) *saveQueueCmd {
+func newSaveQueueCmd(cfg *client.Config) *saveQueueCmd {
 	opts := &saveQueueOpts{}
 	c := &saveQueueCmd{
 		Command: &cobra.Command{
@@ -49,11 +48,11 @@ func newSaveQueueCmd(cfg *jobclient.Config) *saveQueueCmd {
 }
 
 func (c *saveQueueCmd) Cmd() *cobra.Command { return c.Command }
-func (c *saveQueueCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *saveQueueCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	return runSaveQueue(ctx, cfg, c.opts, cmd, args)
 }
 
-func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpts, cmd *cobra.Command, args []string) error {
+func runSaveQueue(ctx context.Context, cfg *client.Config, opts *saveQueueOpts, cmd *cobra.Command, args []string) error {
 	labels, err := label.ParseStringArray(opts.LabelFlags)
 	if err != nil {
 		return err
@@ -73,25 +72,24 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 	}
 
 	id := args[0]
-	client := clientFromContext(ctx)
-	prev, err := client.GetQueue(ctx, id)
-	if err != nil && !jobclient.IsNotFound(err) {
-		// fmt.Printf("%T %#v\n", err, err.(*jobclient.APIError).GenericError)
+	cl := clientFromContext(ctx)
+	prev, err := cl.GetQueue(ctx, id)
+	if err != nil && !client.IsNotFound(err) {
 		return err
 	}
-	var v *resource.Version
+	v := ""
 	if prev != nil {
-		v = prev.Version
+		v = prev.Version.Strict()
 	}
 
-	q, err := client.SaveQueue(ctx, id, jobclient.SaveQueueOpts{
+	q, err := cl.SaveQueue(ctx, id, client.SaveQueueOpts{
 		Concurrency: opts.Concurrency,
 		MaxRetries:  opts.MaxRetries,
 		JobDuration: opts.JobDuration,
 		Labels:      labels,
 		Schema:      scmb,
 		Unique:      opts.Unique,
-		Version:     v.Strict(),
+		Version:     v,
 	})
 	if err != nil {
 		return err

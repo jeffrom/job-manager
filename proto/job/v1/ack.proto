@@ -12,6 +12,7 @@ message Ack {
   string id = 1;
   Status status = 2;
   google.protobuf.Value data = 3;
+  string error = 4;
 }
 
 message Acks {

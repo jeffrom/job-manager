@@ -1,4 +1,4 @@
-package jobclient
+package client
 
 // Config holds configuration data for the job client.
 type Config struct {

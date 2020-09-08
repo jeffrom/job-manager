@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -77,14 +77,14 @@ func TestIntegrationSaveQueue(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			checkSaveInvalidQueue(ctx, t, c, tc.name, jobclient.SaveQueueOpts{
+			checkSaveInvalidQueue(ctx, t, c, tc.name, client.SaveQueueOpts{
 				Schema: []byte(tc.schema),
 			})
 		})
 	}
 }
 
-func checkSaveInvalidQueue(ctx context.Context, t testing.TB, c jobclient.Interface, name string, opts jobclient.SaveQueueOpts) {
+func checkSaveInvalidQueue(ctx context.Context, t testing.TB, c client.Interface, name string, opts client.SaveQueueOpts) {
 	t.Helper()
 	_, err := c.SaveQueue(ctx, name, opts)
 	if err == nil {

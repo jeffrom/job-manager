@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 )
 
 type CompletionCmd struct {
@@ -14,7 +14,7 @@ type CompletionCmd struct {
 }
 
 func (c *CompletionCmd) Cmd() *cobra.Command { return c.Command }
-func (c *CompletionCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *CompletionCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return cmd.Usage()
 	}
@@ -31,7 +31,7 @@ func (c *CompletionCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd 
 	return nil
 }
 
-func newCompletionCmd(cfg *jobclient.Config) *CompletionCmd {
+func newCompletionCmd(cfg *client.Config) *CompletionCmd {
 	c := &CompletionCmd{
 		Command: &cobra.Command{
 			Use:   "completion [bash|zsh|fish|powershell]",

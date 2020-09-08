@@ -1,6 +1,5 @@
-// Package jobclient is an http client for interacting with job-manager server
-// applications.
-package jobclient
+// Package client contains the base job-manager http client.
+package client
 
 import (
 	"bytes"

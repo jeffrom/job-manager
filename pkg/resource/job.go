@@ -72,6 +72,7 @@ type JobResult struct {
 	Attempt     int         `json:"attempt"`
 	Status      Status      `json:"status"`
 	Data        interface{} `json:"data,omitempty"`
+	Error       string      `json:"error,omitempty"`
 	StartedAt   time.Time   `json:"started_at"`
 	CompletedAt time.Time   `json:"completed_at"`
 }

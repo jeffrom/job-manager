@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/jobclient/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/testenv"
@@ -129,7 +129,7 @@ func TestIntegrationArgsValidate(t *testing.T) {
 	c := testenv.NewTestClient(t, srv)
 	ctx := context.Background()
 
-	q, err := c.SaveQueue(ctx, "validat0r", jobclient.SaveQueueOpts{
+	q, err := c.SaveQueue(ctx, "validat0r", client.SaveQueueOpts{
 		Schema: testenv.ReadFile(t, "testdata/schema/basic.jsonschema"),
 	})
 	if err != nil {
@@ -187,7 +187,7 @@ func TestIntegrationArgsValidate(t *testing.T) {
 	}
 }
 
-func getArgValidationErrors(ctx context.Context, t testing.TB, c jobclient.Interface, queue string, args ...interface{}) []*resource.ValidationError {
+func getArgValidationErrors(ctx context.Context, t testing.TB, c client.Interface, queue string, args ...interface{}) []*resource.ValidationError {
 	t.Helper()
 
 	id, err := c.EnqueueJob(ctx, queue, args...)

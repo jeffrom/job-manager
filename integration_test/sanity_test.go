@@ -524,12 +524,13 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q == nil {
 		t.Fatal("no queue was saved")
 	}
+	claims := label.Claims(map[string][]string{
+		"coolclaim": []string{"itiscool"},
+	})
 	mockNow := time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
 	ctx = jobclient.SetMockTime(ctx, mockNow)
 	id := tc.enqueueJobOpts(ctx, t, "claimz", jobclient.EnqueueOpts{
-		Claims: label.Claims(map[string][]string{
-			"coolclaim": []string{"itiscool"},
-		}),
+		Claims: claims,
 	})
 
 	jobs := tc.dequeueJobs(ctx, t, 1, "claimz")
@@ -537,19 +538,14 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
 
-	claimJobs := tc.dequeueJobsOpts(ctx, t, 1, jobclient.DequeueOpts{
-		Claims: label.Claims(map[string][]string{
-			"coolclaim": []string{"itiscool"},
-		}),
-	})
+	dqClaimOpts := jobclient.DequeueOpts{Claims: claims}
+	claimJobs := tc.dequeueJobsOpts(ctx, t, 1, dqClaimOpts)
 	if len(claimJobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 
 	// fail the job
-	tc.ackJobOpts(ctx, t, id, jobv1.StatusFailed, jobclient.AckJobOpts{
-		// Claims: nil,
-	})
+	tc.ackJobOpts(ctx, t, id, jobv1.StatusFailed, jobclient.AckJobOpts{})
 
 	// try to dequeue again, ensure claim window is reset
 	nextNow := mockNow.Add(1 * time.Second)
@@ -559,6 +555,9 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	// dequeue after claim window has elapsed
+	if claimJobs := tc.dequeueJobsOpts(ctx, t, 1, dqClaimOpts); len(claimJobs.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
+	}
 
 	tc.ackJobOpts(ctx, t, id, jobv1.StatusComplete, jobclient.AckJobOpts{
 		// Claims: nil,
@@ -586,52 +585,6 @@ func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, 
 	}
 	t.Logf("validation errors: %s", string(b))
 	return rerr.Invalid
-}
-
-func checkArgsSchema(t testing.TB, verr *resource.ValidationError, expectPath string) {
-	t.Helper()
-	if verr.Path != expectPath {
-		t.Errorf("expected path %q, got %q", expectPath, verr.Path)
-	}
-}
-
-func checkSchemaNumber(t testing.TB, v interface{}, expect float64) {
-	t.Helper()
-	val, ok := v.(float64)
-	if !ok {
-		t.Fatalf("expected invalid value type float64, got %T", v)
-	}
-	if val != expect {
-		t.Errorf("expected value %f, got %f", expect, val)
-	}
-}
-
-func checkSchemaString(t testing.TB, v interface{}, expect string) {
-	t.Helper()
-	val, ok := v.(string)
-	if !ok {
-		t.Fatalf("expected invalid value type string, got %T", v)
-	}
-	if val != expect {
-		t.Errorf("expected value %q, got %q", expect, val)
-	}
-}
-
-func checkJob(t testing.TB, jobData *jobv1.Job) {
-	if jobData.EnqueuedAt == nil {
-		t.Errorf("jobv1.EnqueuedAt was nil")
-	} else if !jobData.EnqueuedAt.IsValid() {
-		t.Errorf("jobv1.EnqueuedAt is invalid: %v", jobData.EnqueuedAt.CheckValid())
-	} else if jobData.EnqueuedAt.AsTime().IsZero() {
-		t.Errorf("jobv1.EnqueuedAt is zero")
-	}
-
-	if jobData.Status == jobv1.StatusUnknown {
-		t.Errorf("jobv1.Status is %s", jobv1.StatusUnknown)
-	}
-	if jobData.Attempt < 0 {
-		t.Errorf("jobv1.Attempt was %d", jobData.Attempt)
-	}
 }
 
 func jobArgs(args ...interface{}) []interface{} { return args }

@@ -39,6 +39,10 @@ message ListQueuesResponse {
   job.v1.Queues data = 1;
 }
 
+message GetQueueRequest {
+  string id = 1;
+}
+
 message GetQueueResponse {
   job.v1.Queue data = 1;
 }

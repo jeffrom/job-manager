@@ -259,6 +259,10 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		t.Errorf("expected job version to be v2, was %d", jobArg.V)
 	}
 
+	if jobArg.QueueV != 1 {
+		t.Errorf("expected job queue version to be v1, was %d", jobArg.QueueV)
+	}
+
 	if len(jobArg.Args) != 1 {
 		t.Errorf("expected job args length %d, got %d", 1, len(jobArg.Args))
 	} else {

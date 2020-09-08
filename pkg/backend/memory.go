@@ -86,8 +86,13 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) error {
 	now := middleware.GetTime(ctx).Now()
 	for _, jobArg := range jobArgs.Jobs {
+		queue, err := m.GetQueue(ctx, jobArg.Name)
+		if err != nil {
+			return err
+		}
 		jobArg.EnqueuedAt = now
 		jobArg.Version.Inc()
+		jobArg.QueueVersion = queue.Version
 		m.jobs[jobArg.ID] = jobArg
 	}
 	return nil

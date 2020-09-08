@@ -1,6 +1,111 @@
 {
   "files": [
     {
+      "name": "api/v1/api.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": true,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "AckResponse",
+          "longName": "AckResponse",
+          "fullName": "api.v1.AckResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "extensions": [],
+          "fields": []
+        }
+      ],
+      "services": [
+        {
+          "name": "ApiService",
+          "longName": "ApiService",
+          "fullName": "api.v1.ApiService",
+          "description": "",
+          "methods": [
+            {
+              "name": "EnqueueJobs",
+              "description": "",
+              "requestType": "EnqueueRequest",
+              "requestLongType": "EnqueueRequest",
+              "requestFullType": "api.v1.EnqueueRequest",
+              "requestStreaming": false,
+              "responseType": "EnqueueResponse",
+              "responseLongType": "EnqueueResponse",
+              "responseFullType": "api.v1.EnqueueResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "DequeueJobs",
+              "description": "",
+              "requestType": "DequeueRequest",
+              "requestLongType": "DequeueRequest",
+              "requestFullType": "api.v1.DequeueRequest",
+              "requestStreaming": false,
+              "responseType": "DequeueResponse",
+              "responseLongType": "DequeueResponse",
+              "responseFullType": "api.v1.DequeueResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "AckJobs",
+              "description": "",
+              "requestType": "AckRequest",
+              "requestLongType": "AckRequest",
+              "requestFullType": "api.v1.AckRequest",
+              "requestStreaming": false,
+              "responseType": "AckResponse",
+              "responseLongType": "AckResponse",
+              "responseFullType": "api.v1.AckResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SaveQueue",
+              "description": "",
+              "requestType": "SaveQueueParams",
+              "requestLongType": "SaveQueueParams",
+              "requestFullType": "api.v1.SaveQueueParams",
+              "requestStreaming": false,
+              "responseType": "SaveQueueResponse",
+              "responseLongType": "SaveQueueResponse",
+              "responseFullType": "api.v1.SaveQueueResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ListQueues",
+              "description": "",
+              "requestType": "ListQueuesRequest",
+              "requestLongType": "ListQueuesRequest",
+              "requestFullType": "api.v1.ListQueuesRequest",
+              "requestStreaming": false,
+              "responseType": "ListQueuesResponse",
+              "responseLongType": "ListQueuesResponse",
+              "responseFullType": "api.v1.ListQueuesResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetQueue",
+              "description": "",
+              "requestType": "GetQueueRequest",
+              "requestLongType": "GetQueueRequest",
+              "requestFullType": "api.v1.GetQueueRequest",
+              "requestStreaming": false,
+              "responseType": "GetQueueResponse",
+              "responseLongType": "GetQueueResponse",
+              "responseFullType": "api.v1.GetQueueResponse",
+              "responseStreaming": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "api/v1/errors.proto",
       "description": "",
       "package": "api.v1",
@@ -316,6 +421,27 @@
       "enums": [],
       "extensions": [],
       "messages": [
+        {
+          "name": "GetQueueRequest",
+          "longName": "GetQueueRequest",
+          "fullName": "api.v1.GetQueueRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
         {
           "name": "GetQueueResponse",
           "longName": "GetQueueResponse",
@@ -778,75 +904,6 @@
         }
       ],
       "services": []
-    },
-    {
-      "name": "api/v1/job.proto",
-      "description": "",
-      "package": "api.v1",
-      "hasEnums": false,
-      "hasExtensions": false,
-      "hasMessages": true,
-      "hasServices": true,
-      "enums": [],
-      "extensions": [],
-      "messages": [
-        {
-          "name": "AckResponse",
-          "longName": "AckResponse",
-          "fullName": "api.v1.AckResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "extensions": [],
-          "fields": []
-        }
-      ],
-      "services": [
-        {
-          "name": "JobService",
-          "longName": "JobService",
-          "fullName": "api.v1.JobService",
-          "description": "",
-          "methods": [
-            {
-              "name": "Enqueue",
-              "description": "",
-              "requestType": "EnqueueRequest",
-              "requestLongType": "EnqueueRequest",
-              "requestFullType": "api.v1.EnqueueRequest",
-              "requestStreaming": false,
-              "responseType": "EnqueueResponse",
-              "responseLongType": "EnqueueResponse",
-              "responseFullType": "api.v1.EnqueueResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "Dequeue",
-              "description": "",
-              "requestType": "DequeueRequest",
-              "requestLongType": "DequeueRequest",
-              "requestFullType": "api.v1.DequeueRequest",
-              "requestStreaming": false,
-              "responseType": "DequeueResponse",
-              "responseLongType": "DequeueResponse",
-              "responseFullType": "api.v1.DequeueResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "Ack",
-              "description": "",
-              "requestType": "AckRequest",
-              "requestLongType": "AckRequest",
-              "requestFullType": "api.v1.AckRequest",
-              "requestStreaming": false,
-              "responseType": "AckResponse",
-              "responseLongType": "AckResponse",
-              "responseFullType": "api.v1.AckResponse",
-              "responseStreaming": false
-            }
-          ]
-        }
-      ]
     },
     {
       "name": "job/v1/result.proto",

@@ -2,13 +2,10 @@ package integration
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	"github.com/qri-io/jsonschema"
 
 	"github.com/jeffrom/job-manager/jobclient"
 	"github.com/jeffrom/job-manager/pkg/backend"
@@ -27,6 +24,7 @@ type sanityContext struct {
 type sanityTestCase struct {
 	name   string
 	srvCfg middleware.Config
+	now    time.Time
 
 	ctx *sanityContext
 }
@@ -40,26 +38,38 @@ func (tc *sanityTestCase) wrap(ctx context.Context, fn func(ctx context.Context,
 func (tc *sanityTestCase) setMockTime(ctx context.Context, t testing.TB, ts time.Time) context.Context {
 	t.Helper()
 	t.Logf("setting mock time: %s (%d)", ts.Format(time.Stamp), ts.Unix())
+	tc.now = ts
 	return jobclient.SetMockTime(ctx, ts)
+}
+
+func (tc *sanityTestCase) incMockTime(ctx context.Context, t testing.TB, dur time.Duration) (context.Context, time.Time) {
+	tc.now = tc.now.Add(dur)
+	t.Logf("incrementing mock time to: %s (%d) (+%s)", tc.now.Format(time.Stamp), tc.now.Unix(), dur.String())
+	ctx = jobclient.SetMockTime(ctx, tc.now)
+	return ctx, tc.now
 }
 
 func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOpts) *jobv1.Queue {
 	t.Helper()
+	t.Logf("SaveQueue(%q)", name)
 	q, err := tc.ctx.client.SaveQueue(ctx, name, opts)
 	if err != nil {
+		t.Logf("-> Error: %v", err)
 		t.Fatal(err)
 	}
-	t.Logf("saved queue: %s\n", q.String())
+	t.Logf("-> %s", q.String())
 	return q
 }
 
 func (tc *sanityTestCase) enqueueJobOpts(ctx context.Context, t testing.TB, name string, opts jobclient.EnqueueOpts, args ...interface{}) string {
 	t.Helper()
+	t.Logf("EnqueueJobOpts(%q, %+v, %+v)", name, opts, args)
 	id, err := tc.ctx.client.EnqueueJobOpts(ctx, name, opts, args...)
 	if err != nil {
+		t.Logf("-> Error: %v", err)
 		t.Fatal(err)
 	}
-	t.Logf("enqueued %s: queue: %q args: %q opts: %+v", id, name, args, opts)
+	t.Logf("-> %s", id)
 	return id
 }
 
@@ -137,11 +147,6 @@ func TestIntegrationSanity(t *testing.T) {
 				return
 			}
 
-			// validate
-			if !t.Run("validate-args", tc.wrap(ctx, testValidateArgs)) {
-				return
-			}
-
 			// unique jobs
 			// unique jobs (jsonschema)
 
@@ -213,13 +218,18 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q.Retries != defaultMaxRetries {
 		t.Errorf("expected default max retries %d, got %d", defaultMaxRetries, q.Retries)
 	}
+
+	if q.V != 1 {
+		t.Fatalf("expected queue version to be %d, was %d", 1, q.V)
+	}
 }
 
 var basicTime = time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
 
 func testEnqueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
-	ctx = tc.setMockTime(ctx, t, basicTime)
+	now := basicTime
+	ctx = tc.setMockTime(ctx, t, now)
 	id, err := c.EnqueueJob(ctx, "cool", "nice")
 	if err != nil {
 		t.Fatal(err)
@@ -232,6 +242,7 @@ func testEnqueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	expectJobName := "cool"
+	ctx, now := tc.incMockTime(ctx, t, 1*time.Second)
 	jobs := tc.dequeueJobs(ctx, t, 1, expectJobName)
 	if len(jobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
@@ -242,6 +253,10 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 	if jobArg.Name != expectJobName {
 		t.Errorf("expected job name %q, got %q", expectJobName, jobArg.Name)
+	}
+
+	if jobArg.V != 2 {
+		t.Errorf("expected job version to be v2, was %d", jobArg.V)
 	}
 
 	if len(jobArg.Args) != 1 {
@@ -255,6 +270,22 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	checkJob(t, jobArg)
+	if enqueuedAt := jobArg.EnqueuedAt.AsTime(); !enqueuedAt.Equal(basicTime) {
+		t.Errorf("expected enqueued_at to be %q, was %q", basicTime, enqueuedAt)
+	}
+
+	res := jobArg.Results
+	if len(res) != 1 {
+		t.Fatal("expected 1 result, got", len(res))
+	}
+
+	resArg := res[0]
+	if startedAt := resArg.StartedAt.AsTime(); !startedAt.Equal(now) {
+		t.Errorf("expected started_at to be %q, was %q", now, startedAt)
+	}
+	if completedAt := resArg.CompletedAt.AsTime(); !completedAt.IsZero() {
+		t.Error("expected completed_at to be zero")
+	}
 
 	id := jobArg.Id
 	tc.ackJobOpts(ctx, t, id, jobv1.StatusComplete, jobclient.AckJobOpts{
@@ -357,162 +388,6 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	}
 }
 
-// TODO move this to its own test
-func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
-	q := tc.saveQueue(ctx, t, "validat0r", jobclient.SaveQueueOpts{
-		Schema: testenv.ReadFile(t, "testdata/schema/basic.jsonschema"),
-	})
-	if q == nil {
-		t.Fatal("no queue was saved")
-	}
-
-	vtcs := []struct {
-		name    string
-		queue   string
-		args    []interface{}
-		keyErrs []jsonschema.KeyError
-		errs    []*resource.ValidationError
-	}{
-		{
-			name:  "basic",
-			queue: "validat0r",
-			args:  jobArgs(-1),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/0",
-					Value: -1,
-				},
-				{
-					Path: "/",
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/0",
-					InvalidValue: -1,
-				},
-				{
-					PropertyPath: "/",
-				},
-			},
-		},
-		{
-			name:  "noargs",
-			queue: "validat0r",
-			args:  jobArgs(),
-			errs: []*resource.ValidationError{
-				{
-					Path: "/",
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/",
-				},
-			},
-		},
-		{
-			name:  "incomplete",
-			queue: "validat0r",
-			args:  jobArgs("nice"),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/",
-					Value: jobArgs("nice"),
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/",
-					// TODO implement interface array check
-					InvalidValue: jobArgs("nice"),
-				},
-			},
-		},
-		{
-			name:  "wrong-type",
-			queue: "validat0r",
-			args:  jobArgs("nice", -1),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/1",
-					Value: -1,
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/1",
-					InvalidValue: -1,
-				},
-			},
-		},
-		{
-			name:  "wrong-types",
-			queue: "validat0r",
-			args:  jobArgs(true, -1),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/0",
-					Value: true,
-				},
-				{
-					Path:  "/1",
-					Value: -1,
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/0",
-					InvalidValue: true,
-				},
-				{
-					PropertyPath: "/1",
-					InvalidValue: -1,
-				},
-			},
-		},
-	}
-	for _, vtc := range vtcs {
-		t.Run(vtc.name, func(t *testing.T) {
-			t.Log(vtc.queue, vtc.args)
-			verrs := getValidationErrors(ctx, t, tc, vtc.queue, vtc.args...)
-			if len(verrs) != len(vtc.errs) {
-				t.Fatalf("expected %d ValidationErrors, got %d (%+v)", len(vtc.errs), len(verrs), verrs)
-			}
-			for i, expectErr := range vtc.errs {
-				verr := verrs[i]
-				if path := expectErr.Path; path != "" {
-					checkArgsSchema(t, verr, path)
-				} else if len(vtc.args) == 0 && verr.Path != "/" {
-					t.Errorf("#%d: expected path to be %q, was %q", i, "/", verr.Path)
-				}
-
-				if ival := expectErr.Value; ival != nil {
-					switch val := ival.(type) {
-					case int:
-						checkSchemaNumber(t, verr.Value, float64(val))
-					case float64:
-						checkSchemaNumber(t, verr.Value, val)
-					case string:
-						checkSchemaString(t, verr.Value, val)
-					}
-				}
-			}
-
-			// for i, iArg := range vtc.args {
-			// 	keyErr := keyErrs[i]
-			// 	switch vArg := iArg.(type) {
-			// 	case float64:
-			// 		checkSchemaNumber(t, keyErr.InvalidValue, vArg)
-			// 	}
-			// }
-		})
-	}
-
-	id := tc.enqueueJob(ctx, t, "validat0r", "nice", true)
-	tc.ackJob(ctx, t, id, jobv1.StatusComplete)
-}
-
 // testClaims tests behavior around claim windows. it should work as follows:
 //
 // - if the claim window has not elapsed, job-manager shouldn't dequeue jobs
@@ -579,29 +454,6 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	tc.ackJobOpts(ctx, t, id, jobv1.StatusComplete, jobclient.AckJobOpts{
 		// Claims: nil,
 	})
-}
-
-func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []*resource.ValidationError {
-	t.Helper()
-	id, err := tc.ctx.client.EnqueueJob(ctx, queue, args...)
-	if err == nil {
-		t.Fatal("expected validation error")
-	}
-	if id != "" {
-		t.Fatal("expected empty id, got", id)
-	}
-
-	rerr := &resource.Error{}
-	if !errors.As(err, &rerr) {
-		t.Fatalf("expected error type %T, got %#v", rerr, err)
-	}
-
-	b, err := json.Marshal(rerr.Invalid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("validation errors: %s", string(b))
-	return rerr.Invalid
 }
 
 func jobArgs(args ...interface{}) []interface{} { return args }

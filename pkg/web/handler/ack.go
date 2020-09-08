@@ -57,7 +57,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if err := be.AckJobs(ctx, resources); err != nil {
-		return err
+		return handleBackendErrors(err, "ack", "")
 	}
 	if err := deleteArgUniqueness(ctx, be, resources.Acks); err != nil {
 		return err

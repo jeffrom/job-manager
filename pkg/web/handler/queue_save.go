@@ -69,9 +69,11 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		Unique:          params.Unique,
 		V:               params.V,
 	}
-	res := jobv1.NewQueueFromProto(queue)
-	if err := be.SaveQueue(ctx, res); err != nil {
+	savedQueue, err := be.SaveQueue(ctx, jobv1.NewQueueFromProto(queue))
+	if err != nil {
 		return handleBackendErrors(err, "queue", queueID)
 	}
-	return MarshalResponse(w, r, &apiv1.SaveQueueResponse{Queue: queue})
+	return MarshalResponse(w, r, &apiv1.SaveQueueResponse{
+		Queue: jobv1.NewQueueFromResource(savedQueue),
+	})
 }

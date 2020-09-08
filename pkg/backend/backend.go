@@ -16,7 +16,7 @@ import (
 // - safe for concurrent operations
 type Interface interface {
 	GetQueue(ctx context.Context, job string) (*resource.Queue, error)
-	SaveQueue(ctx context.Context, queue *resource.Queue) error
+	SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error)
 	ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error)
 
 	EnqueueJobs(ctx context.Context, jobs *resource.Jobs) error

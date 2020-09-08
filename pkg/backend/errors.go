@@ -6,6 +6,7 @@ import (
 )
 
 var ErrNotFound = errors.New("backend: not found")
+var ErrInvalidState = errors.New("backend: invalid state")
 
 type VersionConflictError struct {
 	Resource   string

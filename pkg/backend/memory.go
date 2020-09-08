@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -32,14 +33,14 @@ func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, er
 	return nil, ErrNotFound
 }
 
-func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) error {
+func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error) {
 	// if it already exists and no version was supplied, or if version was
 	// supplied but they don't match, return conflict
 	prev, ok := m.queues[queue.ID]
 	// fmt.Printf("prev: %+v, found: %v\n", prev, ok)
 	if ok {
 		if queue.Version.Raw() == 0 || queue.Version.Raw() != prev.Version.Raw() {
-			return &VersionConflictError{
+			return nil, &VersionConflictError{
 				Resource:   "queue",
 				ResourceID: queue.ID,
 				Prev:       prev.Version.String(),
@@ -47,12 +48,12 @@ func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) error {
 			}
 		}
 	}
-	// fmt.Printf("---\nprev: %s\ncurr: %s\nequal: %v\n\n", prev.String(), queue.String(), proto.Equal(queue, prev))
+	// fmt.Printf("prev: %+v, curr: %+v\n", prev, queue)
 	if prev == nil || !queue.Equals(prev) {
 		queue.Version.Inc()
 	}
 	m.queues[queue.ID] = queue
-	return nil
+	return queue, nil
 }
 
 func (m *Memory) ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error) {
@@ -85,11 +86,8 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) error {
 	now := middleware.GetTime(ctx).Now()
 	for _, jobArg := range jobArgs.Jobs {
-		jobArg.Results = []*resource.JobResult{
-			{
-				StartedAt: now,
-			},
-		}
+		jobArg.EnqueuedAt = now
+		jobArg.Version.Inc()
 		m.jobs[jobArg.ID] = jobArg
 	}
 	return nil
@@ -134,19 +132,30 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 	}
 
 	for _, jobData := range jobs.Jobs {
+		jobData.Version.Inc()
+		jobData.Results = append(jobData.Results, &resource.JobResult{StartedAt: now})
 		jobData.Status = resource.StatusRunning
 	}
 	return jobs, nil
 }
 
 func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
+	now := middleware.GetTime(ctx).Now()
 	for _, ack := range acks.Acks {
 		jobData, ok := m.jobs[ack.ID]
 		if !ok {
 			return ErrNotFound
 		}
+		if jobData.Status != resource.StatusRunning {
+			// TODO return data about what state specifically caused this
+			return ErrInvalidState
+		}
+
+		jobData.Version.Inc()
+
+		fmt.Printf("ack %s: %#v\n", ack.ID, jobData)
 		res := jobData.LastResult()
-		res.CompletedAt = middleware.GetTime(ctx).Now()
+		res.CompletedAt = now
 		if ack.Data != nil {
 			res.Data = ack.Data
 		}

@@ -12,11 +12,8 @@ import (
 
 func TestIntegrationSaveQueue(t *testing.T) {
 	tcs := []struct {
-		name       string
-		schema     string
-		argSchema  string
-		dataSchema string
-		resSchema  string
+		name   string
+		schema string
 	}{
 		{
 			name:   "arg-empty-object",

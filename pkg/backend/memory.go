@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -109,8 +110,11 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 			if err != nil {
 				return nil, err
 			}
-			if jobClaims := jb.Data.Claims; !jobClaims.Match(opts.Claims) && queue.ClaimExpired(jb, now) {
-				continue
+			fmt.Println("claim filter:", jb.ID, "match:", jb.Data.Claims.Match(opts.Claims), "expired:", queue.ClaimExpired(jb, now))
+			if !queue.ClaimExpired(jb, now) {
+				if jobClaims := jb.Data.Claims; !jobClaims.Match(opts.Claims) {
+					continue
+				}
 			}
 		}
 

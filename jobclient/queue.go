@@ -45,6 +45,12 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 	if opts.JobDuration > 0 {
 		args.Duration = durationpb.New(opts.JobDuration)
 	}
+	if opts.ClaimDuration > 0 {
+		args.ClaimDuration = durationpb.New(opts.ClaimDuration)
+	}
+	if opts.CheckinDuration > 0 {
+		args.CheckinDuration = durationpb.New(opts.CheckinDuration)
+	}
 	if len(opts.Schema) > 0 {
 		cSchema, err := schema.Canonicalize(opts.Schema)
 		if err != nil {

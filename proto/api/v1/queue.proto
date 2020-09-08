@@ -14,10 +14,11 @@ message SaveQueueParamArgs {
   int32 concurrency = 3;
   int32 max_retries = 4;
   google.protobuf.Duration duration = 5;
-  google.protobuf.Duration checkin_duration = 6;
-  map<string, string> labels = 7;
-  bytes schema = 8;
-  bool unique = 12;
+  google.protobuf.Duration claim_duration = 6;
+  google.protobuf.Duration checkin_duration = 7;
+  map<string, string> labels = 8;
+  bytes schema = 9;
+  bool unique = 10;
 }
 
 message SaveQueueParams {

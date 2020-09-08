@@ -2,6 +2,7 @@ package resource
 
 import (
 	"bytes"
+	"fmt"
 	"time"
 
 	"github.com/jeffrom/job-manager/pkg/label"
@@ -24,8 +25,9 @@ type Queue struct {
 }
 
 func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
-	expireTime := now.Add(q.ClaimDuration)
-	expired := job.EnqueuedAt.Equal(expireTime) || job.EnqueuedAt.After(expireTime)
+	expireTime := job.EnqueuedAt.Add(q.ClaimDuration)
+	expired := now.Equal(expireTime) || now.After(expireTime)
+	fmt.Println("claim duration:", q.ClaimDuration, "enqueued at:", job.EnqueuedAt.Format(time.Stamp), "now:", now.Format(time.Stamp), "expire:", expireTime.Format(time.Stamp), "expired:", expired)
 	return expired
 }
 

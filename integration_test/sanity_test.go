@@ -37,12 +37,25 @@ func (tc *sanityTestCase) wrap(ctx context.Context, fn func(ctx context.Context,
 	}
 }
 
+func (tc *sanityTestCase) setMockTime(ctx context.Context, t testing.TB, ts time.Time) context.Context {
+	t.Helper()
+	t.Logf("setting mock time: %s", ts.Format(time.Stamp))
+	return jobclient.SetMockTime(ctx, ts)
+}
+
+func (tc *sanityTestCase) incMockTime(ctx context.Context, t testing.TB, ts time.Time, dur time.Duration) context.Context {
+	t.Helper()
+	t.Logf("setting mock time: %s", ts.Format(time.Stamp))
+	return jobclient.SetMockTime(ctx, ts)
+}
+
 func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOpts) *jobv1.Queue {
 	t.Helper()
 	q, err := tc.ctx.client.SaveQueue(ctx, name, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("saved queue: %s\n", q.String())
 	return q
 }
 
@@ -96,6 +109,7 @@ func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id strin
 	if err := tc.ctx.client.AckJobOpts(ctx, id, status, opts); err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("ack %s: %s", id, status.String())
 }
 
 func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *jobv1.Job {
@@ -528,7 +542,7 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		"coolclaim": []string{"itiscool"},
 	})
 	mockNow := time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
-	ctx = jobclient.SetMockTime(ctx, mockNow)
+	ctx = tc.setMockTime(ctx, t, mockNow)
 	id := tc.enqueueJobOpts(ctx, t, "claimz", jobclient.EnqueueOpts{
 		Claims: claims,
 	})
@@ -549,13 +563,27 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 	// try to dequeue again, ensure claim window is reset
 	nextNow := mockNow.Add(1 * time.Second)
-	ctx = jobclient.SetMockTime(ctx, nextNow)
+	ctx = tc.setMockTime(ctx, t, nextNow)
 	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
 		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
 
-	// dequeue after claim window has elapsed
+	// dequeue before claim window has elapsed with claims
 	if claimJobs := tc.dequeueJobsOpts(ctx, t, 1, dqClaimOpts); len(claimJobs.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
+	}
+	tc.ackJobOpts(ctx, t, id, jobv1.StatusFailed, jobclient.AckJobOpts{})
+
+	// try to dequeue again, ensure claim window is reset
+	nextNow = nextNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, nextNow)
+	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
+		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
+	}
+
+	claimElapsed := nextNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, claimElapsed)
+	if claimJobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(claimJobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 

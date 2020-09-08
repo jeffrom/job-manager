@@ -45,17 +45,29 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		dur = d
 	}
 
+	claimDur := durationpb.New(0)
+	if params.ClaimDuration != nil {
+		claimDur = params.ClaimDuration
+	}
+
+	checkinDur := durationpb.New(0)
+	if params.CheckinDuration != nil {
+		checkinDur = params.CheckinDuration
+	}
+
 	now := timestamppb.New(middleware.GetTime(ctx).Now())
 	queue := &jobv1.Queue{
-		Id:          queueID,
-		Concurrency: concurrency,
-		Retries:     maxRetries,
-		Labels:      params.Labels,
-		Duration:    dur,
-		Schema:      params.Schema,
-		CreatedAt:   now,
-		Unique:      params.Unique,
-		V:           params.V,
+		Id:              queueID,
+		Concurrency:     concurrency,
+		Retries:         maxRetries,
+		Labels:          params.Labels,
+		Duration:        dur,
+		ClaimDuration:   claimDur,
+		CheckinDuration: checkinDur,
+		Schema:          params.Schema,
+		CreatedAt:       now,
+		Unique:          params.Unique,
+		V:               params.V,
 	}
 	res := jobv1.NewQueueFromProto(queue)
 	if err := be.SaveQueue(ctx, res); err != nil {

@@ -24,6 +24,7 @@ func (c Claims) Format() []string {
 }
 
 func (c Claims) Match(other Claims) bool {
+	// fmt.Println("match start:", c, other)
 	if c == nil || other == nil {
 		return (c == nil) == (other == nil)
 	}

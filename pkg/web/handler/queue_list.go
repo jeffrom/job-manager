@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func ListQueues(w http.ResponseWriter, r *http.Request) error {
@@ -22,7 +22,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
+	be := backend.FromMiddleware(ctx)
 	queues, err := be.ListQueues(ctx, &resource.QueueListParams{
 		Names:     params.Names,
 		Selectors: sels,

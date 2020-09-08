@@ -8,21 +8,22 @@ import (
 	"testing"
 
 	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/web"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
-func NewTestControllerServer(t testing.TB, cfg middleware.Config) *httptest.Server {
+func NewTestControllerServer(t testing.TB, cfg middleware.Config, be backend.Interface) *httptest.Server {
 	t.Helper()
 	cfg.ResetLogOutput(testLogOutput(t))
 	if cfg.Backend == "" {
 		cfg.Backend = "memory"
 	}
-	h, err := web.NewControllerRouter(cfg)
+	h, err := web.NewControllerRouter(cfg, be)
 	die(t, err)
 
 	srv := httptest.NewUnstartedServer(h)
-	t.Logf("Started job-controller server with backend %T at address: %s", cfg.GetBackend(), srv.Listener.Addr())
+	t.Logf("Started job-controller server with backend %T at address: %s", be, srv.Listener.Addr())
 	return srv
 }
 

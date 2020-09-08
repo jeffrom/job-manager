@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -71,7 +72,7 @@ func TestIntegrationSaveQueue(t *testing.T) {
 		},
 	}
 
-	srv := testenv.NewTestControllerServer(t, middleware.NewConfig())
+	srv := testenv.NewTestControllerServer(t, middleware.NewConfig(), backend.NewMemory())
 	c := testenv.NewTestClient(t, srv)
 	srv.Start()
 	defer srv.Close()

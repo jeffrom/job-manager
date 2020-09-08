@@ -23,6 +23,12 @@ type Queue struct {
 	DeletedAt       time.Time     `json:"deleted_at,omitempty"`
 }
 
+func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
+	expireTime := now.Add(q.ClaimDuration)
+	expired := job.EnqueuedAt.Equal(expireTime) || job.EnqueuedAt.After(expireTime)
+	return expired
+}
+
 func (q *Queue) Equals(other *Queue) bool {
 	return q.ID == other.ID &&
 		q.Version == other.Version &&

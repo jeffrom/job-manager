@@ -25,7 +25,7 @@ type EnqueueJobs struct {
 func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	Func(func(w http.ResponseWriter, r *http.Request) error {
 		ctx := r.Context()
-		be := middleware.GetBackend(ctx)
+		be := backend.FromMiddleware(ctx)
 		var params apiv1.EnqueueRequest
 		if err := UnmarshalBody(r, &params, true); err != nil {
 			return err

@@ -2,10 +2,10 @@ package backend
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 // Memory is an in-memory backend intended for testing.
@@ -99,10 +99,24 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 		return nil, err
 	}
 
+	now := middleware.GetTime(ctx).Now()
+
 	// filter out jobs with an unmet claim window
+	var filtered []*resource.Job
 	for _, jb := range jobs.Jobs {
-		fmt.Printf("%+v\n", jb)
+		if jb.Data != nil && len(jb.Data.Claims) > 0 {
+			queue, err := m.GetQueue(ctx, jb.Name)
+			if err != nil {
+				return nil, err
+			}
+			if jobClaims := jb.Data.Claims; !jobClaims.Match(opts.Claims) && queue.ClaimExpired(jb, now) {
+				continue
+			}
+		}
+
+		filtered = append(filtered, jb)
 	}
+	jobs.Jobs = filtered
 
 	if num < len(jobs.Jobs) {
 		jobs.Jobs = jobs.Jobs[:num]

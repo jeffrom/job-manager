@@ -6,8 +6,8 @@ import (
 	"github.com/go-chi/chi"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
@@ -16,7 +16,7 @@ func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
 
 func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
+	be := backend.FromMiddleware(ctx)
 	queueID := chi.URLParam(r, "queueID")
 
 	queue, err := be.GetQueue(ctx, queueID)
@@ -30,7 +30,7 @@ func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
 
 func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
+	be := backend.FromMiddleware(ctx)
 	jobID := chi.URLParam(r, "jobID")
 	jobData, err := be.GetJobByID(ctx, jobID)
 	if err != nil {

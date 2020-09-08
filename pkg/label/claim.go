@@ -23,6 +23,28 @@ func (c Claims) Format() []string {
 	return claims
 }
 
+func (c Claims) Match(other Claims) bool {
+	if c == nil || other == nil {
+		return (c == nil) == (other == nil)
+	}
+	if len(c) != len(other) {
+		return false
+	}
+	for k, v := range c {
+		otherV := other[k]
+		if len(v) != len(otherV) {
+			return false
+		}
+		for i, claim := range v {
+			otherClaim := otherV[i]
+			if claim != otherClaim {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func ParseClaims(claims []string) (Claims, error) {
 	if len(claims) == 0 {
 		return nil, nil

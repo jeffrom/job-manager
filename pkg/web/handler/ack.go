@@ -10,12 +10,11 @@ import (
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func Ack(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
+	be := backend.FromMiddleware(ctx)
 	var params apiv1.AckRequest
 	if err := UnmarshalBody(r, &params, true); err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jeffrom/job-manager/pkg/internal"
@@ -22,18 +23,25 @@ func Time(t internal.TimeProvider, tick internal.Ticker) func(next http.Handler)
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			if h := r.Header.Get(mockTimeHeader); h != "" {
-				uts, err := strconv.ParseInt(h, 10, 64)
-				if err != nil {
-					panic(err)
-					return
+				times := strings.Split(h, ",")
+				allTs := make([]time.Time, len(times))
+				for i, hts := range times {
+					uts, err := strconv.ParseInt(hts, 10, 64)
+					if err != nil {
+						panic(err)
+						return
+					}
+					allTs[i] = time.Unix(uts, 0)
 				}
-				ts := time.Unix(uts, 0)
+
 				mt := &internal.MockTime{}
-				mt.SetNow(ts)
+				mt.SetNow(allTs...)
 				t = mt
-			}
-			if h := r.Header.Get(mockTickerHeader); h != "" {
-				tick = internal.NewMockTick(0)
+
+				mtick := internal.NewMockTick(0)
+				mtick.SetNow(allTs...)
+				defer mtick.Stop()
+				tick = mtick
 			}
 			ctx = context.WithValue(ctx, timeContextKey, t)
 			ctx = context.WithValue(ctx, tickerContextKey, tick)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	chimw "github.com/go-chi/chi/middleware"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/web/handler"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -26,7 +27,7 @@ func debugRoutes(r chi.Router) {
 	})
 }
 
-func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
+func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Router, error) {
 	r := chi.NewRouter()
 	r.MethodNotAllowed(handler.Func(handler.MethodNotAllowed))
 	r.NotFound(handler.Func(handler.NotFound))
@@ -64,7 +65,8 @@ func NewControllerRouter(cfg middleware.Config) (chi.Router, error) {
 		r.Route("/api/v1", func(r chi.Router) {
 			r.Use(
 				middleware.Time(internal.Time(0), internal.NewTicker(1*time.Second)),
-				middleware.Backend(cfg.GetBackend()),
+				backend.Middleware(be),
+				// middleware.Backend(cfg.GetBackend()),
 			)
 
 			r.Route("/queues", func(r chi.Router) {

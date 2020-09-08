@@ -11,6 +11,7 @@ import (
 	"github.com/qri-io/jsonschema"
 
 	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
@@ -118,7 +119,7 @@ func TestIntegrationSanity(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			srv := testenv.NewTestControllerServer(t, tc.srvCfg)
+			srv := testenv.NewTestControllerServer(t, tc.srvCfg, backend.NewMemory())
 			c := testenv.NewTestClient(t, srv)
 			tc.ctx = &sanityContext{srv: srv, client: c}
 			srv.Start()
@@ -530,13 +531,16 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 			"coolclaim": []string{"itiscool"},
 		}),
 	})
+
 	jobs := tc.dequeueJobs(ctx, t, 1, "claimz")
 	if len(jobs.Jobs) != 0 {
 		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
 
 	claimJobs := tc.dequeueJobsOpts(ctx, t, 1, jobclient.DequeueOpts{
-		Claims: nil,
+		Claims: label.Claims(map[string][]string{
+			"coolclaim": []string{"itiscool"},
+		}),
 	})
 	if len(claimJobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))

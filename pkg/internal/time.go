@@ -30,22 +30,42 @@ func NewTicker(d time.Duration) *defaultTicker {
 }
 
 type MockTime struct {
-	t time.Time
+	nows []time.Time
 }
 
-func (t *MockTime) Now() time.Time      { return t.t }
-func (t *MockTime) SetNow(ti time.Time) { t.t = ti }
+func (t *MockTime) SetNow(nows ...time.Time) { t.nows = nows }
+func (t *MockTime) Now() time.Time {
+	if len(t.nows) == 0 {
+		panic("no more times stored")
+	}
+	now := t.nows[0]
+	if len(t.nows) > 1 {
+		t.nows = t.nows[1:]
+	}
+	return now
+}
 
 type MockTick struct {
-	C chan time.Time
+	nows []time.Time
+	C    chan time.Time
 }
 
 func NewMockTick(d time.Duration) *MockTick {
 	return &MockTick{
-		C: make(chan time.Time),
+		C: make(chan time.Time, 100),
 	}
 }
 
-func (t *MockTick) Chan() <-chan time.Time { return t.C }
-func (t *MockTick) Tick(ti time.Time)      { t.C <- ti }
-func (t *MockTick) Stop()                  { close(t.C) }
+func (t *MockTick) Chan() <-chan time.Time   { return t.C }
+func (t *MockTick) SetNow(nows ...time.Time) { t.nows = nows }
+func (t *MockTick) Stop()                    { close(t.C) }
+func (t *MockTick) Tick() {
+	if len(t.nows) == 0 {
+		panic("no more times stored")
+	}
+	now := t.nows[0]
+	if len(t.nows) > 1 {
+		t.nows = t.nows[1:]
+	}
+	t.C <- now
+}

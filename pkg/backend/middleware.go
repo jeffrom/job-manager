@@ -1,15 +1,15 @@
-package middleware
+package backend
 
 import (
 	"context"
 	"net/http"
-
-	"github.com/jeffrom/job-manager/pkg/backend"
 )
+
+type contextKey string
 
 var backendContextKey contextKey = "backend"
 
-func Backend(be backend.Interface) func(next http.Handler) http.Handler {
+func Middleware(be Interface) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), backendContextKey, be)
@@ -20,6 +20,6 @@ func Backend(be backend.Interface) func(next http.Handler) http.Handler {
 	}
 }
 
-func GetBackend(ctx context.Context) backend.Interface {
-	return ctx.Value(backendContextKey).(backend.Interface)
+func FromMiddleware(ctx context.Context) Interface {
+	return ctx.Value(backendContextKey).(Interface)
 }

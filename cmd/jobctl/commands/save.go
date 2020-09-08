@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient/client"
+	"github.com/jeffrom/job-manager/mjob/client"
 )
 
 type saveCmd struct {

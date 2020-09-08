@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/jeffrom/job-manager/jobclient/internal"
+	"github.com/jeffrom/job-manager/mjob/internal"
 )
 
 func SetMockTime(ctx context.Context, t time.Time) context.Context {

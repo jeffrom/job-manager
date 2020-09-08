@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jeffrom/job-manager/jobclient/client"
+	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/web"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"

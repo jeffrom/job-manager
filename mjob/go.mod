@@ -1,4 +1,4 @@
-module github.com/jeffrom/job-manager/jobclient
+module github.com/jeffrom/job-manager/mjob
 
 go 1.13
 

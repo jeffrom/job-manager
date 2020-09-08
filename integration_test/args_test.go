@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/jeffrom/job-manager/jobclient/client"
+	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/testenv"

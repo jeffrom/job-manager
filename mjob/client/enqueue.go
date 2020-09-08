@@ -60,7 +60,7 @@ func (c *Client) EnqueueJobOpts(ctx context.Context, name string, opts EnqueueOp
 	}
 
 	if len(resp.Jobs) == 0 {
-		return "", errors.New("jobclient: unexpectedly received no enqueued job data")
+		return "", errors.New("client: unexpectedly received no enqueued job data")
 	}
 
 	return resp.Jobs[0], nil

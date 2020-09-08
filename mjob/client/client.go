@@ -11,7 +11,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/jeffrom/job-manager/jobclient/internal"
+	"github.com/jeffrom/job-manager/mjob/internal"
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/querystring"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -91,7 +91,7 @@ func (c *Client) Ping(ctx context.Context) error {
 	}
 
 	if res.StatusCode != 200 {
-		return fmt.Errorf("jobclient: ping failed with %d status", res.StatusCode)
+		return fmt.Errorf("client: ping failed with %d status", res.StatusCode)
 	}
 	return nil
 }

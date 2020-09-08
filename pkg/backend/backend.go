@@ -7,6 +7,13 @@ import (
 	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
+// Interface defines the backend interface. Some required properties:
+//
+// - UTC
+//
+// - handle resource versions, conflicts
+//
+// - safe for concurrent operations
 type Interface interface {
 	GetQueue(ctx context.Context, job string) (*resource.Queue, error)
 	SaveQueue(ctx context.Context, queue *resource.Queue) error

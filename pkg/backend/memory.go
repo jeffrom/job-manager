@@ -9,7 +9,8 @@ import (
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
-// Memory is an in-memory backend intended for testing.
+// Memory is an in-memory backend intended to be a reference implementation
+// used for testing. It is not safe to use in production.
 type Memory struct {
 	// mu         sync.Mutex
 	queues     map[string]*resource.Queue
@@ -90,6 +91,7 @@ func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) error 
 }
 
 func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobListParams) (*resource.Jobs, error) {
+	fmt.Println("---\ndequeueJobs()")
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}

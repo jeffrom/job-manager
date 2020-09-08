@@ -12,6 +12,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
+	"github.com/jeffrom/job-manager/jobclient/internal"
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/querystring"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
@@ -107,7 +108,7 @@ func (c *Client) newRequest(method, uri string, body io.Reader) (*http.Request, 
 	return req, nil
 }
 
-func (c *Client) newRequestProto(method, uri string, msg proto.Message) (*http.Request, error) {
+func (c *Client) newRequestProto(ctx context.Context, method, uri string, msg proto.Message) (*http.Request, error) {
 	var r io.Reader
 	if msg != nil {
 		if method == "GET" {
@@ -131,6 +132,11 @@ func (c *Client) newRequestProto(method, uri string, msg proto.Message) (*http.R
 	}
 	// b, _ := httputil.DumpRequest(req, false)
 	// fmt.Println(string(b))
+	if mockNow := internal.GetMockTime(ctx); mockNow != nil {
+		timeStr := fmt.Sprint(mockNow.Unix())
+		req.Header.Set("fake-time", timeStr)
+	}
+
 	return req, err
 }
 

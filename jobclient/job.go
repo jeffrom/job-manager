@@ -7,7 +7,6 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/jeffrom/job-manager/jobclient/internal"
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/label"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
@@ -49,14 +48,9 @@ func (c *Client) EnqueueJobOpts(ctx context.Context, name string, opts EnqueueOp
 	}
 
 	uri := fmt.Sprintf("/api/v1/queues/%s/enqueue", name)
-	req, err := c.newRequestProto("POST", uri, params)
+	req, err := c.newRequestProto(ctx, "POST", uri, params)
 	if err != nil {
 		return "", err
-	}
-
-	if mockNow := internal.GetMockTime(ctx); mockNow != nil {
-		timeStr := fmt.Sprint(mockNow.Unix())
-		req.Header.Set("fake-time", timeStr)
 	}
 
 	resp := &apiv1.EnqueueResponse{}
@@ -100,7 +94,7 @@ func (c *Client) DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts)
 	if queueID != "" {
 		uri = fmt.Sprintf("/api/v1/queues/%s/dequeue", queueID)
 	}
-	req, err := c.newRequestProto("POST", uri, params)
+	req, err := c.newRequestProto(ctx, "POST", uri, params)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +134,7 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status jobv1.Status,
 
 	uri := "/api/v1/jobs/ack"
 	params := &apiv1.AckRequest{Acks: []*apiv1.AckRequestArgs{args}}
-	req, err := c.newRequestProto("POST", uri, params)
+	req, err := c.newRequestProto(ctx, "POST", uri, params)
 	if err != nil {
 		return err
 	}
@@ -149,7 +143,7 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status jobv1.Status,
 
 func (c *Client) GetJob(ctx context.Context, id string) (*jobv1.Job, error) {
 	uri := fmt.Sprintf("/api/v1/jobs/%s", id)
-	req, err := c.newRequestProto("GET", uri, nil)
+	req, err := c.newRequestProto(ctx, "GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}

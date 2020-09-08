@@ -39,13 +39,7 @@ func (tc *sanityTestCase) wrap(ctx context.Context, fn func(ctx context.Context,
 
 func (tc *sanityTestCase) setMockTime(ctx context.Context, t testing.TB, ts time.Time) context.Context {
 	t.Helper()
-	t.Logf("setting mock time: %s", ts.Format(time.Stamp))
-	return jobclient.SetMockTime(ctx, ts)
-}
-
-func (tc *sanityTestCase) incMockTime(ctx context.Context, t testing.TB, ts time.Time, dur time.Duration) context.Context {
-	t.Helper()
-	t.Logf("setting mock time: %s", ts.Format(time.Stamp))
+	t.Logf("setting mock time: %s (%d)", ts.Format(time.Stamp), ts.Unix())
 	return jobclient.SetMockTime(ctx, ts)
 }
 
@@ -83,18 +77,12 @@ func (tc *sanityTestCase) dequeueJobsOpts(ctx context.Context, t testing.TB, num
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("dequeued %d jobs", len(jobs.Jobs))
+	t.Logf("dequeued %d %s", len(jobs.Jobs), jobs.String())
 	return jobs
 }
 
 func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string) *jobv1.Jobs {
-	t.Helper()
-	jobs, err := tc.ctx.client.DequeueJobs(ctx, num, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("dequeued %d jobs", len(jobs.Jobs))
-	return jobs
+	return tc.dequeueJobsOpts(ctx, t, num, jobclient.DequeueOpts{Queues: []string{name}})
 }
 
 func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, status jobv1.Status) {

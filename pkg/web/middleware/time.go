@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,13 +15,13 @@ var timeContextKey contextKey = "time"
 var tickerContextKey contextKey = "time.ticker"
 
 const (
-	mockTimeHeader   = "fake-time"
-	mockTickerHeader = "fake-ticker"
+	mockTimeHeader = "fake-time"
 )
 
 func Time(t internal.TimeProvider, tick internal.Ticker) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("mw mockTimeHeader:", r.Header.Get(mockTimeHeader))
 			ctx := r.Context()
 			if h := r.Header.Get(mockTimeHeader); h != "" {
 				times := strings.Split(h, ",")
@@ -31,7 +32,9 @@ func Time(t internal.TimeProvider, tick internal.Ticker) func(next http.Handler)
 						panic(err)
 						return
 					}
-					allTs[i] = time.Unix(uts, 0)
+					ts := time.Unix(uts, 0).UTC()
+					fmt.Println("mw:", ts.Format(time.Stamp))
+					allTs[i] = ts
 				}
 
 				mt := &internal.MockTime{}

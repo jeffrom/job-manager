@@ -62,7 +62,7 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 	args.V = opts.V
 
 	uri := fmt.Sprintf("/api/v1/queues/%s", name)
-	req, err := c.newRequestProto("PUT", uri, args)
+	req, err := c.newRequestProto(ctx, "PUT", uri, args)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Qu
 		Selectors: opts.Selectors,
 	}
 	uri := "/api/v1/queues"
-	req, err := c.newRequestProto("GET", uri, params)
+	req, err := c.newRequestProto(ctx, "GET", uri, params)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Qu
 
 func (c *Client) GetQueue(ctx context.Context, id string) (*jobv1.Queue, error) {
 	uri := fmt.Sprintf("/api/v1/queues/%s", id)
-	req, err := c.newRequestProto("GET", uri, nil)
+	req, err := c.newRequestProto(ctx, "GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}

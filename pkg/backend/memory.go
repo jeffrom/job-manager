@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -84,14 +83,20 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 }
 
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) error {
+	now := middleware.GetTime(ctx).Now()
 	for _, jobArg := range jobArgs.Jobs {
+		jobArg.Results = []*resource.JobResult{
+			{
+				StartedAt: now,
+			},
+		}
 		m.jobs[jobArg.ID] = jobArg
 	}
 	return nil
 }
 
 func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobListParams) (*resource.Jobs, error) {
-	fmt.Println("---\ndequeueJobs()")
+	// fmt.Println("---\ndequeueJobs()")
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
@@ -112,11 +117,11 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 			if err != nil {
 				return nil, err
 			}
-			fmt.Println("claim filter:", jb.ID, "match:", jb.Data.Claims.Match(opts.Claims), "expired:", queue.ClaimExpired(jb, now))
-			if !queue.ClaimExpired(jb, now) {
-				if jobClaims := jb.Data.Claims; !jobClaims.Match(opts.Claims) {
-					continue
-				}
+			match := jb.Data.Claims.Match(opts.Claims)
+			expired := queue.ClaimExpired(jb, now)
+			// fmt.Println("claim filter:", jb.ID, "match:", match, "expired:", expired)
+			if !expired && !match {
+				continue
 			}
 		}
 
@@ -134,20 +139,18 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 	return jobs, nil
 }
 
-func (m *Memory) AckJobs(ctx context.Context, results *resource.Acks) error {
-	for _, res := range results.Acks {
-		jobData, ok := m.jobs[res.ID]
+func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
+	for _, ack := range acks.Acks {
+		jobData, ok := m.jobs[ack.ID]
 		if !ok {
 			return ErrNotFound
 		}
-		if res.Data != nil {
-			jobData.Results = []*resource.JobResult{
-				{
-					Data: res.Data,
-				},
-			}
+		res := jobData.LastResult()
+		res.CompletedAt = middleware.GetTime(ctx).Now()
+		if ack.Data != nil {
+			res.Data = ack.Data
 		}
-		jobData.Status = res.Status
+		jobData.Status = ack.Status
 	}
 	// fmt.Println("---")
 	// for k := range m.jobs {

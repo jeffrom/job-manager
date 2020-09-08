@@ -67,10 +67,6 @@ func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name str
 	return tc.enqueueJobOpts(ctx, t, name, jobclient.EnqueueOpts{}, args...)
 }
 
-type tcDequeueOpts struct {
-	MockNow time.Time
-}
-
 func (tc *sanityTestCase) dequeueJobsOpts(ctx context.Context, t testing.TB, num int, opts jobclient.DequeueOpts) *jobv1.Jobs {
 	t.Helper()
 	jobs, err := tc.ctx.client.DequeueJobsOpts(ctx, num, opts)
@@ -82,6 +78,7 @@ func (tc *sanityTestCase) dequeueJobsOpts(ctx context.Context, t testing.TB, num
 }
 
 func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string) *jobv1.Jobs {
+	t.Helper()
 	return tc.dequeueJobsOpts(ctx, t, num, jobclient.DequeueOpts{Queues: []string{name}})
 }
 
@@ -218,8 +215,11 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 }
 
+var basicTime = time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
+
 func testEnqueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
+	ctx = tc.setMockTime(ctx, t, basicTime)
 	id, err := c.EnqueueJob(ctx, "cool", "nice")
 	if err != nil {
 		t.Fatal(err)
@@ -231,17 +231,14 @@ func testEnqueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
-	c := tc.ctx.client
 	expectJobName := "cool"
-	jobs, err := c.DequeueJobs(ctx, 1, expectJobName)
-	if err != nil {
-		t.Fatal(err)
-	}
+	jobs := tc.dequeueJobs(ctx, t, 1, expectJobName)
 	if len(jobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 
 	jobArg := jobs.Jobs[0]
+	// t.Logf("job: %+v")
 
 	if jobArg.Name != expectJobName {
 		t.Errorf("expected job name %q, got %q", expectJobName, jobArg.Name)
@@ -266,6 +263,9 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 
 	jobData := tc.getJob(ctx, t, id)
 	checkJob(t, jobData)
+	if !jobData.EnqueuedAt.AsTime().Equal(basicTime) {
+		t.Errorf("expected enqueued_at to be %q, was %q", basicTime, jobData.EnqueuedAt.AsTime())
+	}
 
 	resultData := jobData.Results
 	if resultData == nil {
@@ -529,7 +529,7 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	claims := label.Claims(map[string][]string{
 		"coolclaim": []string{"itiscool"},
 	})
-	mockNow := time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
+	mockNow := basicTime
 	ctx = tc.setMockTime(ctx, t, mockNow)
 	id := tc.enqueueJobOpts(ctx, t, "claimz", jobclient.EnqueueOpts{
 		Claims: claims,
@@ -547,11 +547,11 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	// fail the job
+	nextNow := mockNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, nextNow)
 	tc.ackJobOpts(ctx, t, id, jobv1.StatusFailed, jobclient.AckJobOpts{})
 
 	// try to dequeue again, ensure claim window is reset
-	nextNow := mockNow.Add(1 * time.Second)
-	ctx = tc.setMockTime(ctx, t, nextNow)
 	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
 		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
@@ -560,11 +560,12 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if claimJobs := tc.dequeueJobsOpts(ctx, t, 1, dqClaimOpts); len(claimJobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
+
+	nextNow = nextNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, nextNow)
 	tc.ackJobOpts(ctx, t, id, jobv1.StatusFailed, jobclient.AckJobOpts{})
 
 	// try to dequeue again, ensure claim window is reset
-	nextNow = nextNow.Add(1 * time.Second)
-	ctx = tc.setMockTime(ctx, t, nextNow)
 	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
 		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}

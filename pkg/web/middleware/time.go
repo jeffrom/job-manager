@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,28 +20,27 @@ const (
 func Time(t internal.TimeProvider, tick internal.Ticker) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("mw mockTimeHeader:", r.Header.Get(mockTimeHeader))
+			// fmt.Println("mw mockTimeHeader:", r.Header.Get(mockTimeHeader))
 			ctx := r.Context()
 			if h := r.Header.Get(mockTimeHeader); h != "" {
 				times := strings.Split(h, ",")
-				allTs := make([]time.Time, len(times))
+				allts := make([]time.Time, len(times))
 				for i, hts := range times {
 					uts, err := strconv.ParseInt(hts, 10, 64)
 					if err != nil {
 						panic(err)
-						return
 					}
 					ts := time.Unix(uts, 0).UTC()
-					fmt.Println("mw:", ts.Format(time.Stamp))
-					allTs[i] = ts
+					// fmt.Println("mw:", ts.Format(time.Stamp))
+					allts[i] = ts
 				}
 
 				mt := &internal.MockTime{}
-				mt.SetNow(allTs...)
+				mt.SetNow(allts...)
 				t = mt
 
 				mtick := internal.NewMockTick(0)
-				mtick.SetNow(allTs...)
+				mtick.SetNow(allts...)
 				defer mtick.Stop()
 				tick = mtick
 			}

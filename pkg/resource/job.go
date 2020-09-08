@@ -20,6 +20,27 @@ type Job struct {
 	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty"`
 }
 
+func (jb *Job) LastResult() *JobResult {
+	res := jb.Results
+	if len(res) == 0 {
+		return nil
+	}
+	return res[len(res)-1]
+}
+
+func (jb *Job) LastClaimWindow() time.Time {
+	if results := jb.Results; len(results) > 0 {
+		for i := len(results) - 1; i >= 0; i-- {
+			res := results[i]
+			completedAt := res.CompletedAt
+			if !completedAt.IsZero() {
+				return completedAt
+			}
+		}
+	}
+	return jb.EnqueuedAt
+}
+
 func (jb *Job) IsAttempted() bool {
 	return StatusIsAttempted(jb.Status)
 }

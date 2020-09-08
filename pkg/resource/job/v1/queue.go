@@ -25,6 +25,14 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 	}
 }
 
+func NewQueuesFromProto(msgs []*Queue) []*resource.Queue {
+	qs := make([]*resource.Queue, len(msgs))
+	for i, msg := range msgs {
+		qs[i] = NewQueueFromProto(msg)
+	}
+	return qs
+}
+
 func NewQueueFromResource(res *resource.Queue) *Queue {
 	return &Queue{
 		Id:              res.ID,

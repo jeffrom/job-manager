@@ -6,14 +6,14 @@ import "api/v1/errors.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
-message DequeueRequest {
+message DequeueJobsRequest {
   int32 num = 1;
   repeated string queues = 2;
   repeated string selectors = 3;
   repeated string claims = 4;
 }
 
-message DequeueResponse {
+message DequeueJobsResponse {
   job.v1.Jobs jobs = 1;
   repeated ErrorResponse errors = 2;
 }

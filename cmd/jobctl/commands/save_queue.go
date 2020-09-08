@@ -9,6 +9,7 @@ import (
 
 	"github.com/jeffrom/job-manager/jobclient"
 	"github.com/jeffrom/job-manager/pkg/label"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
@@ -78,9 +79,9 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		// fmt.Printf("%T %#v\n", err, err.(*jobclient.APIError).GenericError)
 		return err
 	}
-	v := int32(0)
+	var v *resource.Version
 	if prev != nil {
-		v = prev.V
+		v = prev.Version
 	}
 
 	q, err := client.SaveQueue(ctx, id, jobclient.SaveQueueOpts{
@@ -90,7 +91,7 @@ func runSaveQueue(ctx context.Context, cfg *jobclient.Config, opts *saveQueueOpt
 		Labels:      labels,
 		Schema:      scmb,
 		Unique:      opts.Unique,
-		V:           v,
+		Version:     v.Strict(),
 	})
 	if err != nil {
 		return err

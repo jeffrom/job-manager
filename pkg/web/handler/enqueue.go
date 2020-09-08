@@ -26,7 +26,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	Func(func(w http.ResponseWriter, r *http.Request) error {
 		ctx := r.Context()
 		be := backend.FromMiddleware(ctx)
-		var params apiv1.EnqueueRequest
+		var params apiv1.EnqueueJobsRequest
 		if err := UnmarshalBody(r, &params, true); err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err := be.EnqueueJobs(ctx, resources); err != nil {
 			return err
 		}
-		return MarshalResponse(w, r, &apiv1.EnqueueResponse{
+		return MarshalResponse(w, r, &apiv1.EnqueueJobsResponse{
 			Jobs: ids,
 		})
 	})(w, r)

@@ -21,7 +21,7 @@ message SaveQueueParamArgs {
   bool unique = 10;
 }
 
-message SaveQueueParams {
+message SaveQueueRequest {
   repeated SaveQueueParamArgs queues = 1;
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/jeffrom/job-manager/jobclient"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 	"github.com/qri-io/jsonschema"
@@ -183,7 +182,7 @@ func TestIntegrationArgsValidate(t *testing.T) {
 		t.Fatal("expected to dequeue one job, got", len(jobs.Jobs))
 	}
 
-	if err := c.AckJob(ctx, id, jobv1.StatusComplete); err != nil {
+	if err := c.AckJob(ctx, id, resource.StatusComplete); err != nil {
 		t.Fatal(err)
 	}
 }

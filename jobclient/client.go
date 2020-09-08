@@ -15,7 +15,7 @@ import (
 	"github.com/jeffrom/job-manager/jobclient/internal"
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/querystring"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 type Interface interface {
@@ -23,22 +23,22 @@ type Interface interface {
 	Ping(ctx context.Context) error
 
 	// consumer rpcs
-	// EnqueueJobs(ctx context.Context, jobs *jobv1.Jobs) ([]string, error)
-	// EnqueueJobsOpts(ctx context.Context, jobs *jobv1.Jobs, opts EnqueueOpts) ([]string, error)
+	// EnqueueJobs(ctx context.Context, jobs *resource.Jobs) ([]string, error)
+	// EnqueueJobsOpts(ctx context.Context, jobs *resource.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
 	EnqueueJobOpts(ctx context.Context, job string, opts EnqueueOpts, args ...interface{}) (string, error)
-	DequeueJobs(ctx context.Context, num int, id string) (*jobv1.Jobs, error)
-	DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*jobv1.Jobs, error)
-	AckJob(ctx context.Context, id string, status jobv1.Status) error
-	AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error
-	// AckJobs(ctx context.Context, results *jobv1.Results) error
+	DequeueJobs(ctx context.Context, num int, id string) (*resource.Jobs, error)
+	DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*resource.Jobs, error)
+	AckJob(ctx context.Context, id string, status resource.Status) error
+	AckJobOpts(ctx context.Context, id string, status resource.Status, opts AckJobOpts) error
+	// AckJobs(ctx context.Context, results *resource.Results) error
 
 	// admin rpcs
-	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error)
-	// SaveQueues(ctx context.Context, queue *jobv1.Queues) error
-	ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error)
-	GetQueue(ctx context.Context, id string) (*jobv1.Queue, error)
-	GetJob(ctx context.Context, id string) (*jobv1.Job, error)
+	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*resource.Queue, error)
+	// SaveQueues(ctx context.Context, queue *resource.Queues) error
+	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
+	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
+	GetJob(ctx context.Context, id string) (*resource.Job, error)
 }
 
 type providerFunc func(c *Client) *Client

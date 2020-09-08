@@ -8,13 +8,15 @@ import "job/v1/status.proto";
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
 
-message AckRequestArgs {
+message AckJobsRequestArgs {
   string id = 1;
   job.v1.Status status = 2;
   google.protobuf.Value data = 3;
   repeated string claims = 4;
 }
 
-message AckRequest {
-  repeated AckRequestArgs acks = 1;
+message AckJobsRequest {
+  repeated AckJobsRequestArgs acks = 1;
 }
+
+message AckJobsResponse {}

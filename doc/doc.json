@@ -6,22 +6,11 @@
       "package": "api.v1",
       "hasEnums": false,
       "hasExtensions": false,
-      "hasMessages": true,
+      "hasMessages": false,
       "hasServices": true,
       "enums": [],
       "extensions": [],
-      "messages": [
-        {
-          "name": "AckResponse",
-          "longName": "AckResponse",
-          "fullName": "api.v1.AckResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "extensions": [],
-          "fields": []
-        }
-      ],
+      "messages": [],
       "services": [
         {
           "name": "ApiService",
@@ -32,45 +21,45 @@
             {
               "name": "EnqueueJobs",
               "description": "",
-              "requestType": "EnqueueRequest",
-              "requestLongType": "EnqueueRequest",
-              "requestFullType": "api.v1.EnqueueRequest",
+              "requestType": "EnqueueJobsRequest",
+              "requestLongType": "EnqueueJobsRequest",
+              "requestFullType": "api.v1.EnqueueJobsRequest",
               "requestStreaming": false,
-              "responseType": "EnqueueResponse",
-              "responseLongType": "EnqueueResponse",
-              "responseFullType": "api.v1.EnqueueResponse",
+              "responseType": "EnqueueJobsResponse",
+              "responseLongType": "EnqueueJobsResponse",
+              "responseFullType": "api.v1.EnqueueJobsResponse",
               "responseStreaming": false
             },
             {
               "name": "DequeueJobs",
               "description": "",
-              "requestType": "DequeueRequest",
-              "requestLongType": "DequeueRequest",
-              "requestFullType": "api.v1.DequeueRequest",
+              "requestType": "DequeueJobsRequest",
+              "requestLongType": "DequeueJobsRequest",
+              "requestFullType": "api.v1.DequeueJobsRequest",
               "requestStreaming": false,
-              "responseType": "DequeueResponse",
-              "responseLongType": "DequeueResponse",
-              "responseFullType": "api.v1.DequeueResponse",
+              "responseType": "DequeueJobsResponse",
+              "responseLongType": "DequeueJobsResponse",
+              "responseFullType": "api.v1.DequeueJobsResponse",
               "responseStreaming": false
             },
             {
               "name": "AckJobs",
               "description": "",
-              "requestType": "AckRequest",
-              "requestLongType": "AckRequest",
-              "requestFullType": "api.v1.AckRequest",
+              "requestType": "AckJobsRequest",
+              "requestLongType": "AckJobsRequest",
+              "requestFullType": "api.v1.AckJobsRequest",
               "requestStreaming": false,
-              "responseType": "AckResponse",
-              "responseLongType": "AckResponse",
-              "responseFullType": "api.v1.AckResponse",
+              "responseType": "AckJobsResponse",
+              "responseLongType": "AckJobsResponse",
+              "responseFullType": "api.v1.AckJobsResponse",
               "responseStreaming": false
             },
             {
               "name": "SaveQueue",
               "description": "",
-              "requestType": "SaveQueueParams",
-              "requestLongType": "SaveQueueParams",
-              "requestFullType": "api.v1.SaveQueueParams",
+              "requestType": "SaveQueueRequest",
+              "requestLongType": "SaveQueueRequest",
+              "requestFullType": "api.v1.SaveQueueRequest",
               "requestStreaming": false,
               "responseType": "SaveQueueResponse",
               "responseLongType": "SaveQueueResponse",
@@ -336,9 +325,9 @@
       "extensions": [],
       "messages": [
         {
-          "name": "AckRequest",
-          "longName": "AckRequest",
-          "fullName": "api.v1.AckRequest",
+          "name": "AckJobsRequest",
+          "longName": "AckJobsRequest",
+          "fullName": "api.v1.AckJobsRequest",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -348,18 +337,18 @@
               "name": "acks",
               "description": "",
               "label": "repeated",
-              "type": "AckRequestArgs",
-              "longType": "AckRequestArgs",
-              "fullType": "api.v1.AckRequestArgs",
+              "type": "AckJobsRequestArgs",
+              "longType": "AckJobsRequestArgs",
+              "fullType": "api.v1.AckJobsRequestArgs",
               "ismap": false,
               "defaultValue": ""
             }
           ]
         },
         {
-          "name": "AckRequestArgs",
-          "longName": "AckRequestArgs",
-          "fullName": "api.v1.AckRequestArgs",
+          "name": "AckJobsRequestArgs",
+          "longName": "AckJobsRequestArgs",
+          "fullName": "api.v1.AckJobsRequestArgs",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -406,6 +395,16 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "AckJobsResponse",
+          "longName": "AckJobsResponse",
+          "fullName": "api.v1.AckJobsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "extensions": [],
+          "fields": []
         }
       ],
       "services": []
@@ -658,9 +657,9 @@
           ]
         },
         {
-          "name": "SaveQueueParams",
-          "longName": "SaveQueueParams",
-          "fullName": "api.v1.SaveQueueParams",
+          "name": "SaveQueueRequest",
+          "longName": "SaveQueueRequest",
+          "fullName": "api.v1.SaveQueueRequest",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -714,9 +713,9 @@
       "extensions": [],
       "messages": [
         {
-          "name": "EnqueueRequest",
-          "longName": "EnqueueRequest",
-          "fullName": "api.v1.EnqueueRequest",
+          "name": "EnqueueJobsRequest",
+          "longName": "EnqueueJobsRequest",
+          "fullName": "api.v1.EnqueueJobsRequest",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -726,18 +725,18 @@
               "name": "jobs",
               "description": "",
               "label": "repeated",
-              "type": "EnqueueRequestArgs",
-              "longType": "EnqueueRequestArgs",
-              "fullType": "api.v1.EnqueueRequestArgs",
+              "type": "EnqueueJobsRequestArgs",
+              "longType": "EnqueueJobsRequestArgs",
+              "fullType": "api.v1.EnqueueJobsRequestArgs",
               "ismap": false,
               "defaultValue": ""
             }
           ]
         },
         {
-          "name": "EnqueueRequestArgs",
-          "longName": "EnqueueRequestArgs",
-          "fullName": "api.v1.EnqueueRequestArgs",
+          "name": "EnqueueJobsRequestArgs",
+          "longName": "EnqueueJobsRequestArgs",
+          "fullName": "api.v1.EnqueueJobsRequestArgs",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -776,9 +775,9 @@
           ]
         },
         {
-          "name": "EnqueueResponse",
-          "longName": "EnqueueResponse",
-          "fullName": "api.v1.EnqueueResponse",
+          "name": "EnqueueJobsResponse",
+          "longName": "EnqueueJobsResponse",
+          "fullName": "api.v1.EnqueueJobsResponse",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -821,9 +820,9 @@
       "extensions": [],
       "messages": [
         {
-          "name": "DequeueRequest",
-          "longName": "DequeueRequest",
-          "fullName": "api.v1.DequeueRequest",
+          "name": "DequeueJobsRequest",
+          "longName": "DequeueJobsRequest",
+          "fullName": "api.v1.DequeueJobsRequest",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -872,9 +871,9 @@
           ]
         },
         {
-          "name": "DequeueResponse",
-          "longName": "DequeueResponse",
-          "fullName": "api.v1.DequeueResponse",
+          "name": "DequeueJobsResponse",
+          "longName": "DequeueJobsResponse",
+          "fullName": "api.v1.DequeueJobsResponse",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,

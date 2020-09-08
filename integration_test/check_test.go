@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 func checkArgsSchema(t testing.TB, verr *resource.ValidationError, expectPath string) {
@@ -36,17 +35,13 @@ func checkSchemaString(t testing.TB, v interface{}, expect string) {
 	}
 }
 
-func checkJob(t testing.TB, jobData *jobv1.Job) {
-	if jobData.EnqueuedAt == nil {
-		t.Errorf("jobv1.EnqueuedAt was nil")
-	} else if !jobData.EnqueuedAt.IsValid() {
-		t.Errorf("jobv1.EnqueuedAt is invalid: %v", jobData.EnqueuedAt.CheckValid())
-	} else if jobData.EnqueuedAt.AsTime().IsZero() {
+func checkJob(t testing.TB, jobData *resource.Job) {
+	if jobData.EnqueuedAt.IsZero() {
 		t.Errorf("jobv1.EnqueuedAt is zero")
 	}
 
-	if jobData.Status == jobv1.StatusUnknown {
-		t.Errorf("jobv1.Status is %s", jobv1.StatusUnknown)
+	if jobData.Status == resource.StatusUnspecified {
+		t.Errorf("job.Status is %s", resource.StatusUnspecified)
 	}
 	if jobData.Attempt < 0 {
 		t.Errorf("jobv1.Attempt was %d", jobData.Attempt)

@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 )
@@ -28,10 +29,14 @@ type SaveQueueOpts struct {
 	DataSchema      []byte
 	ResultSchema    []byte
 	Unique          bool
-	V               int32
+	Version         string
 }
 
-func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error) {
+func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*resource.Queue, error) {
+	v, err := resource.NewVersionFromString(opts.Version)
+	if err != nil {
+		return nil, err
+	}
 	args := &apiv1.SaveQueueParamArgs{
 		Name:   name,
 		Labels: opts.Labels,
@@ -59,7 +64,7 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 		args.Schema = cSchema
 	}
 	args.Unique = opts.Unique
-	args.V = opts.V
+	args.V = v.Raw()
 
 	uri := fmt.Sprintf("/api/v1/queues/%s", name)
 	req, err := c.newRequestProto(ctx, "PUT", uri, args)
@@ -71,7 +76,7 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}
-	return resp.Queue, nil
+	return jobv1.NewQueueFromProto(resp.Queue), nil
 }
 
 type ListQueuesOpts struct {
@@ -79,7 +84,7 @@ type ListQueuesOpts struct {
 	Selectors []string
 }
 
-func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error) {
+func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error) {
 	params := &apiv1.ListQueuesRequest{
 		Names:     opts.Names,
 		Selectors: opts.Selectors,
@@ -94,10 +99,10 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Qu
 	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}
-	return resp.Data, nil
+	return &resource.Queues{Queues: jobv1.NewQueuesFromProto(resp.Data.Queues)}, nil
 }
 
-func (c *Client) GetQueue(ctx context.Context, id string) (*jobv1.Queue, error) {
+func (c *Client) GetQueue(ctx context.Context, id string) (*resource.Queue, error) {
 	uri := fmt.Sprintf("/api/v1/queues/%s", id)
 	req, err := c.newRequestProto(ctx, "GET", uri, nil)
 	if err != nil {
@@ -108,5 +113,5 @@ func (c *Client) GetQueue(ctx context.Context, id string) (*jobv1.Queue, error) 
 	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}
-	return resp.Data, nil
+	return jobv1.NewQueueFromProto(resp.Data), nil
 }

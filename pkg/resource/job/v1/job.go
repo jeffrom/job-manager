@@ -2,8 +2,6 @@
 package v1
 
 import (
-	"fmt"
-
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -53,7 +51,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 	if jb.Data != nil {
 		data := &Data{}
 		if jb.Data.Data != nil {
-			fmt.Printf("%#v\n", jb.Data.Data)
+			// fmt.Printf("%#v\n", jb.Data.Data)
 			datav, err := structpb.NewValue(jb.Data.Data)
 			if err != nil {
 				return nil, err
@@ -122,6 +120,26 @@ func NewJobFromProto(msg *Job, claims label.Claims) *resource.Job {
 		Results:      jobResultsFromProto(msg.Results),
 		EnqueuedAt:   msg.EnqueuedAt.AsTime(),
 	}
+}
+
+func NewJobsFromProto(msgs []*Job) ([]*resource.Job, error) {
+	jobs := make([]*resource.Job, len(msgs))
+	for i, msg := range msgs {
+		jb := NewJobFromProto(msg, nil)
+		if msg.Data != nil && len(msg.Data.Claims) > 0 {
+			claims, err := label.ParseClaims(msg.Data.Claims)
+			if err != nil {
+				return nil, err
+			}
+			if jb.Data == nil {
+				jb.Data = &resource.JobData{}
+			}
+			jb.Data.Claims = claims
+		}
+		jobs[i] = jb
+	}
+
+	return jobs, nil
 }
 
 func jobStatusFromProto(status Status) resource.Status {

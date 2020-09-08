@@ -27,7 +27,7 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-type EnqueueRequestArgs struct {
+type EnqueueJobsRequestArgs struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -37,8 +37,8 @@ type EnqueueRequestArgs struct {
 	Data *v1.Data         `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
-func (x *EnqueueRequestArgs) Reset() {
-	*x = EnqueueRequestArgs{}
+func (x *EnqueueJobsRequestArgs) Reset() {
+	*x = EnqueueJobsRequestArgs{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_v1_enqueue_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -46,13 +46,13 @@ func (x *EnqueueRequestArgs) Reset() {
 	}
 }
 
-func (x *EnqueueRequestArgs) String() string {
+func (x *EnqueueJobsRequestArgs) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnqueueRequestArgs) ProtoMessage() {}
+func (*EnqueueJobsRequestArgs) ProtoMessage() {}
 
-func (x *EnqueueRequestArgs) ProtoReflect() protoreflect.Message {
+func (x *EnqueueJobsRequestArgs) ProtoReflect() protoreflect.Message {
 	mi := &file_api_v1_enqueue_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -64,42 +64,42 @@ func (x *EnqueueRequestArgs) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnqueueRequestArgs.ProtoReflect.Descriptor instead.
-func (*EnqueueRequestArgs) Descriptor() ([]byte, []int) {
+// Deprecated: Use EnqueueJobsRequestArgs.ProtoReflect.Descriptor instead.
+func (*EnqueueJobsRequestArgs) Descriptor() ([]byte, []int) {
 	return file_api_v1_enqueue_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *EnqueueRequestArgs) GetJob() string {
+func (x *EnqueueJobsRequestArgs) GetJob() string {
 	if x != nil {
 		return x.Job
 	}
 	return ""
 }
 
-func (x *EnqueueRequestArgs) GetArgs() []*_struct.Value {
+func (x *EnqueueJobsRequestArgs) GetArgs() []*_struct.Value {
 	if x != nil {
 		return x.Args
 	}
 	return nil
 }
 
-func (x *EnqueueRequestArgs) GetData() *v1.Data {
+func (x *EnqueueJobsRequestArgs) GetData() *v1.Data {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-type EnqueueRequest struct {
+type EnqueueJobsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Jobs []*EnqueueRequestArgs `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
+	Jobs []*EnqueueJobsRequestArgs `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
 }
 
-func (x *EnqueueRequest) Reset() {
-	*x = EnqueueRequest{}
+func (x *EnqueueJobsRequest) Reset() {
+	*x = EnqueueJobsRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_v1_enqueue_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -107,13 +107,13 @@ func (x *EnqueueRequest) Reset() {
 	}
 }
 
-func (x *EnqueueRequest) String() string {
+func (x *EnqueueJobsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnqueueRequest) ProtoMessage() {}
+func (*EnqueueJobsRequest) ProtoMessage() {}
 
-func (x *EnqueueRequest) ProtoReflect() protoreflect.Message {
+func (x *EnqueueJobsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_v1_enqueue_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -125,19 +125,19 @@ func (x *EnqueueRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnqueueRequest.ProtoReflect.Descriptor instead.
-func (*EnqueueRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use EnqueueJobsRequest.ProtoReflect.Descriptor instead.
+func (*EnqueueJobsRequest) Descriptor() ([]byte, []int) {
 	return file_api_v1_enqueue_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *EnqueueRequest) GetJobs() []*EnqueueRequestArgs {
+func (x *EnqueueJobsRequest) GetJobs() []*EnqueueJobsRequestArgs {
 	if x != nil {
 		return x.Jobs
 	}
 	return nil
 }
 
-type EnqueueResponse struct {
+type EnqueueJobsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -146,8 +146,8 @@ type EnqueueResponse struct {
 	Errors []*ErrorResponse `protobuf:"bytes,2,rep,name=errors,proto3" json:"errors,omitempty"`
 }
 
-func (x *EnqueueResponse) Reset() {
-	*x = EnqueueResponse{}
+func (x *EnqueueJobsResponse) Reset() {
+	*x = EnqueueJobsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_v1_enqueue_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -155,13 +155,13 @@ func (x *EnqueueResponse) Reset() {
 	}
 }
 
-func (x *EnqueueResponse) String() string {
+func (x *EnqueueJobsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnqueueResponse) ProtoMessage() {}
+func (*EnqueueJobsResponse) ProtoMessage() {}
 
-func (x *EnqueueResponse) ProtoReflect() protoreflect.Message {
+func (x *EnqueueJobsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_api_v1_enqueue_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -173,19 +173,19 @@ func (x *EnqueueResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnqueueResponse.ProtoReflect.Descriptor instead.
-func (*EnqueueResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use EnqueueJobsResponse.ProtoReflect.Descriptor instead.
+func (*EnqueueJobsResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_enqueue_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *EnqueueResponse) GetJobs() []string {
+func (x *EnqueueJobsResponse) GetJobs() []string {
 	if x != nil {
 		return x.Jobs
 	}
 	return nil
 }
 
-func (x *EnqueueResponse) GetErrors() []*ErrorResponse {
+func (x *EnqueueJobsResponse) GetErrors() []*ErrorResponse {
 	if x != nil {
 		return x.Errors
 	}
@@ -201,19 +201,20 @@ var file_api_v1_enqueue_proto_rawDesc = []byte{
 	0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x11, 0x6a, 0x6f,
 	0x62, 0x2f, 0x76, 0x31, 0x2f, 0x64, 0x61, 0x74, 0x61, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a,
 	0x13, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x73, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x22, 0x74, 0x0a, 0x12, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x6a, 0x6f,
-	0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x12, 0x2a, 0x0a, 0x04,
-	0x61, 0x72, 0x67, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
-	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x56, 0x61, 0x6c,
-	0x75, 0x65, 0x52, 0x04, 0x61, 0x72, 0x67, 0x73, 0x12, 0x20, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61,
-	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x6a, 0x6f, 0x62, 0x2e, 0x76, 0x31, 0x2e,
-	0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x40, 0x0a, 0x0e, 0x45, 0x6e,
-	0x71, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2e, 0x0a, 0x04,
-	0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x61, 0x70, 0x69,
-	0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x52, 0x04, 0x6a, 0x6f, 0x62, 0x73, 0x22, 0x54, 0x0a, 0x0f,
-	0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x72, 0x6f, 0x74, 0x6f, 0x22, 0x78, 0x0a, 0x16, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4a,
+	0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x12, 0x10,
+	0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6a, 0x6f, 0x62,
+	0x12, 0x2a, 0x0a, 0x04, 0x61, 0x72, 0x67, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x04, 0x61, 0x72, 0x67, 0x73, 0x12, 0x20, 0x0a, 0x04,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x6a, 0x6f, 0x62,
+	0x2e, 0x76, 0x31, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x48,
+	0x0a, 0x12, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x32, 0x0a, 0x04, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6e, 0x71, 0x75,
+	0x65, 0x75, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x41, 0x72,
+	0x67, 0x73, 0x52, 0x04, 0x6a, 0x6f, 0x62, 0x73, 0x22, 0x58, 0x0a, 0x13, 0x45, 0x6e, 0x71, 0x75,
+	0x65, 0x75, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
 	0x12, 0x0a, 0x04, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x6a,
 	0x6f, 0x62, 0x73, 0x12, 0x2d, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x73, 0x18, 0x02, 0x20,
 	0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x72, 0x72,
@@ -238,18 +239,18 @@ func file_api_v1_enqueue_proto_rawDescGZIP() []byte {
 
 var file_api_v1_enqueue_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_v1_enqueue_proto_goTypes = []interface{}{
-	(*EnqueueRequestArgs)(nil), // 0: api.v1.EnqueueRequestArgs
-	(*EnqueueRequest)(nil),     // 1: api.v1.EnqueueRequest
-	(*EnqueueResponse)(nil),    // 2: api.v1.EnqueueResponse
-	(*_struct.Value)(nil),      // 3: google.protobuf.Value
-	(*v1.Data)(nil),            // 4: job.v1.Data
-	(*ErrorResponse)(nil),      // 5: api.v1.ErrorResponse
+	(*EnqueueJobsRequestArgs)(nil), // 0: api.v1.EnqueueJobsRequestArgs
+	(*EnqueueJobsRequest)(nil),     // 1: api.v1.EnqueueJobsRequest
+	(*EnqueueJobsResponse)(nil),    // 2: api.v1.EnqueueJobsResponse
+	(*_struct.Value)(nil),          // 3: google.protobuf.Value
+	(*v1.Data)(nil),                // 4: job.v1.Data
+	(*ErrorResponse)(nil),          // 5: api.v1.ErrorResponse
 }
 var file_api_v1_enqueue_proto_depIdxs = []int32{
-	3, // 0: api.v1.EnqueueRequestArgs.args:type_name -> google.protobuf.Value
-	4, // 1: api.v1.EnqueueRequestArgs.data:type_name -> job.v1.Data
-	0, // 2: api.v1.EnqueueRequest.jobs:type_name -> api.v1.EnqueueRequestArgs
-	5, // 3: api.v1.EnqueueResponse.errors:type_name -> api.v1.ErrorResponse
+	3, // 0: api.v1.EnqueueJobsRequestArgs.args:type_name -> google.protobuf.Value
+	4, // 1: api.v1.EnqueueJobsRequestArgs.data:type_name -> job.v1.Data
+	0, // 2: api.v1.EnqueueJobsRequest.jobs:type_name -> api.v1.EnqueueJobsRequestArgs
+	5, // 3: api.v1.EnqueueJobsResponse.errors:type_name -> api.v1.ErrorResponse
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -265,7 +266,7 @@ func file_api_v1_enqueue_proto_init() {
 	file_api_v1_errors_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_api_v1_enqueue_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EnqueueRequestArgs); i {
+			switch v := v.(*EnqueueJobsRequestArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -277,7 +278,7 @@ func file_api_v1_enqueue_proto_init() {
 			}
 		}
 		file_api_v1_enqueue_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EnqueueRequest); i {
+			switch v := v.(*EnqueueJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -289,7 +290,7 @@ func file_api_v1_enqueue_proto_init() {
 			}
 		}
 		file_api_v1_enqueue_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EnqueueResponse); i {
+			switch v := v.(*EnqueueJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:

@@ -9,6 +9,7 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/internal"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -55,7 +56,7 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		checkinDur = params.CheckinDuration
 	}
 
-	now := timestamppb.New(middleware.GetTime(ctx).Now())
+	now := timestamppb.New(internal.GetTimeProvider(ctx).Now())
 	queue := &jobv1.Queue{
 		Id:              queueID,
 		Concurrency:     concurrency,

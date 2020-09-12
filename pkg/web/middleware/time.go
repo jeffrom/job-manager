@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,9 +8,6 @@ import (
 
 	"github.com/jeffrom/job-manager/pkg/internal"
 )
-
-var timeContextKey contextKey = "time"
-var tickerContextKey contextKey = "time.ticker"
 
 const (
 	mockTimeHeader = "fake-time"
@@ -44,27 +40,11 @@ func Time(t internal.TimeProvider, tick internal.Ticker) func(next http.Handler)
 				defer mtick.Stop()
 				tick = mtick
 			}
-			ctx = context.WithValue(ctx, timeContextKey, t)
-			ctx = context.WithValue(ctx, tickerContextKey, tick)
+			ctx = internal.SetTimeProvider(ctx, t)
+			ctx = internal.SetTicker(ctx, tick)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
 	}
-}
-
-func SetTime(ctx context.Context, t internal.TimeProvider) context.Context {
-	return context.WithValue(ctx, timeContextKey, t)
-}
-
-func SetTicker(ctx context.Context, tick internal.Ticker) context.Context {
-	return context.WithValue(ctx, tickerContextKey, tick)
-}
-
-func GetTime(ctx context.Context) internal.TimeProvider {
-	return ctx.Value(timeContextKey).(internal.TimeProvider)
-}
-
-func GetTicker(ctx context.Context) internal.Ticker {
-	return ctx.Value(tickerContextKey).(internal.Ticker)
 }

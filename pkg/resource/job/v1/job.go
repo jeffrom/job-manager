@@ -2,8 +2,8 @@
 package v1
 
 import (
-	proto "github.com/golang/protobuf/proto"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 

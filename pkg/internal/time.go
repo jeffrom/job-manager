@@ -1,12 +1,44 @@
 package internal
 
 import (
+	"context"
 	"time"
 )
+
+type contextKey string
+
+var timeContextKey contextKey = "time"
+var tickerContextKey contextKey = "time.ticker"
+
+func SetTimeProvider(ctx context.Context, t TimeProvider) context.Context {
+	return context.WithValue(ctx, timeContextKey, t)
+}
+
+func SetMockTime(ctx context.Context, nows ...time.Time) context.Context {
+	return SetTimeProvider(ctx, &MockTime{nows: nows})
+}
+
+func SetTicker(ctx context.Context, tick Ticker) context.Context {
+	return context.WithValue(ctx, tickerContextKey, tick)
+}
+
+func GetTimeProvider(ctx context.Context) TimeProvider {
+	p, ok := ctx.Value(timeContextKey).(TimeProvider)
+	if ok {
+		return p
+	}
+	return defaultTimeProvider
+}
+
+func GetTicker(ctx context.Context) Ticker {
+	return ctx.Value(tickerContextKey).(Ticker)
+}
 
 type TimeProvider interface {
 	Now() time.Time
 }
+
+var defaultTimeProvider = Time(0)
 
 type Time int
 

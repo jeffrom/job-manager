@@ -33,7 +33,6 @@ func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
 
 func (q *Queue) Equals(other *Queue) bool {
 	return q.ID == other.ID &&
-		q.Version == other.Version &&
 		q.Concurrency == other.Concurrency &&
 		q.Retries == other.Retries &&
 		q.Duration == other.Duration &&

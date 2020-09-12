@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 )
@@ -35,3 +36,28 @@ func (v *Version) String() string { return fmt.Sprintf("v%d", v.v) }
 func (v *Version) Strict() string { return fmt.Sprint(v.v) }
 func (v *Version) Raw() int32     { return v.v }
 func (v *Version) Inc()           { v.v++ }
+
+func (v *Version) Equals(other *Version) bool {
+	if v == nil || other == nil {
+		return (v == nil) == (other == nil)
+	}
+
+	return v.v == other.v
+}
+
+func (v *Version) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"v%d"`, v.v)), nil
+}
+
+func (v *Version) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	n, err := strconv.ParseInt(s[1:], 10, 32)
+	if err != nil {
+		return err
+	}
+	v.v = int32(n)
+	return nil
+}

@@ -11,11 +11,11 @@ import (
 
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 type EnqueueJobs struct {
@@ -33,7 +33,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		resources := &resource.Jobs{Jobs: make([]*resource.Job, len(params.Jobs))}
 		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
-		now := timestamppb.New(middleware.GetTime(ctx).Now())
+		now := timestamppb.New(internal.GetTimeProvider(ctx).Now())
 		for i, jobArg := range params.Jobs {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
 			if err != nil {

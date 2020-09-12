@@ -1,11 +1,12 @@
 package v1
 
 import (
-	proto "github.com/golang/protobuf/proto"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/jeffrom/job-manager/pkg/label"
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 func NewQueueFromProto(msg *Queue) *resource.Queue {

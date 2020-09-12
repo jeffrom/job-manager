@@ -6,9 +6,9 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 // Memory is an in-memory backend intended to be a reference implementation
@@ -94,7 +94,7 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 }
 
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*resource.Jobs, error) {
-	now := middleware.GetTime(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now()
 	for _, jobArg := range jobArgs.Jobs {
 		queue, err := m.GetQueue(ctx, jobArg.Name)
 		if err != nil {
@@ -121,7 +121,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 		return nil, err
 	}
 
-	now := middleware.GetTime(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now()
 
 	// filter out jobs with an unmet claim window
 	var filtered []*resource.Job
@@ -156,7 +156,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 }
 
 func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
-	now := middleware.GetTime(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now()
 	for _, ack := range acks.Acks {
 		jobData, ok := m.jobs[ack.ID]
 		if !ok {

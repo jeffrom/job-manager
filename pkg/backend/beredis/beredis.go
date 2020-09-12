@@ -6,6 +6,8 @@ import (
 	"context"
 
 	"github.com/go-redis/redis/v8"
+
+	"github.com/jeffrom/job-manager/pkg/backend"
 )
 
 type RedisBackend struct {
@@ -39,6 +41,9 @@ func (be *RedisBackend) Ping(ctx context.Context) error {
 }
 
 func (be *RedisBackend) Reset(ctx context.Context) error {
+	if !be.cfg.TestMode {
+		return backend.ErrNotAuthorized
+	}
 	keys, err := be.rds.Keys(ctx, queueListKey+":*").Result()
 	if err != nil {
 		return err

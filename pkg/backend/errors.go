@@ -13,6 +13,8 @@ var ErrInvalidState = errors.New("backend: invalid state")
 // TODO this should be a struct
 var ErrInvalidResource = errors.New("backend: invalid resource")
 
+var ErrNotAuthorized = errors.New("backend: not authorized")
+
 type VersionConflictError struct {
 	Resource   string
 	ResourceID string

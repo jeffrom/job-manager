@@ -16,6 +16,7 @@ import (
 // - safe for concurrent operations
 type Interface interface {
 	Ping(ctx context.Context) error
+	// Reset resets the backend. For testing.
 	Reset(ctx context.Context) error
 
 	GetQueue(ctx context.Context, job string) (*resource.Queue, error)

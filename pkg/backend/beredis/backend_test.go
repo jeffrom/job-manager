@@ -10,8 +10,10 @@ import (
 )
 
 func TestBackendRedis(t *testing.T) {
+	defaultCfg := backend.DefaultConfig
+	defaultCfg.TestMode = true
 	be := New(WithConfig(Config{
-		Config: backend.DefaultConfig,
+		Config: defaultCfg,
 		Redis: &redis.Options{
 			Addr:     "localhost:6379",
 			Password: "",

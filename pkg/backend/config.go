@@ -6,6 +6,8 @@ type Config struct {
 
 	// HistoryLimit is the maximum number of resource versions to store.
 	HistoryLimit int
+
+	TestMode bool
 }
 
 var DefaultConfig = Config{

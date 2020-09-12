@@ -43,6 +43,15 @@ func (q *Queue) Equals(other *Queue) bool {
 		bytes.Equal(q.SchemaRaw, other.SchemaRaw)
 }
 
+func (q *Queue) Copy() *Queue {
+	cp := &Queue{}
+	*cp = *q
+	if q.Version != nil {
+		*cp.Version = *q.Version
+	}
+	return cp
+}
+
 type Queues struct {
 	Queues []*Queue `json:"queues"`
 }

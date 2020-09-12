@@ -22,10 +22,12 @@ func (be *RedisBackend) GetQueue(ctx context.Context, job string) (*resource.Que
 	return nil, nil
 }
 
-func (be *RedisBackend) SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error) {
-	if queue == nil || queue.ID == "" {
+func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue) (*resource.Queue, error) {
+	if queueArg == nil || queueArg.ID == "" {
 		return nil, backend.ErrInvalidResource
 	}
+	queue := queueArg.Copy()
+
 	now := internal.GetTimeProvider(ctx).Now()
 	key := queueKey(queue.ID)
 
@@ -56,6 +58,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queue *resource.Queue) (*
 			queue.CreatedAt = prev.CreatedAt
 			queue.UpdatedAt = prev.UpdatedAt
 		}
+
 		// fmt.Printf("---\nprev: %+v\n", prev)
 		// fmt.Printf("curr: %+v\n", queue)
 		if prev != nil && queue.Equals(prev) {
@@ -74,6 +77,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queue *resource.Queue) (*
 			queueV.Inc()
 		}
 
+		// do the write
 		l, err := tx.LLen(ctx, key).Result()
 		if err != nil {
 			return err

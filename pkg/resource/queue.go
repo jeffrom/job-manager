@@ -31,7 +31,7 @@ func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
 	return expired
 }
 
-func (q *Queue) Equals(other *Queue) bool {
+func (q *Queue) EqualAttrs(other *Queue) bool {
 	return q.ID == other.ID &&
 		q.Concurrency == other.Concurrency &&
 		q.Retries == other.Retries &&
@@ -40,7 +40,15 @@ func (q *Queue) Equals(other *Queue) bool {
 		q.ClaimDuration == other.ClaimDuration &&
 		q.Unique == other.Unique &&
 		q.Labels.Equals(other.Labels) &&
+		q.DeletedAt.IsZero() == other.DeletedAt.IsZero() &&
 		bytes.Equal(q.SchemaRaw, other.SchemaRaw)
+}
+
+func (q *Queue) Equal(other *Queue) bool {
+	return q.CreatedAt.Equal(other.CreatedAt) &&
+		q.UpdatedAt.Equal(other.UpdatedAt) &&
+		q.DeletedAt.Equal(other.DeletedAt) &&
+		q.EqualAttrs(other)
 }
 
 func (q *Queue) Copy() *Queue {

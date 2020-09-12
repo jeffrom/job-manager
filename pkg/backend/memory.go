@@ -59,7 +59,7 @@ func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) (*resourc
 		}
 	}
 	// fmt.Printf("prev: %+v, curr: %+v\n", prev, queue)
-	if prev == nil || !queue.Equals(prev) {
+	if prev == nil || !queue.EqualAttrs(prev) {
 		queue.Version.Inc()
 	}
 	m.queues[queue.ID] = queue

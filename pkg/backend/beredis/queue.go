@@ -61,7 +61,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 
 		// fmt.Printf("---\nprev: %+v\n", prev)
 		// fmt.Printf("curr: %+v\n", queue)
-		if prev != nil && queue.Equals(prev) {
+		if prev != nil && queue.EqualAttrs(prev) {
 			return nil
 		} else if prev != nil && !prev.Version.Equals(queueV) {
 			return &backend.VersionConflictError{

@@ -63,12 +63,14 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	t.Run("save", func(t *testing.T) {
 		be := tc.cfg.Backend
 
+		// initial creation should work
 		now := time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC)
 		ctx = internal.SetMockTime(ctx, now)
 		q := mustSaveQueue(ctx, t, be, getBasicQueue())
 		mustCheck(t, checkQueue(t, q))
 		mustCheck(t, checkVersion(t, 1, q.Version))
 
+		// same attrs should result in no changes
 		nextNow := now.Add(1 * time.Second)
 		ctx = internal.SetMockTime(ctx, nextNow)
 		q = mustSaveQueue(ctx, t, be, getBasicQueue())
@@ -77,12 +79,24 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 		if !q.CreatedAt.Equal(now) {
 			t.Fatalf("expected created_at to be %q, was %q", now, q.CreatedAt)
 		}
+		if !q.UpdatedAt.Equal(now) {
+			t.Fatalf("expected updated_at to be %q, was %q", now, q.UpdatedAt)
+		}
 
+		// a legit update should work
+		lastNow := now.Add(1 * time.Second)
+		ctx = internal.SetMockTime(ctx, lastNow)
 		q2 := getBasicQueue()
 		q2.Concurrency++
 		res := mustSaveQueue(ctx, t, be, q2)
 		mustCheck(t, checkQueue(t, res))
 		mustCheck(t, checkVersion(t, 2, res.Version))
+		if !res.CreatedAt.Equal(now) {
+			t.Fatalf("expected created_at to be %q, was %q", now, res.CreatedAt)
+		}
+		if !res.UpdatedAt.Equal(lastNow) {
+			t.Fatalf("expected updated_at to be %q, was %q", lastNow, res.UpdatedAt)
+		}
 	})
 }
 

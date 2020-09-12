@@ -1,6 +1,7 @@
 package v1
 
 import (
+	proto "github.com/golang/protobuf/proto"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -57,4 +58,18 @@ func NewQueuesFromResources(resources []*resource.Queue) []*Queue {
 		qs[i] = NewQueueFromResource(rq)
 	}
 	return qs
+}
+
+func MarshalQueue(q *resource.Queue) ([]byte, error) {
+	return proto.Marshal(NewQueueFromResource(q))
+}
+
+func UnmarshalQueue(b []byte, qmsg *Queue) (*resource.Queue, error) {
+	if qmsg == nil {
+		qmsg = &Queue{}
+	}
+	if err := proto.Unmarshal(b, qmsg); err != nil {
+		return nil, err
+	}
+	return NewQueueFromProto(qmsg), nil
 }

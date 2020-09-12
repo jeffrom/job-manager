@@ -58,6 +58,14 @@ type Jobs struct {
 	Jobs []*Job `json:"jobs"`
 }
 
+func (jobs *Jobs) IDs() []string {
+	ids := make([]string, len(jobs.Jobs))
+	for i, jb := range jobs.Jobs {
+		ids[i] = jb.ID
+	}
+	return ids
+}
+
 type JobData struct {
 	Claims label.Claims `json:"claims,omitempty"`
 	Data   interface{}  `json:"data,omitempty"`

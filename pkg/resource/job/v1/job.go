@@ -2,6 +2,7 @@
 package v1
 
 import (
+	proto "github.com/golang/protobuf/proto"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -221,4 +222,16 @@ func jobResultsToProto(results []*resource.JobResult) ([]*Result, error) {
 		}
 	}
 	return prs, nil
+}
+
+func MarshalJob(jb *resource.Job) ([]byte, error) {
+	jbp, err := NewJobFromResource(jb)
+	if err != nil {
+		return nil, err
+	}
+	b, err := proto.Marshal(jbp)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

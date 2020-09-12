@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-playground/form v3.1.4+incompatible
+	github.com/go-redis/redis/v8 v8.0.0-beta.12
 	github.com/golang/protobuf v1.4.2
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.11

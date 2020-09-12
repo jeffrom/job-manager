@@ -33,7 +33,6 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		resources := &resource.Jobs{Jobs: make([]*resource.Job, len(params.Jobs))}
 		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
-		ids := make([]string, len(params.Jobs))
 		now := timestamppb.New(middleware.GetTime(ctx).Now())
 		for i, jobArg := range params.Jobs {
 			queue, err := be.GetQueue(ctx, jobArg.Job)
@@ -70,9 +69,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			id := jobv1.NewID()
 			jb := &jobv1.Job{
-				Id:         id,
 				Name:       jobArg.Job,
 				Args:       jobArg.Args,
 				Data:       jobArg.Data,
@@ -80,18 +77,19 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				EnqueuedAt: now,
 			}
 			jobs.Jobs[i] = jb
-			ids[i] = id
 
 			jobRes := jobv1.NewJobFromProto(jb, claims)
 			resources.Jobs[i] = jobRes
 			// fmt.Printf("JOB: %+v\n", jobs.Jobs[i])
 		}
 
-		if err := be.EnqueueJobs(ctx, resources); err != nil {
+		res, err := be.EnqueueJobs(ctx, resources)
+		if err != nil {
 			return err
 		}
+
 		return MarshalResponse(w, r, &apiv1.EnqueueJobsResponse{
-			Jobs: ids,
+			Jobs: res.IDs(),
 		})
 	})(w, r)
 }

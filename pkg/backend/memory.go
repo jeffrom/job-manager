@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -24,6 +26,10 @@ func NewMemory() *Memory {
 		jobs:       make(map[string]*resource.Job),
 		uniqueness: make(map[string]bool),
 	}
+}
+
+func (m *Memory) Ping(ctx context.Context) error {
+	return nil
 }
 
 func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, error) {
@@ -83,19 +89,20 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 	return !sels.Match(queue.Labels)
 }
 
-func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) error {
+func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*resource.Jobs, error) {
 	now := middleware.GetTime(ctx).Now()
 	for _, jobArg := range jobArgs.Jobs {
 		queue, err := m.GetQueue(ctx, jobArg.Name)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		jobArg.ID = newID()
 		jobArg.EnqueuedAt = now
 		jobArg.Version.Inc()
 		jobArg.QueueVersion = queue.Version
 		m.jobs[jobArg.ID] = jobArg
 	}
-	return nil
+	return jobArgs, nil
 }
 
 func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobListParams) (*resource.Jobs, error) {
@@ -220,4 +227,8 @@ func valIn(val string, vals []string) bool {
 		}
 	}
 	return false
+}
+
+func newID() string {
+	return uuid.NewV4().String()
 }

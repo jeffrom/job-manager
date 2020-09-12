@@ -32,6 +32,10 @@ func (m *Memory) Ping(ctx context.Context) error {
 	return nil
 }
 
+func (m *Memory) Reset(ctx context.Context) error {
+	return nil
+}
+
 func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, error) {
 	if cfg, ok := m.queues[name]; ok {
 		return cfg, nil

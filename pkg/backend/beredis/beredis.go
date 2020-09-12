@@ -37,3 +37,12 @@ func WithConfig(cfg Config) ProviderFunc {
 func (be *RedisBackend) Ping(ctx context.Context) error {
 	return be.rds.Ping(ctx).Err()
 }
+
+func (be *RedisBackend) Reset(ctx context.Context) error {
+	keys, err := be.rds.Keys(ctx, queueListKey+":*").Result()
+	if err != nil {
+		return err
+	}
+	keys = append(keys, streamKey, queueListKey)
+	return be.rds.Del(ctx, keys...).Err()
+}

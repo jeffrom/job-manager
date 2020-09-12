@@ -16,6 +16,8 @@ import (
 // - safe for concurrent operations
 type Interface interface {
 	Ping(ctx context.Context) error
+	Reset(ctx context.Context) error
+
 	GetQueue(ctx context.Context, job string) (*resource.Queue, error)
 	SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error)
 	ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error)

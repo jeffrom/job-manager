@@ -133,9 +133,9 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 	checkJobStatus(t, resource.StatusQueued, jobs[2])
 	checkVersion(t, 1, jobs[2].Version)
 
+	// now dequeue them
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
-	// now dequeue them
 	deqRes, err := be.DequeueJobs(ctx, 3, &resource.JobListParams{
 		Names: []string{"cool"},
 	})
@@ -158,6 +158,29 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 	checkJob(t, deqJobs[2])
 	checkJobStatus(t, resource.StatusRunning, deqJobs[2])
 	checkVersion(t, 2, deqJobs[2].Version)
+
+	// now ack
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	err = be.AckJobs(ctx, &resource.Acks{
+		Acks: []*resource.Ack{
+			{
+				ID:     jobs[0].ID,
+				Status: resource.StatusComplete,
+			},
+			{
+				ID:     jobs[1].ID,
+				Status: resource.StatusComplete,
+			},
+			{
+				ID:     jobs[2].ID,
+				Status: resource.StatusComplete,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func getBasicQueue() *resource.Queue {

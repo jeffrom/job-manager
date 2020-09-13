@@ -109,14 +109,14 @@ func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*reso
 	return jobArgs, nil
 }
 
-func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobListParams) (*resource.Jobs, error) {
+func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {
 	// fmt.Println("---\ndequeueJobs()")
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
 	opts.Statuses = []resource.Status{resource.StatusQueued, resource.StatusFailed}
 
-	jobs, err := m.ListJobs(ctx, opts)
+	jobs, err := m.ListJobs(ctx, limit, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +143,8 @@ func (m *Memory) DequeueJobs(ctx context.Context, num int, opts *resource.JobLis
 	}
 	jobs.Jobs = filtered
 
-	if num < len(jobs.Jobs) {
-		jobs.Jobs = jobs.Jobs[:num]
+	if limit < len(jobs.Jobs) {
+		jobs.Jobs = jobs.Jobs[:limit]
 	}
 
 	for _, jobData := range jobs.Jobs {
@@ -210,7 +210,7 @@ func (m *Memory) GetJobByID(ctx context.Context, id string) (*resource.Job, erro
 	return jobData, nil
 }
 
-func (m *Memory) ListJobs(ctx context.Context, opts *resource.JobListParams) (*resource.Jobs, error) {
+func (m *Memory) ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
@@ -220,6 +220,10 @@ func (m *Memory) ListJobs(ctx context.Context, opts *resource.JobListParams) (*r
 			continue
 		}
 		res.Jobs = append(res.Jobs, jobData)
+	}
+
+	if len(res.Jobs) > limit {
+		res.Jobs = res.Jobs[:limit]
 	}
 	return res, nil
 }

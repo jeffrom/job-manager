@@ -20,6 +20,32 @@ type Job struct {
 	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty"`
 }
 
+func (jb *Job) Copy() *Job {
+	cp := &Job{}
+	*cp = *jb
+	if jb.Version != nil {
+		cp.Version = &Version{}
+		*cp.Version = *jb.Version
+	}
+	if jb.QueueVersion != nil {
+		cp.QueueVersion = &Version{}
+		*cp.QueueVersion = *jb.QueueVersion
+	}
+	if jb.Data != nil {
+		cp.Data = &JobData{}
+		*cp.Data = *jb.Data
+	}
+	if jb.Checkins != nil {
+		cp.Checkins = make([]*JobCheckin, len(jb.Checkins))
+		copy(cp.Checkins, jb.Checkins)
+	}
+	if jb.Results != nil {
+		cp.Results = make([]*JobResult, len(jb.Results))
+		copy(cp.Results, jb.Results)
+	}
+	return cp
+}
+
 func (jb *Job) LastResult() *JobResult {
 	res := jb.Results
 	if len(res) == 0 {

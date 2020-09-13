@@ -11,6 +11,7 @@ import (
 )
 
 const idxKey = "mjob:idx"
+const checkpointKey = "mjob:chk"
 
 func indexKey(parts ...string) string {
 	return redisKey(idxKey, strings.Join(parts, "-"))
@@ -68,7 +69,7 @@ func (be *RedisBackend) indexJob(ctx context.Context, pipe redis.Pipeliner, queu
 	for key, members := range indexJobMembers(jb, queueName) {
 		if prevMembers, ok := prevIdx[key]; ok {
 			for _, prevMember := range prevMembers {
-				pipe.ZRem(ctx, key, &redis.Z{Score: 0, Member: prevMember})
+				pipe.ZRem(ctx, key, prevMember)
 			}
 		}
 		for _, member := range members {
@@ -76,6 +77,11 @@ func (be *RedisBackend) indexJob(ctx context.Context, pipe redis.Pipeliner, queu
 			pipe.ZAdd(ctx, key, &redis.Z{Score: 0, Member: member})
 		}
 	}
+	return nil
+}
+
+func (be *RedisBackend) checkpointJob(ctx context.Context, pipe redis.Pipeliner, jobID, logID string) error {
+	pipe.HSet(ctx, checkpointKey, jobID, logID)
 	return nil
 }
 
@@ -113,19 +119,29 @@ func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *reso
 	}
 
 	seen := make(map[string]bool)
-	var resIds []string
+	var filteredIds []string
 	for _, val := range allIds {
 		parts := strings.Split(val, string(lexicalSeparator))
 		id := parts[len(parts)-1]
 		if ok := seen[id]; ok {
 			continue
 		}
-		resIds = append(resIds, id)
+		filteredIds = append(filteredIds, id)
 		seen[id] = true
 
-		if int64(len(resIds)) >= limit {
+		if int64(len(filteredIds)) >= limit {
 			break
 		}
+	}
+
+	resCmd, err := be.rds.HMGet(ctx, checkpointKey, filteredIds...).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	resIds := make([]string, len(filteredIds))
+	for i, iid := range resCmd {
+		resIds[i] = iid.(string)
 	}
 	return resIds, nil
 }

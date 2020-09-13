@@ -45,26 +45,26 @@ func BackendTest(cfg BackendTestConfig) func(t *testing.T) {
 			}
 		}
 
-		t.Logf("resetting %T", be)
-		if err := be.Reset(ctx); err != nil {
-			t.Fatal(err)
-		}
-
+		mustReset(ctx, t, be)
 		if !t.Run("queue-admin", tc.wrap(ctx, testQueueAdmin)) {
 			return
 		}
 		if !t.Run("enqueue", tc.wrap(ctx, testEnqueue)) {
 			return
 		}
+
+		// mustReset(ctx, t, be)
 	}
 }
+
+var basictime = time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC)
 
 func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	t.Run("save", func(t *testing.T) {
 		be := tc.cfg.Backend
 
 		// initial creation should work
-		now := time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC)
+		now := basictime
 		ctx = internal.SetMockTime(ctx, now)
 		q := mustSaveQueue(ctx, t, be, getBasicQueue())
 		mustCheck(t, checkQueue(t, q))
@@ -98,10 +98,32 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 			t.Fatalf("expected updated_at to be %q, was %q", lastNow, res.UpdatedAt)
 		}
 	})
+
+	t.Run("get", func(t *testing.T) {
+
+	})
+
+	t.Run("delete", func(t *testing.T) {
+
+	})
 }
 
 func testEnqueue(ctx context.Context, t *testing.T, tc *backendTestContext) {
+	be := tc.cfg.Backend
+	mustReset(ctx, t, be)
 
+	mustSaveQueue(ctx, t, be, getBasicQueue())
+
+	expectJobs := getBasicJobs()
+	res := mustEnqueueJobs(ctx, t, be, expectJobs)
+
+	jobs := res.Jobs
+	if len(jobs) != 3 {
+		t.Fatalf("expected 3 jobs, got %d", len(jobs))
+	}
+	checkJob(t, jobs[0])
+	checkJob(t, jobs[1])
+	checkJob(t, jobs[2])
 }
 
 func getBasicQueue() *resource.Queue {
@@ -117,8 +139,16 @@ func getBasicJobs() *resource.Jobs {
 	return &resource.Jobs{
 		Jobs: []*resource.Job{
 			{
-				Name: "cooljob",
-				Args: jobArgs("nice"),
+				Name: "cool",
+				Args: jobArgs(1, "nice"),
+			},
+			{
+				Name: "cool",
+				Args: jobArgs(2, "222"),
+			},
+			{
+				Name: "cool",
+				Args: jobArgs(3, "heck"),
 			},
 		},
 	}
@@ -126,16 +156,36 @@ func getBasicJobs() *resource.Jobs {
 
 func jobArgs(args ...interface{}) []interface{} { return args }
 
+func mustReset(ctx context.Context, t testing.TB, be backend.Interface) {
+	t.Helper()
+	t.Logf("Resetting %T", be)
+	if err := be.Reset(ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func mustSaveQueue(ctx context.Context, t testing.TB, be backend.Interface, q *resource.Queue) *resource.Queue {
 	t.Helper()
 
-	res, err := be.SaveQueue(ctx, q)
 	t.Logf("SaveQueue(%+v)", readable(q))
+	res, err := be.SaveQueue(ctx, q)
 	if err != nil {
 		t.Logf("-> err: %v", err)
 		t.Fatal(err)
 	}
 	t.Logf("-> %s", readable(res))
+	return res
+}
+
+func mustEnqueueJobs(ctx context.Context, t testing.TB, be backend.Interface, jobs *resource.Jobs) *resource.Jobs {
+	t.Helper()
+
+	t.Logf("EnqueueJobs(%+v)", readable(jobs.Jobs))
+	res, err := be.EnqueueJobs(ctx, jobs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return res
 }
 
@@ -177,6 +227,31 @@ func checkQueue(t testing.TB, q *resource.Queue) bool {
 		t.Error("queue version was nil")
 	} else if v.Raw() == 1 {
 
+	}
+	return !t.Failed()
+}
+
+func checkJob(t testing.TB, jb *resource.Job) bool {
+	t.Helper()
+
+	if jb == nil {
+		t.Fatal("expected job not to be nil")
+	}
+	if jb.ID == "" {
+		t.Error("expected job id to be set")
+	}
+	if v := jb.Version; v == nil || v.Raw() < 1 {
+		t.Error("expected job version to be > v1, was", v)
+	}
+	if v := jb.QueueVersion; v == nil || v.Raw() < 1 {
+		t.Error("expected job queue version to be > v1, was", v)
+	}
+
+	if jb.EnqueuedAt.IsZero() {
+		t.Error("expected job enqueued_at to be set")
+	}
+	if loc := jb.EnqueuedAt.Location(); loc == nil || loc != time.UTC {
+		t.Errorf("queue created_at timezone was not utc, was %q", loc.String())
 	}
 	return !t.Failed()
 }

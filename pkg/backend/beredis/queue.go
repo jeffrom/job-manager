@@ -18,8 +18,39 @@ func queueKey(name string) string {
 	return "mjob:queues:" + name
 }
 
-func (be *RedisBackend) GetQueue(ctx context.Context, job string) (*resource.Queue, error) {
-	return nil, nil
+func (be *RedisBackend) GetQueue(ctx context.Context, id string) (*resource.Queue, error) {
+	res, err := be.GetQueues(ctx, []string{id})
+	if err != nil {
+		return nil, err
+	}
+	return res.Queues[0], nil
+}
+
+func (be *RedisBackend) GetQueues(ctx context.Context, ids []string) (*resource.Queues, error) {
+	cmds := make([]*redis.StringCmd, len(ids))
+	_, err := be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		for i, id := range ids {
+			cmds[i] = pipe.LIndex(ctx, queueKey(id), -1)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	queues := &resource.Queues{Queues: make([]*resource.Queue, len(ids))}
+	for i, cmd := range cmds {
+		s, err := cmd.Result()
+		if err != nil {
+			return nil, err
+		}
+		q, err := jobv1.UnmarshalQueue([]byte(s), nil)
+		if err != nil {
+			return nil, err
+		}
+		queues.Queues[i] = q
+	}
+	return queues, nil
 }
 
 func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue) (*resource.Queue, error) {
@@ -35,7 +66,8 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 	err := be.rds.Watch(ctx, func(tx *redis.Tx) error {
 		queueV := queue.Version
 		if queueV == nil {
-			return backend.ErrInvalidResource
+			queueV = resource.NewVersion(1)
+			queue.Version = queueV
 		}
 		prevb, err := tx.LIndex(ctx, key, -1).Result()
 		keyIsNil := errors.Is(err, redis.Nil)

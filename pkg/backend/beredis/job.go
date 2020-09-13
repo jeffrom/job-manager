@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
+	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
@@ -12,9 +13,42 @@ import (
 const streamKey = "mjob:jobs"
 
 func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	// first check everything has a queue
+	qMap := make(map[string]bool)
+	for _, jb := range jobs.Jobs {
+		qMap[jb.Name] = true
+	}
+	names := make([]string, len(qMap))
+	i := 0
+	for name := range qMap {
+		names[i] = name
+		i++
+	}
+
+	res, err := be.GetQueues(ctx, names)
+	if err != nil {
+		return nil, err
+	}
+
+	queues := make(map[string]*resource.Queue)
+	for _, q := range res.Queues {
+		queues[q.ID] = q
+	}
+
 	cmds := make([]*redis.StringCmd, len(jobs.Jobs))
-	_, err := be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, jb := range jobs.Jobs {
+			q := queues[jb.Name]
+			if jb.EnqueuedAt.IsZero() {
+				jb.EnqueuedAt = now
+			}
+			if v := jb.Version; v == nil {
+				jb.Version = resource.NewVersion(1)
+			}
+			if v := jb.QueueVersion; v == nil {
+				jb.QueueVersion = q.Version
+			}
 			b, err := jobv1.MarshalJob(jb)
 			if err != nil {
 				return err

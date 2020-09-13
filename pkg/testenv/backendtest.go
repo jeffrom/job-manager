@@ -45,15 +45,15 @@ func BackendTest(cfg BackendTestConfig) func(t *testing.T) {
 			}
 		}
 
-		mustReset(ctx, t, be)
+		ctx = mustReset(ctx, t, be)
 		if !t.Run("queue-admin", tc.wrap(ctx, testQueueAdmin)) {
 			return
 		}
-		if !t.Run("enqueue", tc.wrap(ctx, testEnqueue)) {
+		if !t.Run("enqueue-dequeue", tc.wrap(ctx, testEnqueueDequeue)) {
 			return
 		}
 
-		// mustReset(ctx, t, be)
+		// ctx = mustReset(ctx, t, be)
 	}
 }
 
@@ -108,10 +108,12 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	})
 }
 
-func testEnqueue(ctx context.Context, t *testing.T, tc *backendTestContext) {
+func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	be := tc.cfg.Backend
-	mustReset(ctx, t, be)
+	ctx = mustReset(ctx, t, be)
 
+	now := basictime
+	ctx = internal.SetMockTime(ctx, now)
 	mustSaveQueue(ctx, t, be, getBasicQueue())
 
 	expectJobs := getBasicJobs()
@@ -122,8 +124,40 @@ func testEnqueue(ctx context.Context, t *testing.T, tc *backendTestContext) {
 		t.Fatalf("expected 3 jobs, got %d", len(jobs))
 	}
 	checkJob(t, jobs[0])
+	checkJobStatus(t, resource.StatusQueued, jobs[0])
+	checkVersion(t, 1, jobs[0].Version)
 	checkJob(t, jobs[1])
+	checkJobStatus(t, resource.StatusQueued, jobs[1])
+	checkVersion(t, 1, jobs[1].Version)
 	checkJob(t, jobs[2])
+	checkJobStatus(t, resource.StatusQueued, jobs[2])
+	checkVersion(t, 1, jobs[2].Version)
+
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	// now dequeue them
+	deqRes, err := be.DequeueJobs(ctx, 3, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 3 {
+		t.Fatalf("expected to dequeue 3 jobs, got %d", l)
+	}
+	deqJobs := deqRes.Jobs
+	checkJob(t, deqJobs[0])
+	checkJobStatus(t, resource.StatusRunning, deqJobs[0])
+	checkVersion(t, 2, deqJobs[0].Version)
+	checkJob(t, deqJobs[1])
+	checkJobStatus(t, resource.StatusRunning, deqJobs[1])
+	checkVersion(t, 2, deqJobs[1].Version)
+	checkJob(t, deqJobs[2])
+	checkJobStatus(t, resource.StatusRunning, deqJobs[2])
+	checkVersion(t, 2, deqJobs[2].Version)
 }
 
 func getBasicQueue() *resource.Queue {
@@ -156,12 +190,14 @@ func getBasicJobs() *resource.Jobs {
 
 func jobArgs(args ...interface{}) []interface{} { return args }
 
-func mustReset(ctx context.Context, t testing.TB, be backend.Interface) {
+func mustReset(ctx context.Context, t testing.TB, be backend.Interface) context.Context {
 	t.Helper()
 	t.Logf("Resetting %T", be)
 	if err := be.Reset(ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	return internal.SetTimeProvider(ctx, internal.Time(0))
 }
 
 func mustSaveQueue(ctx context.Context, t testing.TB, be backend.Interface, q *resource.Queue) *resource.Queue {
@@ -252,6 +288,15 @@ func checkJob(t testing.TB, jb *resource.Job) bool {
 	}
 	if loc := jb.EnqueuedAt.Location(); loc == nil || loc != time.UTC {
 		t.Errorf("queue created_at timezone was not utc, was %q", loc.String())
+	}
+
+	return !t.Failed()
+}
+
+func checkJobStatus(t testing.TB, expect resource.Status, jb *resource.Job) bool {
+	t.Helper()
+	if st := jb.Status; st != expect {
+		t.Errorf("expected job status %s, got %s", expect, st)
 	}
 	return !t.Failed()
 }

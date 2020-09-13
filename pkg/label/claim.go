@@ -2,6 +2,7 @@ package label
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -19,7 +20,7 @@ func (c Claims) Format() []string {
 			claims = append(claims, fmt.Sprintf("%s=%s", k, v))
 		}
 	}
-	// sort.Strings(claims)
+	sort.Strings(claims)
 	return claims
 }
 

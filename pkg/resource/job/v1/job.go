@@ -235,3 +235,21 @@ func MarshalJob(jb *resource.Job) ([]byte, error) {
 	}
 	return b, nil
 }
+
+func UnmarshalJob(b []byte, qmsg *Job) (*resource.Job, error) {
+	if qmsg == nil {
+		qmsg = &Job{}
+	}
+	if err := proto.Unmarshal(b, qmsg); err != nil {
+		return nil, err
+	}
+	var claims label.Claims
+	if qmsg.Data != nil && len(qmsg.Data.Claims) > 0 {
+		var err error
+		claims, err = label.ParseClaims(qmsg.Data.Claims)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return NewJobFromProto(qmsg, claims), nil
+}

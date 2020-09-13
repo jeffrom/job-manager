@@ -55,7 +55,7 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *co
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
 	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\t")
 	for _, q := range qs.Queues {
-		fmt.Fprintf(w, "%s\t%s\t%d\n", q.ID, q.CreatedAt.Format(time.Stamp), q.Version)
+		fmt.Fprintf(w, "%s\t%s\t%s\n", q.ID, q.CreatedAt.Format(time.Stamp), q.Version.String())
 	}
 	// fmt.Fprintln(w)
 	return w.Flush()

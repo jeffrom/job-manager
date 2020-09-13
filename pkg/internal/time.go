@@ -23,11 +23,7 @@ func SetTicker(ctx context.Context, tick Ticker) context.Context {
 }
 
 func GetTimeProvider(ctx context.Context) TimeProvider {
-	p, ok := ctx.Value(timeContextKey).(TimeProvider)
-	if ok {
-		return p
-	}
-	return defaultTimeProvider
+	return ctx.Value(timeContextKey).(TimeProvider)
 }
 
 func GetTicker(ctx context.Context) Ticker {

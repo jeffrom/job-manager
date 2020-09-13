@@ -181,6 +181,24 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	resJobs, err := be.ListJobs(ctx, 3, &resource.JobListParams{
+		Names:    []string{"cool"},
+		Statuses: []resource.Status{resource.StatusComplete},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	jobs = resJobs.Jobs
+	checkJob(t, jobs[0])
+	checkJobStatus(t, resource.StatusComplete, jobs[0])
+	checkVersion(t, 3, jobs[0].Version)
+	checkJob(t, jobs[1])
+	checkJobStatus(t, resource.StatusComplete, jobs[1])
+	checkVersion(t, 3, jobs[1].Version)
+	checkJob(t, jobs[2])
+	checkJobStatus(t, resource.StatusComplete, jobs[2])
+	checkVersion(t, 3, jobs[2].Version)
 }
 
 func getBasicQueue() *resource.Queue {

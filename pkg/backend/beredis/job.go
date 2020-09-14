@@ -15,7 +15,7 @@ const streamKey = "mjob:jobs"
 
 func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
 	// first check everything has a queue
-	res, err := be.queuesForJobs(ctx, jobs)
+	res, err := be.queuesForJobs(ctx, jobs.Jobs)
 	if err != nil {
 		return nil, err
 	}
@@ -25,6 +25,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 	for _, jb := range jobs.Jobs {
 		q := queues[jb.Name]
 		// fmt.Println("ASDFSADF", q.Version)
+		// fmt.Printf("Enqueue: %+v\n", jb.Data)
 
 		jb.EnqueuedAt = now
 		jb.Version = resource.NewVersion(1)
@@ -46,7 +47,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for _, jb := range jobs.Jobs {
 			q := queues[jb.Name]
-			if err := be.indexJob(ctx, pipe, q.ID, jb, nil); err != nil {
+			if err := be.indexJob(ctx, pipe, q.ID, q.Labels, jb, nil); err != nil {
 				return err
 			}
 			if err := be.checkpointJob(ctx, pipe, jb.ID, jb.ID); err != nil {
@@ -74,9 +75,27 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 		return nil, err
 	}
 
+	res, err := be.queuesForJobs(ctx, pendingJobs)
+	if err != nil {
+		return nil, err
+	}
+	queues := res.ToMap()
+
 	now := internal.GetTimeProvider(ctx).Now().UTC()
-	jobs := make([]*resource.Job, len(pendingJobs))
-	for i, pjb := range pendingJobs {
+	var jobs []*resource.Job
+	pendingMap := make(map[string]*resource.Job)
+	for _, pjb := range pendingJobs {
+		pendingMap[pjb.ID] = pjb
+		// fmt.Printf("DequeueJobs pendingJob: %+v\n", pjb)
+		if pjb.Data != nil && len(pjb.Data.Claims) > 0 {
+			queue := queues[pjb.Name]
+			match := pjb.Data.Claims.Match(opts.Claims)
+			expired := queue.ClaimExpired(pjb, now)
+			fmt.Println("match", match, "expired", expired)
+			if !expired && !match {
+				continue
+			}
+		}
 		jb := pjb.Copy()
 		jb.Version.Inc()
 		jb.Status = resource.StatusRunning
@@ -88,7 +107,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 			},
 		}
 
-		jobs[i] = jb
+		jobs = append(jobs, jb)
 	}
 
 	// write new jobs
@@ -101,8 +120,8 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, jb := range jobs {
 			// fmt.Printf("UHUHUHUH %+v\n", jb)
-			prev := pendingJobs[i]
-			if err := be.indexJob(ctx, pipe, jb.Name, jb, prev); err != nil {
+			prev := pendingMap[jb.ID]
+			if err := be.indexJob(ctx, pipe, jb.Name, nil, jb, prev); err != nil {
 				return err
 			}
 			if err := be.checkpointJob(ctx, pipe, jb.ID, newIds[i]); err != nil {
@@ -114,9 +133,9 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	if err != nil {
 		return nil, err
 	}
-	if len(jobs) > 0 {
-		// fmt.Printf("JOOOOB: %+v\n", jobs[0])
-	}
+	// if len(jobs) > 0 {
+	// 	fmt.Printf("JOOOOB: %+v\n", jobs[0])
+	// }
 	return &resource.Jobs{Jobs: jobs}, nil
 }
 
@@ -178,7 +197,7 @@ func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, jb := range jobs {
 			prev := runningJobs[i]
-			if err := be.indexJob(ctx, pipe, jb.Name, jb, prev); err != nil {
+			if err := be.indexJob(ctx, pipe, jb.Name, nil, jb, prev); err != nil {
 				return err
 			}
 			if err := be.checkpointJob(ctx, pipe, jb.ID, newIds[i]); err != nil {
@@ -233,10 +252,12 @@ func (be *RedisBackend) writeJobs(ctx context.Context, jobs []*resource.Job) ([]
 	cmds := make([]*redis.StringCmd, len(jobs))
 	_, err := be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, jb := range jobs {
+			// fmt.Printf("writeJobs job #%d: %+v\n", i, jb.Data)
 			b, err := jobv1.MarshalJob(jb)
 			if err != nil {
 				return err
 			}
+			// fmt.Printf("writeJobs job #%d: %q\n", i, string(b))
 
 			id := jb.ID
 			if id == "" {
@@ -302,6 +323,7 @@ func (be *RedisBackend) readJobs(ctx context.Context, ids []string) ([]*resource
 		if err != nil {
 			return nil, err
 		}
+		// fmt.Printf("unmarshaled job: %+v\n", jb.Data)
 
 		if jb.ID == "" {
 			jb.ID = id
@@ -325,9 +347,10 @@ func (be *RedisBackend) lookupCheckpoints(ctx context.Context, ids []string) ([]
 	return resIds, nil
 }
 
-func (be *RedisBackend) queuesForJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Queues, error) {
+// TODO this needs to account for queue version
+func (be *RedisBackend) queuesForJobs(ctx context.Context, jobs []*resource.Job) (*resource.Queues, error) {
 	qMap := make(map[string]bool)
-	for _, jb := range jobs.Jobs {
+	for _, jb := range jobs {
 		qMap[jb.Name] = true
 	}
 	names := make([]string, len(qMap))

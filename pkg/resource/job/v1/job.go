@@ -2,6 +2,8 @@
 package v1
 
 import (
+	"fmt"
+
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -50,7 +52,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 	}
 	var data *Data
 	if jb.Data != nil {
-		data := &Data{}
+		data = &Data{}
 		if jb.Data.Data != nil {
 			// fmt.Printf("%#v\n", jb.Data.Data)
 			datav, err := structpb.NewValue(jb.Data.Data)
@@ -64,6 +66,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 		}
 	}
 
+	fmt.Printf("marshal data: %#v\n", data)
 	results, err := jobResultsToProto(jb.Results)
 	if err != nil {
 		return nil, err

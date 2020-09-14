@@ -2,12 +2,12 @@ package beredis
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
 
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
@@ -40,7 +40,7 @@ func lexicalKey(parts ...string) string {
 	return b.String()
 }
 
-func indexJobMembers(jb *resource.Job, queueName string) map[string][]string {
+func buildLexicalIndex(jb *resource.Job, queueName string) map[string][]string {
 	status := strconv.FormatInt(int64(jb.Status), 10)
 	// fmt.Println("status #", status, jb.Status.String())
 	members := map[string][]string{
@@ -49,26 +49,47 @@ func indexJobMembers(jb *resource.Job, queueName string) map[string][]string {
 		indexKey("status", queueName): []string{lexicalKey(status, jb.ID)},
 	}
 
-	if jb.Data != nil && len(jb.Data.Claims) > 0 {
-		claims := jb.Data.Claims.Format()
-		claimMembers := make([]string, len(claims))
-		for i, part := range claims {
-			claimMembers[i] = lexicalKey(part, jb.ID)
-		}
-		members[indexKey("claims")] = claimMembers
-	}
+	// if jb.Data != nil && len(jb.Data.Claims) > 0 {
+	// 	claims := jb.Data.Claims.Format()
+	// 	claimMembers := make([]string, len(claims))
+	// 	for i, part := range claims {
+	// 		claimMembers[i] = lexicalKey(part, jb.ID)
+	// 	}
+	// 	members[indexKey("claims")] = claimMembers
+	// }
 
 	return members
 }
 
-func (be *RedisBackend) indexJob(ctx context.Context, pipe redis.Pipeliner, queueName string, jb, prevJob *resource.Job) error {
-	var prevIdx map[string][]string
-	if prevJob != nil {
-		prevIdx = indexJobMembers(prevJob, queueName)
+func buildSetIndex(jb *resource.Job, labels label.Labels) map[string]string {
+	m := make(map[string]string)
+
+	if jb.Data != nil && len(jb.Data.Claims) > 0 {
+		claims := jb.Data.Claims.Format()
+		for _, claim := range claims {
+			// fmt.Println("indexJobMembers claim:", claim)
+			m[indexKey("claim", claim)] = jb.ID
+		}
 	}
 
-	for key, members := range indexJobMembers(jb, queueName) {
-		if prevMembers, ok := prevIdx[key]; ok {
+	if len(labels) > 0 {
+		for k, v := range labels {
+			m[indexKey("label", k)] = jb.ID
+			m[indexKey("label", k+"="+v)] = jb.ID
+		}
+	}
+
+	return m
+}
+
+func (be *RedisBackend) indexJob(ctx context.Context, pipe redis.Pipeliner, queueName string, labels label.Labels, jb, prevJob *resource.Job) error {
+	var prevLexIdx map[string][]string
+	if prevJob != nil {
+		prevLexIdx = buildLexicalIndex(prevJob, queueName)
+	}
+
+	for key, members := range buildLexicalIndex(jb, queueName) {
+		if prevMembers, ok := prevLexIdx[key]; ok {
 			for _, prevMember := range prevMembers {
 				pipe.ZRem(ctx, key, prevMember)
 			}
@@ -77,6 +98,10 @@ func (be *RedisBackend) indexJob(ctx context.Context, pipe redis.Pipeliner, queu
 			// fmt.Printf("indexJob: %q, member: %q\n", key, member)
 			pipe.ZAdd(ctx, key, &redis.Z{Score: 0, Member: member})
 		}
+	}
+
+	for key, id := range buildSetIndex(jb, labels) {
+		pipe.SAdd(ctx, key, id)
 	}
 	return nil
 }
@@ -87,10 +112,12 @@ func (be *RedisBackend) checkpointJob(ctx context.Context, pipe redis.Pipeliner,
 }
 
 func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *resource.JobListParams) ([]string, error) {
-	fmt.Printf("AAAA IDX LOOKUP OPTS: %+v\n", opts)
+	// fmt.Printf("AAAA IDX LOOKUP OPTS: %+v\n", opts)
+	var claims []*redis.StringSliceCmd
 	var queueStatus []*redis.StringSliceCmd
 	var status []*redis.StringSliceCmd
 	_, err := be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		claims = be.indexLookupClaims(ctx, pipe, limit, opts)
 		queueStatus = be.indexLookupQueueStatus(ctx, pipe, limit, opts)
 		status = be.indexLookupStatus(ctx, pipe, limit, opts)
 		return nil
@@ -100,6 +127,9 @@ func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *reso
 	}
 
 	var allIds []string
+	for _, qst := range claims {
+		allIds = append(allIds, qst.Val()...)
+	}
 	for _, qst := range queueStatus {
 		// fmt.Printf("qst args: %q, res: %+v, err: %+v\n", qst.Args(), qst.Val(), qst.Err())
 		allIds = append(allIds, qst.Val()...)
@@ -176,4 +206,19 @@ func (be *RedisBackend) indexLookupStatus(ctx context.Context, pipe redis.Pipeli
 		}))
 	}
 	return status
+}
+
+func (be *RedisBackend) indexLookupClaims(ctx context.Context, pipe redis.Pipeliner, limit int64, opts *resource.JobListParams) []*redis.StringSliceCmd {
+	if len(opts.Claims) == 0 {
+		return nil
+	}
+
+	claims := opts.Claims.Format()
+	keys := make([]string, len(claims))
+	for i, claim := range claims {
+		keys[i] = indexKey("claim", claim)
+	}
+
+	cmd := pipe.SUnion(ctx, keys...)
+	return []*redis.StringSliceCmd{cmd}
 }

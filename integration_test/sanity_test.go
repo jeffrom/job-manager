@@ -12,6 +12,7 @@ import (
 
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/backend/bememory"
 	"github.com/jeffrom/job-manager/pkg/backend/beredis"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -133,7 +134,7 @@ func TestIntegrationSanity(t *testing.T) {
 	tcs := []sanityTestCase{
 		{
 			name:    "default-mem",
-			backend: backend.NewMemory(),
+			backend: bememory.New(),
 			srvCfg:  middleware.NewConfig(),
 		},
 		{

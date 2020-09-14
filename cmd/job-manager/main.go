@@ -4,13 +4,13 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/backend/bememory"
 	"github.com/jeffrom/job-manager/pkg/web"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func main() {
-	h, err := web.NewControllerRouter(middleware.NewConfig(), backend.NewMemory())
+	h, err := web.NewControllerRouter(middleware.NewConfig(), bememory.New())
 	if err != nil {
 		panic(err)
 	}

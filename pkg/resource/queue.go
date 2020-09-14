@@ -64,6 +64,14 @@ type Queues struct {
 	Queues []*Queue `json:"queues"`
 }
 
+func (qs *Queues) ToMap() map[string]*Queue {
+	m := make(map[string]*Queue)
+	for _, q := range qs.Queues {
+		m[q.ID] = q
+	}
+	return m
+}
+
 type QueueListParams struct {
 	Names     []string         `json:"names,omitempty"`
 	Selectors *label.Selectors `json:"selectors,omitempty"`

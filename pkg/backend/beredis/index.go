@@ -2,6 +2,7 @@ package beredis
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -86,26 +87,12 @@ func (be *RedisBackend) checkpointJob(ctx context.Context, pipe redis.Pipeliner,
 }
 
 func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *resource.JobListParams) ([]string, error) {
+	fmt.Printf("AAAA IDX LOOKUP OPTS: %+v\n", opts)
 	var queueStatus []*redis.StringSliceCmd
+	var status []*redis.StringSliceCmd
 	_, err := be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		if len(opts.Names) > 0 {
-			if len(opts.Statuses) > 0 {
-				for _, queueName := range opts.Names {
-					key := indexKey("status", queueName)
-					for _, st := range opts.Statuses {
-						lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
-						minlex := `[` + lex
-						maxlex := `(` + lex + string(0xff)
-						// fmt.Printf("lex: %q\n", lex)
-						queueStatus = append(queueStatus, pipe.ZRangeByLex(ctx, key, &redis.ZRangeBy{
-							Min:   minlex,
-							Max:   maxlex,
-							Count: limit,
-						}))
-					}
-				}
-			}
-		}
+		queueStatus = be.indexLookupQueueStatus(ctx, pipe, limit, opts)
+		status = be.indexLookupStatus(ctx, pipe, limit, opts)
 		return nil
 	})
 	if err != nil {
@@ -116,6 +103,12 @@ func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *reso
 	for _, qst := range queueStatus {
 		// fmt.Printf("qst args: %q, res: %+v, err: %+v\n", qst.Args(), qst.Val(), qst.Err())
 		allIds = append(allIds, qst.Val()...)
+	}
+	for _, qst := range status {
+		allIds = append(allIds, qst.Val()...)
+	}
+	if len(allIds) == 0 {
+		return nil, nil
 	}
 
 	seen := make(map[string]bool)
@@ -144,4 +137,42 @@ func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *reso
 		resIds[i] = iid.(string)
 	}
 	return resIds, nil
+}
+
+func (be *RedisBackend) indexLookupQueueStatus(ctx context.Context, pipe redis.Pipeliner, limit int64, opts *resource.JobListParams) []*redis.StringSliceCmd {
+	var queueStatus []*redis.StringSliceCmd
+	if len(opts.Names) == 0 || len(opts.Statuses) == 0 {
+		return nil
+	}
+	for _, queueName := range opts.Names {
+		key := indexKey("status", queueName)
+		for _, st := range opts.Statuses {
+			lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
+			minlex := `[` + lex
+			maxlex := `(` + lex + string(0xff)
+			// fmt.Printf("lex: %q\n", lex)
+			queueStatus = append(queueStatus, pipe.ZRangeByLex(ctx, key, &redis.ZRangeBy{
+				Min:   minlex,
+				Max:   maxlex,
+				Count: limit,
+			}))
+		}
+	}
+	return queueStatus
+}
+
+func (be *RedisBackend) indexLookupStatus(ctx context.Context, pipe redis.Pipeliner, limit int64, opts *resource.JobListParams) []*redis.StringSliceCmd {
+	key := indexKey("status")
+	var status []*redis.StringSliceCmd
+	for _, st := range opts.Statuses {
+		lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
+		minlex := `[` + lex
+		maxlex := `(` + lex + string(0xff)
+		status = append(status, pipe.ZRangeByLex(ctx, key, &redis.ZRangeBy{
+			Min:   minlex,
+			Max:   maxlex,
+			Count: limit,
+		}))
+	}
+	return status
 }

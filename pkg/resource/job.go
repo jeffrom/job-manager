@@ -24,12 +24,10 @@ func (jb *Job) Copy() *Job {
 	cp := &Job{}
 	*cp = *jb
 	if jb.Version != nil {
-		cp.Version = &Version{}
-		*cp.Version = *jb.Version
+		cp.Version = NewVersion(jb.Version.Raw())
 	}
 	if jb.QueueVersion != nil {
-		cp.QueueVersion = &Version{}
-		*cp.QueueVersion = *jb.QueueVersion
+		cp.QueueVersion = NewVersion(jb.QueueVersion.Raw())
 	}
 	if jb.Data != nil {
 		cp.Data = &JobData{}

@@ -21,6 +21,9 @@ func queueKey(name string) string {
 func (be *RedisBackend) GetQueue(ctx context.Context, id string) (*resource.Queue, error) {
 	res, err := be.GetQueues(ctx, []string{id})
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, backend.ErrNotFound
+		}
 		return nil, err
 	}
 	return res.Queues[0], nil
@@ -35,6 +38,9 @@ func (be *RedisBackend) GetQueues(ctx context.Context, ids []string) (*resource.
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, backend.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -64,11 +70,6 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 
 	// TODO this could be TxPipeline? use pop instead of trim?
 	err := be.rds.Watch(ctx, func(tx *redis.Tx) error {
-		queueV := queue.Version
-		if queueV == nil {
-			queueV = resource.NewVersion(1)
-			queue.Version = queueV
-		}
 		prevb, err := tx.LIndex(ctx, key, -1).Result()
 		keyIsNil := errors.Is(err, redis.Nil)
 		if err != nil && !keyIsNil {
@@ -77,6 +78,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 
 		var prev *resource.Queue
 		if keyIsNil {
+			queue.Version = resource.NewVersion(1)
 			queue.CreatedAt = now
 			queue.UpdatedAt = now
 		} else {
@@ -91,6 +93,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 			queue.UpdatedAt = prev.UpdatedAt
 		}
 
+		queueV := queue.Version
 		// fmt.Printf("---\nprev: %+v\n", prev)
 		// fmt.Printf("curr: %+v\n", queue)
 		if prev != nil && queue.EqualAttrs(prev) {

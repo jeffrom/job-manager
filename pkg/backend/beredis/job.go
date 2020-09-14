@@ -16,40 +16,21 @@ const streamKey = "mjob:jobs"
 // const queueKey = "mjob:q"
 
 func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
-	now := internal.GetTimeProvider(ctx).Now().UTC()
 	// first check everything has a queue
-	qMap := make(map[string]bool)
-	for _, jb := range jobs.Jobs {
-		qMap[jb.Name] = true
-	}
-	names := make([]string, len(qMap))
-	i := 0
-	for name := range qMap {
-		names[i] = name
-		i++
-	}
-
-	res, err := be.GetQueues(ctx, names)
+	res, err := be.queuesForJobs(ctx, jobs)
 	if err != nil {
 		return nil, err
 	}
+	queues := res.ToMap()
 
-	queues := make(map[string]*resource.Queue)
-	for _, q := range res.Queues {
-		queues[q.ID] = q
-	}
-
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, jb := range jobs.Jobs {
 		q := queues[jb.Name]
-		if jb.EnqueuedAt.IsZero() {
-			jb.EnqueuedAt = now
-		}
-		if v := jb.Version; v == nil {
-			jb.Version = resource.NewVersion(1)
-		}
-		if v := jb.QueueVersion; v == nil {
-			jb.QueueVersion = q.Version
-		}
+		fmt.Println("ASDFSADF", q.Version)
+
+		jb.EnqueuedAt = now
+		jb.Version = resource.NewVersion(1)
+		jb.QueueVersion = q.Version
 		jb.Status = resource.StatusQueued
 	}
 
@@ -112,6 +93,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	// update indexes
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, jb := range jobs {
+			fmt.Printf("UHUHUHUH %+v\n", jb)
 			prev := pendingJobs[i]
 			if err := be.indexJob(ctx, pipe, jb.Name, jb, prev); err != nil {
 				return err
@@ -124,6 +106,9 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(jobs) > 0 {
+		fmt.Printf("JOOOOB: %+v\n", jobs[0])
 	}
 	return &resource.Jobs{Jobs: jobs}, nil
 }
@@ -306,4 +291,19 @@ func (be *RedisBackend) lookupCheckpoints(ctx context.Context, ids []string) ([]
 		resIds[i] = iid.(string)
 	}
 	return resIds, nil
+}
+
+func (be *RedisBackend) queuesForJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Queues, error) {
+	qMap := make(map[string]bool)
+	for _, jb := range jobs.Jobs {
+		qMap[jb.Name] = true
+	}
+	names := make([]string, len(qMap))
+	i := 0
+	for name := range qMap {
+		names[i] = name
+		i++
+	}
+
+	return be.GetQueues(ctx, names)
 }

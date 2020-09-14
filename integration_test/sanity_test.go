@@ -8,8 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-redis/redis/v8"
+
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/backend/beredis"
 	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/testenv"
@@ -22,9 +25,10 @@ type sanityContext struct {
 }
 
 type sanityTestCase struct {
-	name   string
-	srvCfg middleware.Config
-	now    time.Time
+	name    string
+	backend backend.Interface
+	srvCfg  middleware.Config
+	now     time.Time
 
 	ctx *sanityContext
 }
@@ -123,22 +127,38 @@ func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *
 // TestIntegrationSanity goes through the basic operations (soon with a variety
 // of configs)
 func TestIntegrationSanity(t *testing.T) {
+	defaultBackendCfg := backend.DefaultConfig
+	defaultBackendCfg.TestMode = true
 	tcs := []sanityTestCase{
 		{
-			name:   "default",
+			name:    "default-mem",
+			backend: backend.NewMemory(),
+			srvCfg:  middleware.NewConfig(),
+		},
+		{
+			name: "default-redis",
+			backend: beredis.New(beredis.WithConfig(beredis.Config{
+				Config: defaultBackendCfg,
+				Redis: &redis.Options{
+					Addr:     "localhost:6379",
+					Password: "",
+					DB:       1,
+				},
+			})),
 			srvCfg: middleware.NewConfig(),
 		},
 	}
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			srv := testenv.NewTestControllerServer(t, tc.srvCfg, backend.NewMemory())
+			srv := testenv.NewTestControllerServer(t, tc.srvCfg, tc.backend)
 			c := testenv.NewTestClient(t, srv)
 			tc.ctx = &sanityContext{srv: srv, client: c}
 			srv.Start()
 			defer srv.Close()
 
 			ctx := context.Background()
+			mustReset(ctx, t, tc.backend)
 			t.Run("ping", tc.wrap(ctx, testPing))
 
 			// enqueue a job, dequeue it
@@ -172,6 +192,7 @@ func testPing(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func testSingleJob(ctx context.Context, t *testing.T, tc *sanityTestCase) {
+	mustReset(ctx, t, tc.backend)
 	// NOTE this block of tests shares state
 	if !t.Run("enqueue-no-queue", tc.wrap(ctx, testEnqueueNoQueue)) {
 		return
@@ -236,7 +257,7 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	if q.Version.String() != "v1" {
-		t.Fatalf("expected queue version to be %d, was %s", 1, q.Version)
+		t.Fatalf("expected queue version to be v%d, was %s", 1, q.Version)
 	}
 }
 
@@ -265,18 +286,18 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	jobArg := jobs.Jobs[0]
-	// t.Logf("job: %+v")
+	// t.Logf("job: %+v", jobArg)
 
 	if jobArg.Name != expectJobName {
 		t.Errorf("expected job name %q, got %q", expectJobName, jobArg.Name)
 	}
 
 	if jobArg.Version.String() != "v2" {
-		t.Errorf("expected job version to be v2, was %d", jobArg.Version)
+		t.Errorf("expected job version to be v2, was %s", jobArg.Version)
 	}
 
 	if jobArg.QueueVersion.String() != "v1" {
-		t.Errorf("expected job queue version to be v1, was %d", jobArg.QueueVersion)
+		t.Errorf("expected job queue version to be v1, was %s", jobArg.QueueVersion)
 	}
 
 	if len(jobArg.Args) != 1 {
@@ -354,6 +375,8 @@ func testDequeueEmpty(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
+	mustReset(ctx, t, tc.backend)
+
 	n := 3
 	ids := make([]string, n)
 	for i := 0; i < n; i++ {
@@ -477,3 +500,11 @@ func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func jobArgs(args ...interface{}) []interface{} { return args }
+
+func mustReset(ctx context.Context, t testing.TB, be backend.Interface) {
+	t.Helper()
+	t.Logf("Resetting %T", be)
+	if err := be.Reset(ctx); err != nil {
+		t.Fatal(err)
+	}
+}

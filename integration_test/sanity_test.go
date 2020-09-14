@@ -82,6 +82,7 @@ func (tc *sanityTestCase) enqueueJobOpts(ctx context.Context, t testing.TB, name
 }
 
 func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name string, args ...interface{}) string {
+	t.Helper()
 	return tc.enqueueJobOpts(ctx, t, name, client.EnqueueOpts{}, args...)
 }
 
@@ -375,8 +376,6 @@ func testDequeueEmpty(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
-	mustReset(ctx, t, tc.backend)
-
 	n := 3
 	ids := make([]string, n)
 	for i := 0; i < n; i++ {

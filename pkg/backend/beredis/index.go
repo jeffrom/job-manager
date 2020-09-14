@@ -136,6 +136,7 @@ func (be *RedisBackend) indexLookup(ctx context.Context, limit int64, opts *reso
 	for i, iid := range resCmd {
 		resIds[i] = iid.(string)
 	}
+	// fmt.Println("indexLookup resIds:", resIds)
 	return resIds, nil
 }
 

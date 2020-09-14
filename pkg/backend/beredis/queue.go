@@ -30,6 +30,7 @@ func (be *RedisBackend) GetQueue(ctx context.Context, id string) (*resource.Queu
 }
 
 func (be *RedisBackend) GetQueues(ctx context.Context, ids []string) (*resource.Queues, error) {
+	// fmt.Println("GetQueues", ids)
 	cmds := make([]*redis.StringCmd, len(ids))
 	_, err := be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, id := range ids {

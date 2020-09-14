@@ -13,8 +13,6 @@ import (
 
 const streamKey = "mjob:jobs"
 
-// const queueKey = "mjob:q"
-
 func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
 	// first check everything has a queue
 	res, err := be.queuesForJobs(ctx, jobs)
@@ -26,7 +24,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, jb := range jobs.Jobs {
 		q := queues[jb.Name]
-		fmt.Println("ASDFSADF", q.Version)
+		// fmt.Println("ASDFSADF", q.Version)
 
 		jb.EnqueuedAt = now
 		jb.Version = resource.NewVersion(1)
@@ -76,11 +74,20 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 		return nil, err
 	}
 
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	jobs := make([]*resource.Job, len(pendingJobs))
 	for i, pjb := range pendingJobs {
 		jb := pjb.Copy()
 		jb.Version.Inc()
 		jb.Status = resource.StatusRunning
+
+		jb.Results = []*resource.JobResult{
+			{
+				StartedAt: now,
+				// TODO Attempt:
+			},
+		}
+
 		jobs[i] = jb
 	}
 
@@ -93,7 +100,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	// update indexes
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i, jb := range jobs {
-			fmt.Printf("UHUHUHUH %+v\n", jb)
+			// fmt.Printf("UHUHUHUH %+v\n", jb)
 			prev := pendingJobs[i]
 			if err := be.indexJob(ctx, pipe, jb.Name, jb, prev); err != nil {
 				return err
@@ -108,7 +115,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 		return nil, err
 	}
 	if len(jobs) > 0 {
-		fmt.Printf("JOOOOB: %+v\n", jobs[0])
+		// fmt.Printf("JOOOOB: %+v\n", jobs[0])
 	}
 	return &resource.Jobs{Jobs: jobs}, nil
 }
@@ -124,6 +131,7 @@ func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
 		return err
 	}
 
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	jobs := make([]*resource.Job, len(runningJobs))
 	for i, rjb := range runningJobs {
 		ack := req.Acks[i]
@@ -132,12 +140,28 @@ func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
 		// if it's already complete, we had multiple runs, don't set one to
 		// failed if it succeeded in a concurrent run
 		shouldInc := false
+		// don't update jobs that aren't running
+		if jb.Status != resource.StatusRunning {
+			continue
+		}
+
+		// don't change from complete, in case there are concurrent jobs for the same id
 		if jb.Status != resource.StatusComplete {
 			if jb.Status != ack.Status {
 				shouldInc = true
 				jb.Status = ack.Status
 			}
 		}
+
+		shouldInc = true
+		res := jb.LastResult()
+		res.CompletedAt = now
+		// res.Attempt =
+		if ack.Data != nil {
+			res.Data = ack.Data
+		}
+		res.Status = ack.Status
+		res.Error = ack.Error
 
 		if shouldInc {
 			jb.Version.Inc()
@@ -177,8 +201,16 @@ func (be *RedisBackend) DeleteJobKeys(ctx context.Context, keys []string) error 
 	return nil
 }
 
-func (be *RedisBackend) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
-	return nil, nil
+func (be *RedisBackend) GetJobByID(ctx context.Context, idArg string) (*resource.Job, error) {
+	ids, err := be.lookupCheckpoints(ctx, []string{idArg})
+	if err != nil {
+		return nil, err
+	}
+	jobs, err := be.readJobs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	return jobs[0], nil
 }
 
 func (be *RedisBackend) ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {

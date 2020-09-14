@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"fmt"
 
 	uuid "github.com/satori/go.uuid"
 
@@ -169,7 +168,7 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 
 		jobData.Version.Inc()
 
-		fmt.Printf("ack %s: %#v\n", ack.ID, jobData)
+		// fmt.Printf("ack %s: %#v\n", ack.ID, jobData)
 		res := jobData.LastResult()
 		res.CompletedAt = now
 		if ack.Data != nil {

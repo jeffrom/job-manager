@@ -286,7 +286,7 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	jobArg := jobs.Jobs[0]
-	// t.Logf("job: %+v", jobArg)
+	t.Logf("job: %+v", jobArg)
 
 	if jobArg.Name != expectJobName {
 		t.Errorf("expected job name %q, got %q", expectJobName, jobArg.Name)

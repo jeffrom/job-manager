@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/pkg/label"
 	// apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 )
@@ -23,7 +23,7 @@ type listQueuesCmd struct {
 	opts *listQueuesOpts
 }
 
-func newListQueuesCmd(cfg *jobclient.Config) *listQueuesCmd {
+func newListQueuesCmd(cfg *client.Config) *listQueuesCmd {
 	opts := &listQueuesOpts{}
 	c := &listQueuesCmd{
 		opts: opts,
@@ -42,9 +42,9 @@ func newListQueuesCmd(cfg *jobclient.Config) *listQueuesCmd {
 }
 
 func (c *listQueuesCmd) Cmd() *cobra.Command { return c.Command }
-func (c *listQueuesCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
-	client := clientFromContext(ctx)
-	queues, err := client.ListQueues(ctx, jobclient.ListQueuesOpts{
+func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
+	cl := clientFromContext(ctx)
+	qs, err := cl.ListQueues(ctx, client.ListQueuesOpts{
 		Names:     args,
 		Selectors: label.SplitSelectors(c.opts.selectorRaw),
 	})
@@ -54,16 +54,16 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd 
 	padding := 3
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
 	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\t")
-	for _, q := range queues.Queues {
-		fmt.Fprintf(w, "%s\t%s\t%d\n", q.Id, q.CreatedAt.AsTime().Format(time.Stamp), q.V)
+	for _, q := range qs.Queues {
+		fmt.Fprintf(w, "%s\t%s\t%s\n", q.ID, q.CreatedAt.Format(time.Stamp), q.Version.String())
 	}
 	// fmt.Fprintln(w)
 	return w.Flush()
 }
 
-// func runListQueues(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+// func runListQueues(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 // 	client := clientFromContext(ctx)
-// 	queues, err := client.ListQueues(ctx, jobclient.ListQueuesOpts{})
+// 	queues, err := client.ListQueues(ctx, client.ListQueuesOpts{})
 // 	if err != nil {
 // 		return err
 // 	}

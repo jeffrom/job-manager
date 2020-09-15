@@ -20,6 +20,51 @@ type Job struct {
 	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty"`
 }
 
+func (jb *Job) Copy() *Job {
+	cp := &Job{}
+	*cp = *jb
+	if jb.Version != nil {
+		cp.Version = NewVersion(jb.Version.Raw())
+	}
+	if jb.QueueVersion != nil {
+		cp.QueueVersion = NewVersion(jb.QueueVersion.Raw())
+	}
+	if jb.Data != nil {
+		cp.Data = &JobData{}
+		*cp.Data = *jb.Data
+	}
+	if jb.Checkins != nil {
+		cp.Checkins = make([]*JobCheckin, len(jb.Checkins))
+		copy(cp.Checkins, jb.Checkins)
+	}
+	if jb.Results != nil {
+		cp.Results = make([]*JobResult, len(jb.Results))
+		copy(cp.Results, jb.Results)
+	}
+	return cp
+}
+
+func (jb *Job) LastResult() *JobResult {
+	res := jb.Results
+	if len(res) == 0 {
+		return nil
+	}
+	return res[len(res)-1]
+}
+
+func (jb *Job) LastClaimWindow() time.Time {
+	if results := jb.Results; len(results) > 0 {
+		for i := len(results) - 1; i >= 0; i-- {
+			res := results[i]
+			completedAt := res.CompletedAt
+			if !completedAt.IsZero() {
+				return completedAt
+			}
+		}
+	}
+	return jb.EnqueuedAt
+}
+
 func (jb *Job) IsAttempted() bool {
 	return StatusIsAttempted(jb.Status)
 }
@@ -37,8 +82,17 @@ type Jobs struct {
 	Jobs []*Job `json:"jobs"`
 }
 
+func (jobs *Jobs) IDs() []string {
+	ids := make([]string, len(jobs.Jobs))
+	for i, jb := range jobs.Jobs {
+		ids[i] = jb.ID
+	}
+	return ids
+}
+
 type JobData struct {
-	Data interface{} `json:"data,omitempty"`
+	Claims label.Claims `json:"claims,omitempty"`
+	Data   interface{}  `json:"data,omitempty"`
 }
 
 type JobCheckin struct {
@@ -50,6 +104,7 @@ type JobResult struct {
 	Attempt     int         `json:"attempt"`
 	Status      Status      `json:"status"`
 	Data        interface{} `json:"data,omitempty"`
+	Error       string      `json:"error,omitempty"`
 	StartedAt   time.Time   `json:"started_at"`
 	CompletedAt time.Time   `json:"completed_at"`
 }
@@ -58,6 +113,7 @@ type JobListParams struct {
 	Names         []string        `json:"names,omitempty"`
 	Statuses      []Status        `json:"statuses,omitempty"`
 	Selectors     label.Selectors `json:"selectors,omitempty"`
+	Claims        label.Claims    `json:"claims,omitempty"`
 	EnqueuedSince time.Time       `json:"enqueued_since,omitempty"`
 	EnqueuedUntil time.Time       `json:"enqueued_until,omitempty"`
 }

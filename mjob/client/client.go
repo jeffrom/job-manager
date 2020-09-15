@@ -1,6 +1,5 @@
-// Package jobclient is an http client for interacting with job-manager server
-// applications.
-package jobclient
+// Package client contains the base job-manager http client.
+package client
 
 import (
 	"bytes"
@@ -12,29 +11,33 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
+	"github.com/jeffrom/job-manager/mjob/internal"
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/querystring"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 type Interface interface {
 	// Resource(name string) resource.Interface
 	Ping(ctx context.Context) error
 
-	// EnqueueJobs(ctx context.Context, jobs *jobv1.Jobs) ([]string, error)
-	// EnqueueJobsOpts(ctx context.Context, jobs *jobv1.Jobs, opts EnqueueOpts) ([]string, error)
+	// consumer rpcs
+	// EnqueueJobs(ctx context.Context, jobs *resource.Jobs) ([]string, error)
+	// EnqueueJobsOpts(ctx context.Context, jobs *resource.Jobs, opts EnqueueOpts) ([]string, error)
 	EnqueueJob(ctx context.Context, job string, args ...interface{}) (string, error)
-	// EnqueueJobOpts(ctx context.Context, jobData *jobv1.Job, opts EnqueueOpts) error
-	DequeueJobs(ctx context.Context, num int, job string, selectors ...string) (*jobv1.Jobs, error)
-	AckJob(ctx context.Context, id string, status jobv1.Status) error
-	AckJobOpts(ctx context.Context, id string, status jobv1.Status, opts AckJobOpts) error
-	// AckJobs(ctx context.Context, results *jobv1.Results) error
+	EnqueueJobOpts(ctx context.Context, job string, opts EnqueueOpts, args ...interface{}) (string, error)
+	DequeueJobs(ctx context.Context, num int, id string) (*resource.Jobs, error)
+	DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*resource.Jobs, error)
+	AckJob(ctx context.Context, id string, status resource.Status) error
+	AckJobOpts(ctx context.Context, id string, status resource.Status, opts AckJobOpts) error
+	// AckJobs(ctx context.Context, results *resource.Results) error
 
-	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*jobv1.Queue, error)
-	// SaveQueues(ctx context.Context, queue *jobv1.Queues) error
-	ListQueues(ctx context.Context, opts ListQueuesOpts) (*jobv1.Queues, error)
-	GetQueue(ctx context.Context, id string) (*jobv1.Queue, error)
-	GetJob(ctx context.Context, id string) (*jobv1.Job, error)
+	// admin rpcs
+	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*resource.Queue, error)
+	// SaveQueues(ctx context.Context, queue *resource.Queues) error
+	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
+	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
+	GetJob(ctx context.Context, id string) (*resource.Job, error)
 }
 
 type providerFunc func(c *Client) *Client
@@ -88,7 +91,7 @@ func (c *Client) Ping(ctx context.Context) error {
 	}
 
 	if res.StatusCode != 200 {
-		return fmt.Errorf("jobclient: ping failed with %d status", res.StatusCode)
+		return fmt.Errorf("client: ping failed with %d status", res.StatusCode)
 	}
 	return nil
 }
@@ -104,7 +107,7 @@ func (c *Client) newRequest(method, uri string, body io.Reader) (*http.Request, 
 	return req, nil
 }
 
-func (c *Client) newRequestProto(method, uri string, msg proto.Message) (*http.Request, error) {
+func (c *Client) newRequestProto(ctx context.Context, method, uri string, msg proto.Message) (*http.Request, error) {
 	var r io.Reader
 	if msg != nil {
 		if method == "GET" {
@@ -128,6 +131,11 @@ func (c *Client) newRequestProto(method, uri string, msg proto.Message) (*http.R
 	}
 	// b, _ := httputil.DumpRequest(req, false)
 	// fmt.Println(string(b))
+	if mockNow := internal.GetMockTime(ctx); mockNow != nil {
+		timeStr := fmt.Sprint(mockNow.Unix())
+		req.Header.Set("fake-time", timeStr)
+	}
+
 	return req, err
 }
 

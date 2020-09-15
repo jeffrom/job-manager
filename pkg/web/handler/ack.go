@@ -9,13 +9,12 @@ import (
 	"github.com/jeffrom/job-manager/pkg/resource"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func Ack(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
-	var params apiv1.AckRequest
+	be := backend.FromMiddleware(ctx)
+	var params apiv1.AckJobsRequest
 	if err := UnmarshalBody(r, &params, true); err != nil {
 		return err
 	}
@@ -44,13 +43,15 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			Id:     id,
 			Status: ackParam.Status,
 			Data:   ackParam.Data,
+			Error:  ackParam.Error,
 		}
 		results.Acks[i] = ack
-		resources.Acks[i] = jobv1.AckFromProto(ack)
+		ackRes := jobv1.AckFromProto(ack)
+		resources.Acks[i] = ackRes
 	}
 
 	if err := be.AckJobs(ctx, resources); err != nil {
-		return err
+		return handleBackendErrors(err, "ack", "")
 	}
 	if err := deleteArgUniqueness(ctx, be, resources.Acks); err != nil {
 		return err

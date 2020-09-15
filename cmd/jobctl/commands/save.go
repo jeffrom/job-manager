@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/mjob/client"
 )
 
 type saveCmd struct {
@@ -13,7 +13,7 @@ type saveCmd struct {
 	saveQueueCmd *saveQueueCmd
 }
 
-func newSaveCmd(cfg *jobclient.Config) *saveCmd {
+func newSaveCmd(cfg *client.Config) *saveCmd {
 	savec := newSaveQueueCmd(cfg)
 	cmd := savec.Cmd()
 	cmd.Use = "save"
@@ -30,7 +30,7 @@ func newSaveCmd(cfg *jobclient.Config) *saveCmd {
 }
 
 func (c *saveCmd) Cmd() *cobra.Command { return c.Command }
-func (c *saveCmd) Execute(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func (c *saveCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return cmd.Usage()
 	}

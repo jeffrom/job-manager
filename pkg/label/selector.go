@@ -3,6 +3,7 @@ package label
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -30,6 +31,56 @@ func newSelectors() *Selectors {
 		In:    make(map[string][]string),
 		NotIn: make(map[string][]string),
 	}
+}
+
+func (s Selectors) Len() int {
+	return len(s.Names) + len(s.NotNames) + len(s.In) + len(s.NotIn)
+}
+
+// Key returns a string that can be used as a cache key for the selector
+// values.
+func (s Selectors) CacheKey() string {
+	var b strings.Builder
+	if len(s.Names) > 0 {
+		b.WriteString("names:")
+		b.WriteString(strings.Join(s.Names, ","))
+	}
+	if len(s.NotNames) > 0 {
+		b.WriteString("not:")
+		b.WriteString(strings.Join(s.NotNames, ","))
+	}
+
+	if len(s.In) > 0 {
+		inKeys := make([]string, len(s.In))
+		i := 0
+		for k := range s.In {
+			inKeys[i] = k
+			i++
+		}
+		sort.Strings(inKeys)
+
+		b.WriteString("in:")
+		for _, k := range inKeys {
+			b.WriteString(strings.Join(s.In[k], ","))
+		}
+	}
+
+	if len(s.NotIn) > 0 {
+		keys := make([]string, len(s.NotIn))
+		i := 0
+		for k := range s.NotIn {
+			keys[i] = k
+			i++
+		}
+		sort.Strings(keys)
+
+		b.WriteString("notin:")
+		for _, k := range keys {
+			b.WriteString(strings.Join(s.NotIn[k], ","))
+		}
+	}
+
+	return b.String()
 }
 
 func (s Selectors) String() string {
@@ -67,10 +118,19 @@ func (s Selectors) String() string {
 	return b.String()
 }
 
+func (s Selectors) InclusiveKeys() []string {
+	// keys := make([]string, len(s.))
+	// for _,  {
+
+	// }
+	return nil
+}
+
 func (s Selectors) Match(labels Labels) bool {
-	if len(s.Names) == 0 && len(s.NotNames) == 0 && len(s.In) == 0 && len(s.NotIn) == 0 {
+	if s.Len() == 0 {
 		return true
 	}
+
 	// first negative matches
 	for name, value := range labels {
 		if valIn(name, s.NotNames) {
@@ -142,6 +202,14 @@ func ParseSelectorStringArray(sels []string) (*Selectors, error) {
 		default:
 			return nil, fmt.Errorf("label: invalid operator %q (part %d): %q", operator, i, stmt)
 		}
+	}
+	sort.Strings(sel.Names)
+	sort.Strings(sel.NotNames)
+	for _, v := range sel.In {
+		sort.Strings(v)
+	}
+	for _, v := range sel.NotIn {
+		sort.Strings(v)
 	}
 	return sel, nil
 }

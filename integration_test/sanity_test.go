@@ -6,24 +6,30 @@ import (
 	"errors"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	"github.com/qri-io/jsonschema"
+	"github.com/go-redis/redis/v8"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/mjob/client"
+	"github.com/jeffrom/job-manager/pkg/backend"
+	"github.com/jeffrom/job-manager/pkg/backend/bememory"
+	"github.com/jeffrom/job-manager/pkg/backend/beredis"
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 type sanityContext struct {
 	srv    *httptest.Server
-	client jobclient.Interface
+	client client.Interface
 }
 
 type sanityTestCase struct {
-	name   string
-	srvCfg middleware.Config
+	name    string
+	backend backend.Interface
+	srvCfg  middleware.Config
+	now     time.Time
 
 	ctx *sanityContext
 }
@@ -34,48 +40,84 @@ func (tc *sanityTestCase) wrap(ctx context.Context, fn func(ctx context.Context,
 	}
 }
 
-func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts jobclient.SaveQueueOpts) *jobv1.Queue {
+func (tc *sanityTestCase) setMockTime(ctx context.Context, t testing.TB, ts time.Time) context.Context {
 	t.Helper()
+	t.Logf("setting mock time: %s (%d)", ts.Format(time.Stamp), ts.Unix())
+	tc.now = ts
+	return client.SetMockTime(ctx, ts)
+}
+
+func (tc *sanityTestCase) incMockTime(ctx context.Context, t testing.TB, dur time.Duration) (context.Context, time.Time) {
+	tc.now = tc.now.Add(dur)
+	t.Logf("incrementing mock time to: %s (%d) (+%s)", tc.now.Format(time.Stamp), tc.now.Unix(), dur.String())
+	ctx = client.SetMockTime(ctx, tc.now)
+	return ctx, tc.now
+}
+
+func (tc *sanityTestCase) saveQueue(ctx context.Context, t testing.TB, name string, opts client.SaveQueueOpts) *resource.Queue {
+	t.Helper()
+	t.Logf("SaveQueue(%q)", name)
 	q, err := tc.ctx.client.SaveQueue(ctx, name, opts)
+	if err != nil {
+		t.Logf("-> Error: %v", err)
+		t.Fatal(err)
+	}
+	b, err := json.Marshal(q)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("-> %s", string(b))
 	return q
+}
+
+func (tc *sanityTestCase) enqueueJobOpts(ctx context.Context, t testing.TB, name string, opts client.EnqueueOpts, args ...interface{}) string {
+	t.Helper()
+	t.Logf("EnqueueJobOpts(%q, %+v, %+v)", name, opts, args)
+	id, err := tc.ctx.client.EnqueueJobOpts(ctx, name, opts, args...)
+	if err != nil {
+		t.Logf("-> Error: %v", err)
+		t.Fatal(err)
+	}
+	t.Logf("-> %s", id)
+	return id
 }
 
 func (tc *sanityTestCase) enqueueJob(ctx context.Context, t testing.TB, name string, args ...interface{}) string {
 	t.Helper()
-	id, err := tc.ctx.client.EnqueueJob(ctx, name, args...)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return id
+	return tc.enqueueJobOpts(ctx, t, name, client.EnqueueOpts{}, args...)
 }
 
-func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string, selectors ...string) *jobv1.Jobs {
+func (tc *sanityTestCase) dequeueJobsOpts(ctx context.Context, t testing.TB, num int, opts client.DequeueOpts) *resource.Jobs {
 	t.Helper()
-	jobs, err := tc.ctx.client.DequeueJobs(ctx, num, name, selectors...)
+	jobs, err := tc.ctx.client.DequeueJobsOpts(ctx, num, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("dequeued %d %+v", len(jobs.Jobs), jobs)
 	return jobs
 }
 
-func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, status jobv1.Status) {
+func (tc *sanityTestCase) dequeueJobs(ctx context.Context, t testing.TB, num int, name string) *resource.Jobs {
+	t.Helper()
+	return tc.dequeueJobsOpts(ctx, t, num, client.DequeueOpts{Queues: []string{name}})
+}
+
+func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, status resource.Status) {
 	t.Helper()
 	if err := tc.ctx.client.AckJob(ctx, id, status); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id string, status jobv1.Status, opts jobclient.AckJobOpts) {
+func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id string, status resource.Status, opts client.AckJobOpts) {
 	t.Helper()
 	if err := tc.ctx.client.AckJobOpts(ctx, id, status, opts); err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("ack %s: %s", id, status.String())
 }
 
-func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *jobv1.Job {
+func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *resource.Job {
 	t.Helper()
 	jobData, err := tc.ctx.client.GetJob(ctx, id)
 	if err != nil {
@@ -87,22 +129,38 @@ func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *
 // TestIntegrationSanity goes through the basic operations (soon with a variety
 // of configs)
 func TestIntegrationSanity(t *testing.T) {
+	defaultBackendCfg := backend.DefaultConfig
+	defaultBackendCfg.TestMode = true
 	tcs := []sanityTestCase{
 		{
-			name:   "default",
+			name:    "default-mem",
+			backend: bememory.New(),
+			srvCfg:  middleware.NewConfig(),
+		},
+		{
+			name: "default-redis",
+			backend: beredis.New(beredis.WithConfig(beredis.Config{
+				Config: defaultBackendCfg,
+				Redis: &redis.Options{
+					Addr:     "localhost:6379",
+					Password: "",
+					DB:       1,
+				},
+			})),
 			srvCfg: middleware.NewConfig(),
 		},
 	}
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			srv := testenv.NewTestControllerServer(t, tc.srvCfg)
+			srv := testenv.NewTestControllerServer(t, tc.srvCfg, tc.backend)
 			c := testenv.NewTestClient(t, srv)
 			tc.ctx = &sanityContext{srv: srv, client: c}
 			srv.Start()
 			defer srv.Close()
 
 			ctx := context.Background()
+			mustReset(ctx, t, tc.backend)
 			t.Run("ping", tc.wrap(ctx, testPing))
 
 			// enqueue a job, dequeue it
@@ -115,17 +173,15 @@ func TestIntegrationSanity(t *testing.T) {
 				return
 			}
 
-			// validate
-			if !t.Run("validate-args", tc.wrap(ctx, testValidateArgs)) {
-				return
-			}
-
 			// unique jobs
 			// unique jobs (jsonschema)
 
 			// checkins
 
 			// claim windows
+			if !t.Run("claims", tc.wrap(ctx, testClaims)) {
+				return
+			}
 		})
 	}
 }
@@ -138,13 +194,26 @@ func testPing(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func testSingleJob(ctx context.Context, t *testing.T, tc *sanityTestCase) {
+	mustReset(ctx, t, tc.backend)
 	// NOTE this block of tests shares state
-	t.Run("enqueue-no-queue", tc.wrap(ctx, testEnqueueNoQueue))
-	t.Run("create-queue", tc.wrap(ctx, testCreateQueue))
-	t.Run("dequeue-no-jobs", tc.wrap(ctx, testDequeueEmpty))
-	t.Run("enqueue", tc.wrap(ctx, testEnqueue))
-	t.Run("dequeue", tc.wrap(ctx, testDequeue))
-	t.Run("dequeue-empty", tc.wrap(ctx, testDequeueEmpty))
+	if !t.Run("enqueue-no-queue", tc.wrap(ctx, testEnqueueNoQueue)) {
+		return
+	}
+	if !t.Run("create-queue", tc.wrap(ctx, testCreateQueue)) {
+		return
+	}
+	if !t.Run("dequeue-no-jobs", tc.wrap(ctx, testDequeueEmpty)) {
+		return
+	}
+	if !t.Run("enqueue", tc.wrap(ctx, testEnqueue)) {
+		return
+	}
+	if !t.Run("dequeue", tc.wrap(ctx, testDequeue)) {
+		return
+	}
+	if !t.Run("dequeue-empty", tc.wrap(ctx, testDequeueEmpty)) {
+		return
+	}
 }
 
 func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
@@ -169,7 +238,7 @@ func testEnqueueNoQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
 	expectID := "cool"
-	q, err := c.SaveQueue(ctx, expectID, jobclient.SaveQueueOpts{})
+	q, err := c.SaveQueue(ctx, expectID, client.SaveQueueOpts{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,21 +246,29 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q == nil {
 		t.Fatal("queue result was nil")
 	}
-	if q.Id != expectID {
-		t.Errorf("expected queue name %q, got %q", expectID, q.Id)
+	if q.ID != expectID {
+		t.Errorf("expected queue name %q, got %q", expectID, q.ID)
 	}
-	var defaultConcurrency int32 = 10
+	var defaultConcurrency int = 10
 	if q.Concurrency != defaultConcurrency {
 		t.Errorf("expected default concurrency %d, got %d", defaultConcurrency, q.Concurrency)
 	}
-	var defaultMaxRetries int32 = 10
+	var defaultMaxRetries int = 10
 	if q.Retries != defaultMaxRetries {
 		t.Errorf("expected default max retries %d, got %d", defaultMaxRetries, q.Retries)
 	}
+
+	if q.Version.String() != "v1" {
+		t.Fatalf("expected queue version to be v%d, was %s", 1, q.Version)
+	}
 }
+
+var basicTime = time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC)
 
 func testEnqueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	c := tc.ctx.client
+	now := basicTime
+	ctx = tc.setMockTime(ctx, t, now)
 	id, err := c.EnqueueJob(ctx, "cool", "nice")
 	if err != nil {
 		t.Fatal(err)
@@ -203,41 +280,70 @@ func testEnqueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 }
 
 func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
-	c := tc.ctx.client
 	expectJobName := "cool"
-	jobs, err := c.DequeueJobs(ctx, 1, expectJobName)
-	if err != nil {
-		t.Fatal(err)
-	}
+	ctx, now := tc.incMockTime(ctx, t, 1*time.Second)
+	jobs := tc.dequeueJobs(ctx, t, 1, expectJobName)
 	if len(jobs.Jobs) != 1 {
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 
 	jobArg := jobs.Jobs[0]
+	t.Logf("job: %+v", jobArg)
 
 	if jobArg.Name != expectJobName {
 		t.Errorf("expected job name %q, got %q", expectJobName, jobArg.Name)
 	}
 
+	if jobArg.Version.String() != "v2" {
+		t.Errorf("expected job version to be v2, was %s", jobArg.Version)
+	}
+
+	if jobArg.QueueVersion.String() != "v1" {
+		t.Errorf("expected job queue version to be v1, was %s", jobArg.QueueVersion)
+	}
+
 	if len(jobArg.Args) != 1 {
 		t.Errorf("expected job args length %d, got %d", 1, len(jobArg.Args))
 	} else {
-		arg := jobArg.Args[0].GetStringValue()
 		expectArg := "nice"
+		iarg := jobArg.Args[0]
+		arg, ok := iarg.(string)
+		if !ok {
+			t.Fatalf("expected arg 0 to be %T, was %#v", expectArg, iarg)
+		}
 		if arg != expectArg {
 			t.Errorf("expected job arg to be %q, was %q", expectArg, arg)
 		}
 	}
 
 	checkJob(t, jobArg)
+	if enqueuedAt := jobArg.EnqueuedAt; !enqueuedAt.Equal(basicTime) {
+		t.Errorf("expected enqueued_at to be %q, was %q", basicTime, enqueuedAt)
+	}
 
-	id := jobArg.Id
-	tc.ackJobOpts(ctx, t, id, jobv1.StatusComplete, jobclient.AckJobOpts{
-		Data: jobArg.Args[0].GetStringValue(),
+	res := jobArg.Results
+	if len(res) != 1 {
+		t.Fatal("expected 1 result, got", len(res))
+	}
+
+	resArg := res[0]
+	if startedAt := resArg.StartedAt; !startedAt.Equal(now) {
+		t.Errorf("expected started_at to be %q, was %q", now, startedAt)
+	}
+	if completedAt := resArg.CompletedAt; !completedAt.IsZero() {
+		t.Error("expected completed_at to be zero")
+	}
+
+	id := jobArg.ID
+	tc.ackJobOpts(ctx, t, id, resource.StatusComplete, client.AckJobOpts{
+		Data: jobArg.Args[0].(string),
 	})
 
 	jobData := tc.getJob(ctx, t, id)
 	checkJob(t, jobData)
+	if !jobData.EnqueuedAt.Equal(basicTime) {
+		t.Errorf("expected enqueued_at to be %q, was %q", basicTime, jobData.EnqueuedAt)
+	}
 
 	resultData := jobData.Results
 	if resultData == nil {
@@ -247,11 +353,7 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		t.Fatalf("expected 1 results, got %d", len(resultData))
 	}
 	ival := resultData[0].Data
-	// ival, ok := resultData["arg"]
-	// if !ok {
-	// 	t.Fatal("expected result data attribute 'arg'")
-	// }
-	s, ok := ival.AsInterface().(string)
+	s, ok := ival.(string)
 	if !ok {
 		t.Fatalf("expected result data to be type string, was %T", ival)
 	}
@@ -287,7 +389,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 	checkJob(t, jobs.Jobs[0])
-	seen[jobs.Jobs[0].Id] = true
+	seen[jobs.Jobs[0].ID] = true
 
 	jobs = tc.dequeueJobs(ctx, t, 3, "cool")
 	if len(jobs.Jobs) != 2 {
@@ -295,8 +397,8 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	}
 	checkJob(t, jobs.Jobs[0])
 	checkJob(t, jobs.Jobs[1])
-	seen[jobs.Jobs[0].Id] = true
-	seen[jobs.Jobs[1].Id] = true
+	seen[jobs.Jobs[0].ID] = true
+	seen[jobs.Jobs[1].ID] = true
 
 	if len(seen) != n {
 		t.Errorf("expected %d dequeued job ids, got %d (%v)", n, len(seen), seen)
@@ -308,7 +410,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	}
 
 	for _, id := range ids {
-		tc.ackJob(ctx, t, id, jobv1.StatusFailed)
+		tc.ackJob(ctx, t, id, resource.StatusFailed)
 	}
 
 	jobs = tc.dequeueJobs(ctx, t, n, "cool")
@@ -320,7 +422,7 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	checkJob(t, jobs.Jobs[2])
 
 	for _, id := range ids {
-		tc.ackJob(ctx, t, id, jobv1.StatusComplete)
+		tc.ackJob(ctx, t, id, resource.StatusComplete)
 	}
 
 	jobs = tc.dequeueJobs(ctx, t, n, "cool")
@@ -329,229 +431,80 @@ func testHandleMultipleJobs(ctx context.Context, t *testing.T, tc *sanityTestCas
 	}
 }
 
-// TODO move this to its own test
-func testValidateArgs(ctx context.Context, t *testing.T, tc *sanityTestCase) {
-	q := tc.saveQueue(ctx, t, "validat0r", jobclient.SaveQueueOpts{
-		Schema: testenv.ReadFile(t, "testdata/schema/basic.jsonschema"),
+// testClaims tests behavior around claim windows. it should work as follows:
+//
+// - if the claim window has not elapsed, job-manager shouldn't dequeue jobs
+// without matching claims.
+// - the claim window should be reset when a job fails.
+// - if the claim window has elapsed, claims should be ignored.
+func testClaims(ctx context.Context, t *testing.T, tc *sanityTestCase) {
+	q := tc.saveQueue(ctx, t, "claimz", client.SaveQueueOpts{
+		ClaimDuration: 1 * time.Second,
 	})
 	if q == nil {
 		t.Fatal("no queue was saved")
 	}
+	claims := label.Claims(map[string][]string{
+		"coolclaim": []string{"itiscool"},
+	})
+	mockNow := basicTime
+	ctx = tc.setMockTime(ctx, t, mockNow)
+	id := tc.enqueueJobOpts(ctx, t, "claimz", client.EnqueueOpts{
+		Claims: claims,
+	})
 
-	vtcs := []struct {
-		name    string
-		queue   string
-		args    []interface{}
-		keyErrs []jsonschema.KeyError
-		errs    []*resource.ValidationError
-	}{
-		{
-			name:  "basic",
-			queue: "validat0r",
-			args:  jobArgs(-1),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/0",
-					Value: -1,
-				},
-				{
-					Path: "/",
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/0",
-					InvalidValue: -1,
-				},
-				{
-					PropertyPath: "/",
-				},
-			},
-		},
-		{
-			name:  "noargs",
-			queue: "validat0r",
-			args:  jobArgs(),
-			errs: []*resource.ValidationError{
-				{
-					Path: "/",
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/",
-				},
-			},
-		},
-		{
-			name:  "incomplete",
-			queue: "validat0r",
-			args:  jobArgs("nice"),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/",
-					Value: jobArgs("nice"),
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/",
-					// TODO implement interface array check
-					InvalidValue: jobArgs("nice"),
-				},
-			},
-		},
-		{
-			name:  "wrong-type",
-			queue: "validat0r",
-			args:  jobArgs("nice", -1),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/1",
-					Value: -1,
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/1",
-					InvalidValue: -1,
-				},
-			},
-		},
-		{
-			name:  "wrong-types",
-			queue: "validat0r",
-			args:  jobArgs(true, -1),
-			errs: []*resource.ValidationError{
-				{
-					Path:  "/0",
-					Value: true,
-				},
-				{
-					Path:  "/1",
-					Value: -1,
-				},
-			},
-			keyErrs: []jsonschema.KeyError{
-				{
-					PropertyPath: "/0",
-					InvalidValue: true,
-				},
-				{
-					PropertyPath: "/1",
-					InvalidValue: -1,
-				},
-			},
-		},
-	}
-	for _, vtc := range vtcs {
-		t.Run(vtc.name, func(t *testing.T) {
-			t.Log(vtc.queue, vtc.args)
-			verrs := getValidationErrors(ctx, t, tc, vtc.queue, vtc.args...)
-			if len(verrs) != len(vtc.errs) {
-				t.Fatalf("expected %d ValidationErrors, got %d (%+v)", len(vtc.errs), len(verrs), verrs)
-			}
-			for i, expectErr := range vtc.errs {
-				verr := verrs[i]
-				if path := expectErr.Path; path != "" {
-					checkArgsSchema(t, verr, path)
-				} else if len(vtc.args) == 0 && verr.Path != "/" {
-					t.Errorf("#%d: expected path to be %q, was %q", i, "/", verr.Path)
-				}
-
-				if ival := expectErr.Value; ival != nil {
-					switch val := ival.(type) {
-					case int:
-						checkSchemaNumber(t, verr.Value, float64(val))
-					case float64:
-						checkSchemaNumber(t, verr.Value, val)
-					case string:
-						checkSchemaString(t, verr.Value, val)
-					}
-				}
-			}
-
-			// for i, iArg := range vtc.args {
-			// 	keyErr := keyErrs[i]
-			// 	switch vArg := iArg.(type) {
-			// 	case float64:
-			// 		checkSchemaNumber(t, keyErr.InvalidValue, vArg)
-			// 	}
-			// }
-		})
+	jobs := tc.dequeueJobs(ctx, t, 1, "claimz")
+	if len(jobs.Jobs) != 0 {
+		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
 
-	id := tc.enqueueJob(ctx, t, "validat0r", "nice", true)
-	tc.ackJob(ctx, t, id, jobv1.StatusComplete)
-}
-
-func getValidationErrors(ctx context.Context, t testing.TB, tc *sanityTestCase, queue string, args ...interface{}) []*resource.ValidationError {
-	t.Helper()
-	id, err := tc.ctx.client.EnqueueJob(ctx, queue, args...)
-	if err == nil {
-		t.Fatal("expected validation error")
-	}
-	if id != "" {
-		t.Fatal("expected empty id, got", id)
+	dqClaimOpts := client.DequeueOpts{Claims: claims}
+	claimJobs := tc.dequeueJobsOpts(ctx, t, 1, dqClaimOpts)
+	if len(claimJobs.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 
-	rerr := &resource.Error{}
-	if !errors.As(err, &rerr) {
-		t.Fatalf("expected error type %T, got %#v", rerr, err)
+	// fail the job
+	nextNow := mockNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, nextNow)
+	tc.ackJobOpts(ctx, t, id, resource.StatusFailed, client.AckJobOpts{})
+
+	// try to dequeue again, ensure claim window is reset
+	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
+		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
 
-	b, err := json.Marshal(rerr.Invalid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("validation errors: %s", string(b))
-	return rerr.Invalid
-}
-
-func checkArgsSchema(t testing.TB, verr *resource.ValidationError, expectPath string) {
-	t.Helper()
-	if verr.Path != expectPath {
-		t.Errorf("expected path %q, got %q", expectPath, verr.Path)
-	}
-}
-
-func checkSchemaNumber(t testing.TB, v interface{}, expect float64) {
-	t.Helper()
-	val, ok := v.(float64)
-	if !ok {
-		t.Fatalf("expected invalid value type float64, got %T", v)
-	}
-	if val != expect {
-		t.Errorf("expected value %f, got %f", expect, val)
-	}
-}
-
-func checkSchemaString(t testing.TB, v interface{}, expect string) {
-	t.Helper()
-	val, ok := v.(string)
-	if !ok {
-		t.Fatalf("expected invalid value type string, got %T", v)
-	}
-	if val != expect {
-		t.Errorf("expected value %q, got %q", expect, val)
-	}
-}
-
-func checkJob(t testing.TB, jobData *jobv1.Job) {
-	if jobData.EnqueuedAt == nil {
-		t.Errorf("jobv1.EnqueuedAt was nil")
-	} else if !jobData.EnqueuedAt.IsValid() {
-		t.Errorf("jobv1.EnqueuedAt is invalid: %v", jobData.EnqueuedAt.CheckValid())
-	} else if jobData.EnqueuedAt.AsTime().IsZero() {
-		t.Errorf("jobv1.EnqueuedAt is zero")
+	// dequeue before claim window has elapsed with claims
+	if claimJobs := tc.dequeueJobsOpts(ctx, t, 1, dqClaimOpts); len(claimJobs.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
 
-	if jobData.Status == jobv1.StatusUnknown {
-		t.Errorf("jobv1.Status is %s", jobv1.StatusUnknown)
+	nextNow = nextNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, nextNow)
+	tc.ackJobOpts(ctx, t, id, resource.StatusFailed, client.AckJobOpts{})
+
+	// try to dequeue again, ensure claim window is reset
+	if jobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(jobs.Jobs) != 0 {
+		t.Fatalf("expected 0 jobs, got %d", len(jobs.Jobs))
 	}
-	if jobData.Attempt < 0 {
-		t.Errorf("jobv1.Attempt was %d", jobData.Attempt)
+
+	claimElapsed := nextNow.Add(1 * time.Second)
+	ctx = tc.setMockTime(ctx, t, claimElapsed)
+	if claimJobs := tc.dequeueJobs(ctx, t, 1, "claimz"); len(claimJobs.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs.Jobs))
 	}
+
+	tc.ackJobOpts(ctx, t, id, resource.StatusComplete, client.AckJobOpts{
+		// Claims: nil,
+	})
 }
 
 func jobArgs(args ...interface{}) []interface{} { return args }
+
+func mustReset(ctx context.Context, t testing.TB, be backend.Interface) {
+	t.Helper()
+	t.Logf("Resetting %T", be)
+	if err := be.Reset(ctx); err != nil {
+		t.Fatal(err)
+	}
+}

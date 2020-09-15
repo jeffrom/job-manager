@@ -5,13 +5,13 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/jeffrom/job-manager/pkg/backend"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func GetJobByID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	be := middleware.GetBackend(ctx)
+	be := backend.FromMiddleware(ctx)
 	jobID := chi.URLParam(r, "jobID")
 
 	job, err := be.GetJobByID(ctx, jobID)

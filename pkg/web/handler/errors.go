@@ -26,6 +26,8 @@ func MethodNotAllowed(w http.ResponseWriter, r *http.Request) error {
 func handleBackendErrors(err error, resourceName, resourceID string) error {
 	cerr := &backend.VersionConflictError{}
 	switch {
+	case errors.Is(err, backend.ErrInvalidState):
+		return resource.NewUnprocessableEntityError(resourceName, resourceID, "job state does not allow this operation")
 	case errors.Is(err, backend.ErrNotFound):
 		return resource.NewNotFoundError(resourceName, resourceID, "")
 	case errors.As(err, &cerr):
@@ -37,7 +39,7 @@ func handleBackendErrors(err error, resourceName, resourceID string) error {
 func handleSchemaErrors(err error, resourceName, resourceID, reason string) error {
 	verr := &schema.ValidationError{}
 	if errors.As(err, &verr) {
-		fmt.Printf("handler: %#v\n", verr)
+		// fmt.Printf("handler: %#v\n", verr)
 		return schema.ErrorFromKeyErrors(resourceName, resourceID, reason, verr.Errors)
 	}
 	return err

@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+SHELL := /bin/sh
 TMPDIR := $(if $(TMPDIR),$(TMPDIR),"/tmp/")
 GOPATH := $(shell go env GOPATH)
 
@@ -49,7 +49,7 @@ build: $(gen) $(gofiles)
 
 .PHONY: clean
 clean:
-	git clean -x -f
+	git clean -x -n
 
 .PHONY: test
 test: $(gen) $(gofiles) | $(staticcheck) $(buf)

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
-
-	"github.com/jeffrom/job-manager/pkg/backend"
 )
 
 func init() {
@@ -30,7 +28,6 @@ type Config struct {
 
 	Logger    zerolog.Logger `json:"-"`
 	LogOutput io.Writer      `json:"-"`
-	be        backend.Interface
 }
 
 func NewConfig() Config {
@@ -50,21 +47,6 @@ func NewConfig() Config {
 
 func (c *Config) ResetLogOutput(out io.Writer) {
 	c.Logger = c.newLogger(out)
-}
-
-func (c *Config) GetBackend() backend.Interface {
-	if c.be != nil {
-		return c.be
-	}
-	switch c.Backend {
-	case "":
-		return nil
-	case "memory":
-		c.be = backend.NewMemory()
-		return c.be
-	default:
-		panic("unsupported backend: " + c.Backend)
-	}
 }
 
 func (c *Config) newLogger(out io.Writer) zerolog.Logger {

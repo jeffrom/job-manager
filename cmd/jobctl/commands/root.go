@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/jobclient"
+	"github.com/jeffrom/job-manager/mjob/client"
 )
 
 type rootCmd struct {
@@ -14,7 +14,7 @@ type rootCmd struct {
 
 func (c *rootCmd) Cmd() *cobra.Command { return c.Command }
 
-func newRootCmd(cfg *jobclient.Config) *rootCmd {
+func newRootCmd(cfg *client.Config) *rootCmd {
 	c := &rootCmd{
 		Command: &cobra.Command{
 			Use:           "jobctl",
@@ -39,6 +39,6 @@ func newRootCmd(cfg *jobclient.Config) *rootCmd {
 	return c
 }
 
-func usageCmd(ctx context.Context, cfg *jobclient.Config, cmd *cobra.Command, args []string) error {
+func usageCmd(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	return cmd.Usage()
 }

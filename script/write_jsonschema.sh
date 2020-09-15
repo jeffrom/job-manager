@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -eu
 
 tmpl=$(cat << EOM
@@ -13,7 +13,7 @@ var %s = []byte(\`%s
 EOM
 )
 
-json=$(< "jsonschema/$1.json")
+json=$(cat "jsonschema/$1.json")
 
 # shellcheck disable=SC2059
 printf "$tmpl\n" "$2" "$json" > "$3"

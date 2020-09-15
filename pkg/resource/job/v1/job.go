@@ -2,10 +2,14 @@
 package v1
 
 import (
+	"fmt"
+
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
@@ -46,27 +50,34 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	var datav *structpb.Value
-	if jb.Data != nil && jb.Data.Data != nil {
-		datav, err = structpb.NewValue(jb.Data.Data)
-		if err != nil {
-			return nil, err
+	var data *Data
+	if jb.Data != nil {
+		data = &Data{}
+		if jb.Data.Data != nil {
+			// fmt.Printf("%#v\n", jb.Data.Data)
+			datav, err := structpb.NewValue(jb.Data.Data)
+			if err != nil {
+				return nil, err
+			}
+			data.Data = datav
+		}
+		if len(jb.Data.Claims) > 0 {
+			data.Claims = jb.Data.Claims.Format()
 		}
 	}
 
+	fmt.Printf("marshal data: %#v\n", data)
 	results, err := jobResultsToProto(jb.Results)
 	if err != nil {
 		return nil, err
 	}
 	return &Job{
-		Id:     jb.ID,
-		V:      jb.Version.Raw(),
-		Name:   jb.Name,
-		QueueV: jb.QueueVersion.Raw(),
-		Args:   v.Values,
-		Data: &Data{
-			Data: datav,
-		},
+		Id:         jb.ID,
+		V:          jb.Version.Raw(),
+		Name:       jb.Name,
+		QueueV:     jb.QueueVersion.Raw(),
+		Args:       v.Values,
+		Data:       data,
 		Status:     Status(jb.Status),
 		Attempt:    int32(jb.Attempt),
 		Checkins:   jobCheckinsToProto(jb.Checkins),
@@ -75,7 +86,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 	}, nil
 }
 
-func NewJobsFromResource(jbs []*resource.Job) ([]*Job, error) {
+func NewJobsFromResources(jbs []*resource.Job) ([]*Job, error) {
 	jobs := make([]*Job, len(jbs))
 	for i, j := range jbs {
 		pj, err := NewJobFromResource(j)
@@ -87,27 +98,52 @@ func NewJobsFromResource(jbs []*resource.Job) ([]*Job, error) {
 	return jobs, nil
 }
 
-func NewJobFromProto(msg *Job) *resource.Job {
+func NewJobFromProto(msg *Job, claims label.Claims) *resource.Job {
 	lv := &structpb.ListValue{Values: msg.Args}
-	var d interface{}
-	if msg.Data != nil && msg.Data.Data != nil {
-		d = msg.Data.Data.AsInterface()
+	var data *resource.JobData
+	if msg.Data != nil || len(claims) > 0 {
+		data = &resource.JobData{}
+		if msg.Data.Data != nil {
+			data.Data = msg.Data.Data.AsInterface()
+		}
+		if len(claims) > 0 {
+			data.Claims = claims
+		}
 	}
+
 	return &resource.Job{
 		ID:           msg.Id,
 		Version:      resource.NewVersion(msg.V),
 		Name:         msg.Name,
 		QueueVersion: resource.NewVersion(msg.QueueV),
 		Args:         lv.AsSlice(),
-		Data: &resource.JobData{
-			Data: d,
-		},
-		Status:     jobStatusFromProto(msg.Status),
-		Attempt:    int(msg.Attempt),
-		Checkins:   jobCheckinsFromProto(msg.Checkins),
-		Results:    jobResultsFromProto(msg.Results),
-		EnqueuedAt: msg.EnqueuedAt.AsTime(),
+		Data:         data,
+		Status:       jobStatusFromProto(msg.Status),
+		Attempt:      int(msg.Attempt),
+		Checkins:     jobCheckinsFromProto(msg.Checkins),
+		Results:      jobResultsFromProto(msg.Results),
+		EnqueuedAt:   msg.EnqueuedAt.AsTime(),
 	}
+}
+
+func NewJobsFromProto(msgs []*Job) ([]*resource.Job, error) {
+	jobs := make([]*resource.Job, len(msgs))
+	for i, msg := range msgs {
+		jb := NewJobFromProto(msg, nil)
+		if msg.Data != nil && len(msg.Data.Claims) > 0 {
+			claims, err := label.ParseClaims(msg.Data.Claims)
+			if err != nil {
+				return nil, err
+			}
+			if jb.Data == nil {
+				jb.Data = &resource.JobData{}
+			}
+			jb.Data.Claims = claims
+		}
+		jobs[i] = jb
+	}
+
+	return jobs, nil
 }
 
 func jobStatusFromProto(status Status) resource.Status {
@@ -189,4 +225,34 @@ func jobResultsToProto(results []*resource.JobResult) ([]*Result, error) {
 		}
 	}
 	return prs, nil
+}
+
+func MarshalJob(jb *resource.Job) ([]byte, error) {
+	jbp, err := NewJobFromResource(jb)
+	if err != nil {
+		return nil, err
+	}
+	b, err := proto.Marshal(jbp)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func UnmarshalJob(b []byte, qmsg *Job) (*resource.Job, error) {
+	if qmsg == nil {
+		qmsg = &Job{}
+	}
+	if err := proto.Unmarshal(b, qmsg); err != nil {
+		return nil, err
+	}
+	var claims label.Claims
+	if qmsg.Data != nil && len(qmsg.Data.Claims) > 0 {
+		var err error
+		claims, err = label.ParseClaims(qmsg.Data.Claims)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return NewJobFromProto(qmsg, claims), nil
 }

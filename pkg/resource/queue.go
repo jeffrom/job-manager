@@ -3,13 +3,14 @@ package resource
 import (
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/jeffrom/job-manager/pkg/label"
 )
 
 type Queue struct {
-	ID              string        `json:"id"`
+	ID              string        `json:"-"`
 	Name            string        `json:"name"`
 	Version         *Version      `json:"version" db:"v"`
 	Concurrency     int           `json:"concurrency,omitempty"`
@@ -23,6 +24,11 @@ type Queue struct {
 	CreatedAt       time.Time     `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at,omitempty" db:"updated_at"`
 	DeletedAt       sql.NullTime  `json:"deleted_at,omitempty" db:"deleted_at"`
+}
+
+func (q *Queue) String() string {
+	b, _ := json.Marshal(q)
+	return string(b)
 }
 
 func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
@@ -43,7 +49,6 @@ func (q *Queue) EqualAttrs(other *Queue) bool {
 		q.Unique == other.Unique &&
 		q.Labels.Equals(other.Labels) &&
 		q.DeletedAt.Valid == other.DeletedAt.Valid &&
-		q.DeletedAt.Time.Equal(other.DeletedAt.Time) &&
 		bytes.Equal(q.SchemaRaw, other.SchemaRaw)
 }
 
@@ -51,7 +56,6 @@ func (q *Queue) Equal(other *Queue) bool {
 	return q.CreatedAt.Equal(other.CreatedAt) &&
 		q.UpdatedAt.Equal(other.UpdatedAt) &&
 		q.DeletedAt.Valid == other.DeletedAt.Valid &&
-		q.DeletedAt.Time.Equal(other.DeletedAt.Time) &&
 		q.EqualAttrs(other)
 }
 

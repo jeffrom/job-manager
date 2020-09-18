@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/jeffrom/job-manager/pkg/label"
@@ -18,6 +19,11 @@ type Job struct {
 	Checkins     []*JobCheckin `json:"checkins,omitempty"`
 	Results      []*JobResult  `json:"results,omitempty"`
 	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty"`
+}
+
+func (jb *Job) String() string {
+	b, _ := json.Marshal(jb)
+	return string(b)
 }
 
 func (jb *Job) Copy() *Job {

@@ -15,6 +15,13 @@ CREATE TABLE queues (
     UNIQUE (name, v)
 );
 
+CREATE TABLE queue_labels (
+    queue varchar(253) not null,
+    name varchar(63) not null,
+    value varchar(63) not null,
+    PRIMARY KEY (queue, name, value)
+);
+
 CREATE TYPE job_status AS ENUM (
     'queued',
     'running',

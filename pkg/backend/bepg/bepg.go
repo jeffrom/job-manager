@@ -54,17 +54,6 @@ func (pg *Postgres) ensureConn(ctx context.Context) error {
 
 	log := logger.FromContext(ctx)
 
-	// pgCfg := &pgx.ConnConfig{
-	// 	Config: pgconn.Config{
-	// 		Database: pg.cfg.Database,
-	// 		Host:     pg.cfg.Host,
-	// 		Port:     uint16(pg.cfg.Port),
-	// 		User:     pg.cfg.User,
-	// 		Password: pg.cfg.Password,
-	// 	},
-	// 	Logger: zerologadapter.NewLogger(pg.cfg.Logger.Logger),
-	// }
-
 	dsn := pg.cfg.DSN()
 	log.Debug().Str("dsn", dsn).Msg("connecting to postgres")
 	pgCfg, err := pgx.ParseConfig(dsn)

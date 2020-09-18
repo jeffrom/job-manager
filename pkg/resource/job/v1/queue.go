@@ -15,9 +15,9 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 	if msg == nil {
 		return nil
 	}
-	deletedAt := msg.DeletedAt.AsTime()
+	isDeleted := msg.DeletedAt != nil
 	return &resource.Queue{
-		Name:              msg.Id,
+		Name:            msg.Id,
 		Version:         resource.NewVersion(msg.V),
 		Concurrency:     int(msg.Concurrency),
 		Retries:         int(msg.Retries),
@@ -29,7 +29,7 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 		SchemaRaw:       msg.Schema,
 		CreatedAt:       msg.CreatedAt.AsTime(),
 		UpdatedAt:       msg.UpdatedAt.AsTime(),
-		DeletedAt:       sql.NullTime{Valid: !deletedAt.IsZero(), Time: deletedAt},
+		DeletedAt:       sql.NullTime{Valid: isDeleted, Time: msg.DeletedAt.AsTime()},
 	}
 }
 
@@ -45,6 +45,10 @@ func NewQueueFromResource(res *resource.Queue) *Queue {
 	if res == nil {
 		return nil
 	}
+	var deletedAt *timestamppb.Timestamp
+	if res.DeletedAt.Valid {
+		deletedAt = timestamppb.New(res.DeletedAt.Time)
+	}
 	return &Queue{
 		Id:              res.Name,
 		V:               res.Version.Raw(),
@@ -58,7 +62,7 @@ func NewQueueFromResource(res *resource.Queue) *Queue {
 		Schema:          res.SchemaRaw,
 		CreatedAt:       timestamppb.New(res.CreatedAt),
 		UpdatedAt:       timestamppb.New(res.UpdatedAt),
-		DeletedAt:       timestamppb.New(res.DeletedAt.Time),
+		DeletedAt:       deletedAt,
 	}
 }
 

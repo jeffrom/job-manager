@@ -10,6 +10,7 @@ import (
 	chimw "github.com/go-chi/chi/middleware"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
+	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jeffrom/job-manager/pkg/web/handler"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -34,7 +35,7 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 
 	debugRoutes(r)
 
-	logger := middleware.NewLogger(cfg.Logger)
+	logger := logger.New(cfg.Logger)
 	logger.Info().Interface("config", cfg).Msg("new router")
 
 	r.Group(func(r chi.Router) {

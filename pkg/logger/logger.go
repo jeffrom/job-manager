@@ -1,4 +1,5 @@
-package middleware
+// Package logger contains a logger for use by other job-manager packages.
+package logger
 
 import (
 	"context"
@@ -10,6 +11,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type contextKey string
+
 var loggerKey = contextKey("logger")
 var reqLogKey = contextKey("reqLog")
 var queryKey = contextKey("query")
@@ -18,7 +21,7 @@ type Logger struct {
 	zerolog.Logger
 }
 
-func LoggerFromContext(ctx context.Context) *Logger {
+func FromContext(ctx context.Context) *Logger {
 	return ctx.Value(loggerKey).(*Logger)
 }
 
@@ -26,7 +29,7 @@ func RequestLogFromContext(ctx context.Context) *zerolog.Event {
 	return ctx.Value(reqLogKey).(*zerolog.Event)
 }
 
-func NewLogger(l zerolog.Logger) *Logger { return &Logger{Logger: l} }
+func New(l zerolog.Logger) *Logger { return &Logger{Logger: l} }
 
 func (l *Logger) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

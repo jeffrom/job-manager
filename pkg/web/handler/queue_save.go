@@ -10,6 +10,7 @@ import (
 	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
+	"github.com/jeffrom/job-manager/pkg/logger"
 	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -18,7 +19,7 @@ import (
 func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	cfg := middleware.ConfigFromContext(ctx)
-	reqLog := middleware.RequestLogFromContext(ctx)
+	reqLog := logger.RequestLogFromContext(ctx)
 	be := backend.FromMiddleware(ctx)
 	queueID := chi.URLParam(r, "queueID")
 	reqLog.Str("queue", queueID)

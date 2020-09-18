@@ -10,6 +10,9 @@ import (
 )
 
 func NewQueueFromProto(msg *Queue) *resource.Queue {
+	if msg == nil {
+		return nil
+	}
 	return &resource.Queue{
 		ID:              msg.Id,
 		Version:         resource.NewVersion(msg.V),
@@ -36,6 +39,9 @@ func NewQueuesFromProto(msgs []*Queue) []*resource.Queue {
 }
 
 func NewQueueFromResource(res *resource.Queue) *Queue {
+	if res == nil {
+		return nil
+	}
 	return &Queue{
 		Id:              res.ID,
 		V:               res.Version.Raw(),

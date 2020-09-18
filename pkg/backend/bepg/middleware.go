@@ -17,6 +17,9 @@ func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+			if err := pg.ensureConn(ctx); err != nil {
+				panic(err)
+			}
 			tx, err := pg.db.BeginTxx(ctx, nil)
 			if err != nil {
 				panic(err)
@@ -42,7 +45,7 @@ func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
 }
 
 func statusFailed(status int) bool {
-	return status >= 200 && status < 300
+	return status < 200 || status >= 300
 }
 
 func setTx(ctx context.Context, tx *sqlx.Tx) context.Context {

@@ -4,7 +4,13 @@ package bepg
 import (
 	"context"
 
+	// "github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/log/zerologadapter"
+	"github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,7 +25,11 @@ type ProviderFunc func(p *Postgres) *Postgres
 // example dsn:
 // user=jack password=secret host=pg.example.com port=5432 dbname=mydb sslmode=verify-ca
 func New(providers ...ProviderFunc) *Postgres {
-	return &Postgres{}
+	pg := &Postgres{}
+	for _, provider := range providers {
+		pg = provider(pg)
+	}
+	return pg
 }
 
 func WithConfig(cfg Config) ProviderFunc {
@@ -33,8 +43,36 @@ func (pg *Postgres) ensureConn(ctx context.Context) error {
 	if pg.db != nil {
 		return nil
 	}
+	reqlog := logger.RequestLogFromContext(ctx)
+	reqlog.Bool("dbconnect", true)
 
-	db, err := sqlx.ConnectContext(ctx, "pgx", pg.cfg.DSN())
+	log := logger.FromContext(ctx)
+
+	// pgCfg := &pgx.ConnConfig{
+	// 	Config: pgconn.Config{
+	// 		Database: pg.cfg.Database,
+	// 		Host:     pg.cfg.Host,
+	// 		Port:     uint16(pg.cfg.Port),
+	// 		User:     pg.cfg.User,
+	// 		Password: pg.cfg.Password,
+	// 	},
+	// 	Logger: zerologadapter.NewLogger(pg.cfg.Logger.Logger),
+	// }
+
+	dsn := pg.cfg.DSN()
+	log.Debug().Str("dsn", dsn).Msg("connecting to postgres")
+	pgCfg, err := pgx.ParseConfig(dsn)
+	if err != nil {
+		return err
+	}
+	pgCfg.Logger = zerologadapter.NewLogger(pg.cfg.Logger.Logger)
+	if pg.cfg.Debug {
+		pgCfg.LogLevel = pgx.LogLevelTrace
+	}
+
+	connStr := stdlib.RegisterConnConfig(pgCfg)
+
+	db, err := sqlx.ConnectContext(ctx, "pgx", connStr)
 	if err != nil {
 		return err
 	}
@@ -59,7 +97,7 @@ func (pg *Postgres) Ping(ctx context.Context) error {
 	return nil
 }
 
-func Reset(ctx context.Context) error {
+func (pg *Postgres) Reset(ctx context.Context) error {
 	return nil
 }
 

@@ -23,6 +23,7 @@ func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return handleBackendErrors(err, "queue", queueID)
 	}
+	// fmt.Printf("kewl %+v\n", queue)
 	return MarshalResponse(w, r, &apiv1.GetQueueResponse{
 		Data: jobv1.NewQueueFromResource(queue),
 	})

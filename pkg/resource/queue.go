@@ -15,7 +15,7 @@ type Queue struct {
 	Duration        time.Duration `json:"duration,omitempty"`
 	CheckinDuration time.Duration `json:"checkin_duration,omitempty" db:"checkin_duration"`
 	ClaimDuration   time.Duration `json:"claim_duration,omitempty" db:"claim_duration"`
-	Unique          bool          `json:"unique,omitempty"`
+	Unique          bool          `json:"unique,omitempty" db:"unique_args"`
 	Labels          label.Labels  `json:"labels,omitempty"`
 	SchemaRaw       []byte        `json:"schema_raw,omitempty" db:"job_schema"`
 	CreatedAt       time.Time     `json:"created_at" db:"created_at"`

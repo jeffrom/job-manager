@@ -3,6 +3,7 @@ package logger
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -29,7 +30,13 @@ func RequestLogFromContext(ctx context.Context) *zerolog.Event {
 	return ctx.Value(reqLogKey).(*zerolog.Event)
 }
 
-func New(l zerolog.Logger) *Logger { return &Logger{Logger: l} }
+func New(out io.Writer, useJSON bool) *Logger {
+	if !useJSON {
+		out = zerolog.ConsoleWriter{Out: out}
+	}
+	l := zerolog.New(out).With().Timestamp().Logger()
+	return &Logger{Logger: l}
+}
 
 func (l *Logger) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

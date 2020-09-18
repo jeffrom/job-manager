@@ -61,3 +61,13 @@ func (v *Version) UnmarshalJSON(b []byte) error {
 	v.v = int32(n)
 	return nil
 }
+
+func (v *Version) Scan(value interface{}) error {
+	if value == nil {
+		*v = Version{}
+		return nil
+	}
+
+	*v = Version{v: value.(int32)}
+	return nil
+}

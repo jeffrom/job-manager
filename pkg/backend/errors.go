@@ -3,6 +3,8 @@ package backend
 import (
 	"errors"
 	"fmt"
+
+	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 var ErrNotFound = errors.New("backend: not found")
@@ -20,6 +22,13 @@ type VersionConflictError struct {
 	ResourceID string
 	Prev       string
 	Curr       string
+}
+
+func NewVersionConflictError(prev, curr *resource.Version, resource, resourceID string) *VersionConflictError {
+	return &VersionConflictError{
+		Resource:   resource,
+		ResourceID: resourceID,
+	}
 }
 
 func (e *VersionConflictError) Error() string {

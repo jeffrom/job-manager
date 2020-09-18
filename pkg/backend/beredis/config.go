@@ -8,7 +8,10 @@ import (
 
 type Config struct {
 	backend.Config
-	Redis *redis.Options `json:"-"`
+
+	// MaxStreamSize is the maximum number of stream events to store.
+	MaxStreamSize int
+	Redis         *redis.Options `json:"-"`
 }
 
 var defaultConfig = Config{

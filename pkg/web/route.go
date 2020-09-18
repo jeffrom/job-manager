@@ -53,6 +53,10 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 			chimw.Recoverer,
 		)
 
+		if mwp, ok := be.(backend.MiddlewareProvider); ok {
+			r.Use(mwp.Middleware())
+		}
+
 		r.Route("/internal", func(r chi.Router) {
 			r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)

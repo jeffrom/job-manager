@@ -8,9 +8,9 @@ import (
 
 type Job struct {
 	ID           string        `json:"id"`
-	Version      *Version      `json:"version"`
-	Name         string        `json:"name"`
-	QueueVersion *Version      `json:"queue_version"`
+	Version      *Version      `json:"version" db:"v"`
+	Name         string        `json:"name" db:"queue"`
+	QueueVersion *Version      `json:"queue_version" db:"queue_v"`
 	Args         []interface{} `json:"args"`
 	Data         *JobData      `json:"data,omitempty"`
 	Status       Status        `json:"status"`

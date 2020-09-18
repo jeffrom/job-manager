@@ -9,8 +9,11 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.11
+	github.com/jackc/pgx/v4 v4.8.1
 	github.com/jeffrom/job-manager/mjob v0.0.0-00010101000000-000000000000
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.8.0 // indirect
 	github.com/qri-io/jsonschema v0.2.0
 	github.com/rs/zerolog v1.19.0
 	github.com/satori/go.uuid v1.2.0

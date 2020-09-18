@@ -47,7 +47,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for _, jb := range jobs.Jobs {
 			q := queues[jb.Name]
-			if err := be.indexJob(ctx, pipe, q.ID, q.Labels, jb, nil); err != nil {
+			if err := be.indexJob(ctx, pipe, q.Name, q.Labels, jb, nil); err != nil {
 				return err
 			}
 			if err := be.checkpointJob(ctx, pipe, jb.ID, jb.ID); err != nil {

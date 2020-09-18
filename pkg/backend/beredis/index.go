@@ -226,13 +226,13 @@ func (be *RedisBackend) indexLookupClaims(ctx context.Context, pipe redis.Pipeli
 func (be *RedisBackend) indexQueue(ctx context.Context, pipe redis.Pipeliner, queue, prev *resource.Queue) error {
 	if prev != nil {
 		for key, val := range prev.Labels {
-			pipe.SRem(ctx, indexKey("qlabel", key), prev.ID)
-			pipe.SRem(ctx, indexKey("qlabel", key+"="+val), prev.ID)
+			pipe.SRem(ctx, indexKey("qlabel", key), prev.Name)
+			pipe.SRem(ctx, indexKey("qlabel", key+"="+val), prev.Name)
 		}
 	}
 	for key, val := range queue.Labels {
-		pipe.SAdd(ctx, indexKey("qlabel", key), queue.ID)
-		pipe.SAdd(ctx, indexKey("qlabel", key+"="+val), queue.ID)
+		pipe.SAdd(ctx, indexKey("qlabel", key), queue.Name)
+		pipe.SAdd(ctx, indexKey("qlabel", key+"="+val), queue.Name)
 	}
 	return nil
 }

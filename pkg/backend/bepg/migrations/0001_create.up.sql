@@ -1,5 +1,6 @@
 CREATE TABLE queues (
-    id char(253) PRIMARY KEY,
+    id bigserial PRIMARY KEY,
+    name varchar(253) not null,
     v integer not null,
     concurrency smallint not null,
     retries smallint not null,
@@ -11,7 +12,7 @@ CREATE TABLE queues (
     created_at timestamp not null default now(),
     updated_at timestamp not null default now(),
     deleted_at timestamp,
-    UNIQUE (id, v)
+    UNIQUE (name, v)
 );
 
 CREATE TYPE job_status AS ENUM (
@@ -28,7 +29,7 @@ CREATE TABLE jobs (
     id bigserial PRIMARY KEY,
     root_id bigint not null,
     v integer not null,
-    queue char(253) not null REFERENCES queues (id),
+    queue bigint not null REFERENCES queues (id),
     queue_v integer not null,
     attempt smallint,
     status job_status not null,
@@ -45,8 +46,8 @@ COMMENT ON COLUMN jobs.root_id IS 'id of v1 job. 0 if row is v1.';
 CREATE TABLE job_claims (
     id bigserial PRIMARY KEY,
     job_id bigint not null REFERENCES jobs (id),
-    name char(63) not null,
-    value char(63) not null,
+    name varchar(63) not null,
+    value varchar(63) not null,
     UNIQUE (job_id, name, value)
 );
 

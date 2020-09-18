@@ -2,6 +2,7 @@ package resource
 
 import (
 	"bytes"
+	"database/sql"
 	"time"
 
 	"github.com/jeffrom/job-manager/pkg/label"
@@ -9,6 +10,7 @@ import (
 
 type Queue struct {
 	ID              string        `json:"id"`
+	Name            string        `json:"name"`
 	Version         *Version      `json:"version" db:"v"`
 	Concurrency     int           `json:"concurrency,omitempty"`
 	Retries         int           `json:"retries,omitempty"`
@@ -20,7 +22,7 @@ type Queue struct {
 	SchemaRaw       []byte        `json:"schema_raw,omitempty" db:"job_schema"`
 	CreatedAt       time.Time     `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at,omitempty" db:"updated_at"`
-	DeletedAt       time.Time     `json:"deleted_at,omitempty" db:"deleted_at"`
+	DeletedAt       sql.NullTime  `json:"deleted_at,omitempty" db:"deleted_at"`
 }
 
 func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
@@ -32,7 +34,7 @@ func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
 }
 
 func (q *Queue) EqualAttrs(other *Queue) bool {
-	return q.ID == other.ID &&
+	return q.Name == other.Name &&
 		q.Concurrency == other.Concurrency &&
 		q.Retries == other.Retries &&
 		q.Duration == other.Duration &&
@@ -40,14 +42,16 @@ func (q *Queue) EqualAttrs(other *Queue) bool {
 		q.ClaimDuration == other.ClaimDuration &&
 		q.Unique == other.Unique &&
 		q.Labels.Equals(other.Labels) &&
-		q.DeletedAt.IsZero() == other.DeletedAt.IsZero() &&
+		q.DeletedAt.Valid == other.DeletedAt.Valid &&
+		q.DeletedAt.Time.Equal(other.DeletedAt.Time) &&
 		bytes.Equal(q.SchemaRaw, other.SchemaRaw)
 }
 
 func (q *Queue) Equal(other *Queue) bool {
 	return q.CreatedAt.Equal(other.CreatedAt) &&
 		q.UpdatedAt.Equal(other.UpdatedAt) &&
-		q.DeletedAt.Equal(other.DeletedAt) &&
+		q.DeletedAt.Valid == other.DeletedAt.Valid &&
+		q.DeletedAt.Time.Equal(other.DeletedAt.Time) &&
 		q.EqualAttrs(other)
 }
 
@@ -67,7 +71,7 @@ type Queues struct {
 func (qs *Queues) ToMap() map[string]*Queue {
 	m := make(map[string]*Queue)
 	for _, q := range qs.Queues {
-		m[q.ID] = q
+		m[q.Name] = q
 	}
 	return m
 }

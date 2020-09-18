@@ -83,7 +83,7 @@ func completeQueueList(ctx context.Context, toComplete string) ([]string, error)
 
 	names := make([]string, len(queues.Queues))
 	for i, q := range queues.Queues {
-		names[i] = q.ID
+		names[i] = q.Name
 	}
 	return names, nil
 }

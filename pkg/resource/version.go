@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -68,6 +69,13 @@ func (v *Version) Scan(value interface{}) error {
 		return nil
 	}
 
-	*v = Version{v: value.(int32)}
+	*v = Version{v: int32(value.(int64))}
 	return nil
+}
+
+func (v *Version) Value() (driver.Value, error) {
+	if v == nil {
+		return 0, nil
+	}
+	return v.v, nil
 }

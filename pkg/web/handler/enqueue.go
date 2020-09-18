@@ -57,7 +57,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				if unique {
 					// return conflict error
-					return resource.NewUnprocessableEntityError("queue", queue.ID, "A job with matching arguments is executing")
+					return resource.NewUnprocessableEntityError("queue", queue.Name, "A job with matching arguments is executing")
 				}
 			}
 

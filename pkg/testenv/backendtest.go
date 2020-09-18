@@ -203,7 +203,7 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 
 func getBasicQueue() *resource.Queue {
 	return &resource.Queue{
-		ID:          "cool",
+		Name:          "cool",
 		Version:     resource.NewVersion(1),
 		Concurrency: 3,
 		Retries:     3,
@@ -280,7 +280,7 @@ func checkQueue(t testing.TB, q *resource.Queue) bool {
 		return !t.Failed()
 	}
 
-	if q.ID == "" {
+	if q.Name == "" {
 		t.Error("queue id was empty")
 	}
 

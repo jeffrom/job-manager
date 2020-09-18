@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"database/sql"
+
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -13,8 +15,9 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 	if msg == nil {
 		return nil
 	}
+	deletedAt := msg.DeletedAt.AsTime()
 	return &resource.Queue{
-		ID:              msg.Id,
+		Name:              msg.Id,
 		Version:         resource.NewVersion(msg.V),
 		Concurrency:     int(msg.Concurrency),
 		Retries:         int(msg.Retries),
@@ -26,7 +29,7 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 		SchemaRaw:       msg.Schema,
 		CreatedAt:       msg.CreatedAt.AsTime(),
 		UpdatedAt:       msg.UpdatedAt.AsTime(),
-		DeletedAt:       msg.DeletedAt.AsTime(),
+		DeletedAt:       sql.NullTime{Valid: !deletedAt.IsZero(), Time: deletedAt},
 	}
 }
 
@@ -43,7 +46,7 @@ func NewQueueFromResource(res *resource.Queue) *Queue {
 		return nil
 	}
 	return &Queue{
-		Id:              res.ID,
+		Id:              res.Name,
 		V:               res.Version.Raw(),
 		Concurrency:     int32(res.Concurrency),
 		Retries:         int32(res.Retries),
@@ -55,7 +58,7 @@ func NewQueueFromResource(res *resource.Queue) *Queue {
 		Schema:          res.SchemaRaw,
 		CreatedAt:       timestamppb.New(res.CreatedAt),
 		UpdatedAt:       timestamppb.New(res.UpdatedAt),
-		DeletedAt:       timestamppb.New(res.DeletedAt),
+		DeletedAt:       timestamppb.New(res.DeletedAt.Time),
 	}
 }
 

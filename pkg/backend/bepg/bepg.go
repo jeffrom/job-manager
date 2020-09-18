@@ -14,6 +14,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type sqlxer interface {
+	sqlx.ExtContext
+	sqlx.PreparerContext
+	PrepareNamedContext(ctx context.Context, query string) (*sqlx.NamedStmt, error)
+}
+
 type Postgres struct {
 	db  *sqlx.DB
 	cfg Config
@@ -80,7 +86,7 @@ func (pg *Postgres) ensureConn(ctx context.Context) error {
 	return nil
 }
 
-func (pg *Postgres) getConn(ctx context.Context) (sqlx.ExtContext, error) {
+func (pg *Postgres) getConn(ctx context.Context) (sqlxer, error) {
 	if tx := getTx(ctx); tx != nil {
 		return tx, nil
 	}

@@ -246,8 +246,8 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q == nil {
 		t.Fatal("queue result was nil")
 	}
-	if q.ID != expectID {
-		t.Errorf("expected queue name %q, got %q", expectID, q.ID)
+	if q.Name != expectID {
+		t.Errorf("expected queue name %q, got %q", expectID, q.Name)
 	}
 	var defaultConcurrency int = 10
 	if q.Concurrency != defaultConcurrency {

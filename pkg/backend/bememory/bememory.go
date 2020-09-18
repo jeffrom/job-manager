@@ -48,13 +48,13 @@ func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, er
 func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error) {
 	// if it already exists and no version was supplied, or if version was
 	// supplied but they don't match, return conflict
-	prev, ok := m.queues[queue.ID]
+	prev, ok := m.queues[queue.Name]
 	// fmt.Printf("prev: %+v, found: %v\n", prev, ok)
 	if ok {
 		if queue.Version.Raw() == 0 || queue.Version.Raw() != prev.Version.Raw() {
 			return nil, &backend.VersionConflictError{
 				Resource:   "queue",
-				ResourceID: queue.ID,
+				ResourceID: queue.Name,
 				Prev:       prev.Version.String(),
 				Curr:       queue.Version.String(),
 			}
@@ -64,7 +64,7 @@ func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) (*resourc
 	if prev == nil || !queue.EqualAttrs(prev) {
 		queue.Version.Inc()
 	}
-	m.queues[queue.ID] = queue
+	m.queues[queue.Name] = queue
 	return queue, nil
 }
 
@@ -89,7 +89,7 @@ func (m *Memory) ListQueues(ctx context.Context, opts *resource.QueueListParams)
 }
 
 func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.Selectors) bool {
-	if len(names) > 0 && !valIn(queue.ID, names) {
+	if len(names) > 0 && !valIn(queue.Name, names) {
 		return true
 	}
 	return !sels.Match(queue.Labels)

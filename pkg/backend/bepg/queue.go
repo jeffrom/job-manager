@@ -11,12 +11,12 @@ import (
 	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
-func (pg *Postgres) GetQueue(ctx context.Context, id string) (*resource.Queue, error) {
+func (pg *Postgres) GetQueue(ctx context.Context, name string) (*resource.Queue, error) {
 	c, err := pg.getConn(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return getQueueByID(ctx, c, id)
+	return getQueueByName(ctx, c, name)
 }
 
 func (pg *Postgres) SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error) {
@@ -25,7 +25,7 @@ func (pg *Postgres) SaveQueue(ctx context.Context, queue *resource.Queue) (*reso
 		return nil, err
 	}
 
-	prev, err := getQueueByID(ctx, c, queue.ID)
+	prev, err := getQueueByName(ctx, c, queue.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -39,18 +39,31 @@ func (pg *Postgres) SaveQueue(ctx context.Context, queue *resource.Queue) (*reso
 		}
 	}
 
-	// q := "INSERT INTO queues"
-	return nil, nil
+	queue.Version.Inc()
+
+	q := "INSERT INTO queues (name, v, concurrency, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, created_at) VALUES (:name, :v, :concurrency, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, NOW()) RETURNING *"
+	stmt, err := c.PrepareNamedContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	resq := &resource.Queue{}
+	if err := stmt.GetContext(ctx, resq, queue); err != nil {
+		return nil, err
+	}
+
+	return resq, nil
 }
 
 func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error) {
 	return nil, nil
 }
 
-func getQueueByID(ctx context.Context, c sqlx.ExtContext, id string) (*resource.Queue, error) {
-	q := "SELECT * FROM queues WHERE id = $1"
+func getQueueByName(ctx context.Context, c sqlxer, name string) (*resource.Queue, error) {
+	q := "SELECT * FROM queues WHERE name = $1 ORDER BY v DESC LIMIT 1"
 	queue := &resource.Queue{}
-	if err := sqlx.GetContext(ctx, c, queue, q, id); err != nil {
+	if err := sqlx.GetContext(ctx, c, queue, q, name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}

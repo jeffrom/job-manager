@@ -10,8 +10,9 @@ import (
 	"github.com/jackc/pgx/v4/log/zerologadapter"
 	"github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/jeffrom/job-manager/pkg/logger"
 )
 
 type sqlxer interface {
@@ -23,7 +24,6 @@ type sqlxer interface {
 type Postgres struct {
 	db  *sqlx.DB
 	cfg Config
-	// TODO needs to be able to get the logger from ctx
 }
 
 type ProviderFunc func(p *Postgres) *Postgres

@@ -57,7 +57,22 @@ func (pg *Postgres) SaveQueue(ctx context.Context, queue *resource.Queue) (*reso
 }
 
 func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error) {
-	return nil, nil
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	q := "SELECT DISTINCT ON (name) id, name, v, concurrency, retries, unique_args, duration, checkin_duration, claim_duration, job_schema, created_at FROM queues ORDER BY name, v DESC"
+
+	rows := []*resource.Queue{}
+	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {
+		return nil, err
+	}
+
+	if err := annotateQueuesWithLabels(ctx, c, rows); err != nil {
+		return nil, err
+	}
+	return &resource.Queues{Queues: rows}, nil
 }
 
 func getQueueByName(ctx context.Context, c sqlxer, name string) (*resource.Queue, error) {
@@ -140,6 +155,8 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 	}
 	defer labelstmt.Close()
 
+	labelDelQ := "DELETE FROM queue_labels WHERE queue = $1 AND name NOT IN (?)"
+
 	results := make([]*resource.Queue, len(queues))
 	for i, queue := range queues {
 		resq := &resource.Queue{}
@@ -147,11 +164,23 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 			return nil, err
 		}
 
+		names := make([]string, len(queue.Labels))
+		ii := 0
 		for name, val := range queue.Labels {
 			if _, err := labelstmt.ExecContext(ctx, queue.Name, name, val); err != nil {
 				return nil, err
 			}
+			names[ii] = name
+			ii++
 		}
+		labelDelQ, labelDelArgs, err := sqlx.In(labelDelQ, names)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := c.ExecContext(ctx, c.Rebind(labelDelQ), labelDelArgs...); err != nil {
+			return nil, err
+		}
+
 		resq.Labels = queue.Labels
 
 		results[i] = resq

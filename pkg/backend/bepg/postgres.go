@@ -45,6 +45,14 @@ func WithConfig(cfg Config) ProviderFunc {
 	}
 }
 
+func (pg *Postgres) getLogger(ctx context.Context) *logger.Logger {
+	log := logger.FromContext(ctx)
+	if log == nil {
+		log = pg.cfg.Logger
+	}
+	return log
+}
+
 func (pg *Postgres) ensureConn(ctx context.Context) error {
 	if pg.db != nil {
 		return nil
@@ -52,7 +60,7 @@ func (pg *Postgres) ensureConn(ctx context.Context) error {
 	reqlog := logger.RequestLogFromContext(ctx)
 	reqlog.Bool("dbconnect", true)
 
-	log := logger.FromContext(ctx)
+	log := pg.getLogger(ctx)
 
 	dsn := pg.cfg.DSN()
 	log.Debug().Str("dsn", dsn).Msg("connecting to postgres")
@@ -93,6 +101,28 @@ func (pg *Postgres) Ping(ctx context.Context) error {
 }
 
 func (pg *Postgres) Reset(ctx context.Context) error {
+	if err := pg.ensureConn(ctx); err != nil {
+		return err
+	}
+	rows, err := pg.db.QueryxContext(ctx, "SELECT tableowner, tablename FROM pg_tables WHERE tableowner != 'postgres'")
+	if err != nil {
+		return err
+	}
+
+	var tables []string
+	for rows.Next() {
+		islice := []interface{}{}
+		if err := rows.Scan(islice); err != nil {
+			return err
+		}
+		tables = append(tables, islice[0].(string))
+	}
+
+	for _, table := range tables {
+		if _, err := pg.db.ExecContext(ctx, "TRUNCATE TABLE "+table); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

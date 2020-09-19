@@ -23,11 +23,17 @@ type Logger struct {
 }
 
 func FromContext(ctx context.Context) *Logger {
-	return ctx.Value(loggerKey).(*Logger)
+	if l, ok := ctx.Value(loggerKey).(*Logger); ok {
+		return l
+	}
+	return nil
 }
 
 func RequestLogFromContext(ctx context.Context) *zerolog.Event {
-	return ctx.Value(reqLogKey).(*zerolog.Event)
+	if l, ok := ctx.Value(reqLogKey).(*zerolog.Event); ok {
+		return l
+	}
+	return nil
 }
 
 func New(out io.Writer, useJSON bool) *Logger {

@@ -53,5 +53,8 @@ func setTx(ctx context.Context, tx *sqlx.Tx) context.Context {
 }
 
 func getTx(ctx context.Context) *sqlx.Tx {
-	return ctx.Value(txKey).(*sqlx.Tx)
+	if tx, ok := ctx.Value(txKey).(*sqlx.Tx); ok {
+		return tx
+	}
+	return nil
 }

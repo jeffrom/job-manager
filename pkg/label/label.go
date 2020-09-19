@@ -1,7 +1,10 @@
 // Package label contains function managing labels and selectors.
 package label
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 type Labels map[string]string
 
@@ -15,6 +18,17 @@ func (l Labels) Equals(other Labels) bool {
 		}
 	}
 	return true
+}
+
+func (l Labels) String() string {
+	parts := make([]string, len(l))
+	i := 0
+	for k, v := range l {
+		parts[i] = k + "=" + v
+		i++
+	}
+	sort.Strings(parts)
+	return strings.Join(parts, ",")
 }
 
 func ParseStringArray(labels []string) (Labels, error) {

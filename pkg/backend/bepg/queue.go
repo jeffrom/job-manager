@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 
@@ -33,13 +33,13 @@ func (pg *Postgres) SaveQueue(ctx context.Context, queue *resource.Queue) (*reso
 		return nil, err
 	}
 
-	fmt.Printf("prev: %+v\n", prev)
-	fmt.Printf("curr: %+v\n", queue)
+	// fmt.Printf("prev: %+v\n", prev)
+	// fmt.Printf("curr: %+v\n", queue)
 	if prev != nil {
 		if !queue.Version.Equals(prev.Version) {
 			return nil, backend.NewVersionConflictError(prev.Version, queue.Version, "queue", queue.ID)
 		}
-		fmt.Println("equal:", prev.EqualAttrs(queue))
+		// fmt.Println("equal:", prev.EqualAttrs(queue))
 		if prev.EqualAttrs(queue) {
 			return nil, nil
 		}
@@ -62,16 +62,73 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 		return nil, err
 	}
 
-	q := "SELECT DISTINCT ON (name) id, name, v, concurrency, retries, unique_args, duration, checkin_duration, claim_duration, job_schema, created_at FROM queues ORDER BY name, v DESC"
+	var wheres []string
+	var joins []string
+	var args []interface{}
+	q := "SELECT DISTINCT ON (name) id, queues.name, v, concurrency, retries, unique_args, duration, checkin_duration, claim_duration, job_schema, created_at FROM queues"
+	if opts != nil {
+		if len(opts.Names) > 0 {
+			wheres = append(wheres, "name IN (?)")
+			args = append(args, opts.Names)
+		}
+
+		if sel := opts.Selectors; sel.Len() > 0 {
+			joins = append(joins, "JOIN queue_labels ON queues.name = queue_labels.queue")
+
+			if names := sel.Names; len(names) > 0 {
+				wheres = append(wheres, "queue_labels.name IN (?)")
+				args = append(args, names)
+			}
+			if notnames := sel.NotNames; len(notnames) > 0 {
+				wheres = append(wheres, "queue_labels.name NOT IN (?)")
+				args = append(args, notnames)
+			}
+			if in := sel.In; len(in) > 0 {
+				for k, v := range in {
+					wheres = append(wheres, "queue_labels.name = ? AND queue_labels.value IN (?)")
+					args = append(args, k, v)
+				}
+			}
+			if notin := sel.NotIn; len(notin) > 0 {
+				for k, v := range notin {
+					wheres = append(wheres, "queue_labels.name = ? AND queue_labels.value NOT IN (?)")
+					args = append(args, k, v)
+				}
+			}
+		}
+	}
+	if len(joins) > 0 {
+		q += " " + strings.Join(joins, " ")
+	}
+	if len(wheres) > 0 {
+		q += " WHERE (" + strings.Join(wheres, " AND ") + ")"
+	}
+	q += " ORDER BY name, v DESC"
+	q, args, err = sqlx.In(q, args...)
+	if err != nil {
+		return nil, err
+	}
 
 	rows := []*resource.Queue{}
-	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {
+	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
 		return nil, err
 	}
 
 	if err := annotateQueuesWithLabels(ctx, c, rows); err != nil {
 		return nil, err
 	}
+
+	if opts != nil && opts.Selectors != nil && opts.Selectors.Len() > 0 {
+		var frows []*resource.Queue
+		for _, row := range rows {
+			if !opts.Selectors.Match(row.Labels) {
+				continue
+			}
+			frows = append(frows, row)
+		}
+		rows = frows
+	}
+
 	return &resource.Queues{Queues: rows}, nil
 }
 
@@ -155,7 +212,7 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 	}
 	defer labelstmt.Close()
 
-	labelDelQ := "DELETE FROM queue_labels WHERE queue = $1 AND name NOT IN (?)"
+	labelDelQ := "DELETE FROM queue_labels WHERE queue = ? AND name NOT IN (?)"
 
 	results := make([]*resource.Queue, len(queues))
 	for i, queue := range queues {
@@ -173,11 +230,11 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 			names[ii] = name
 			ii++
 		}
-		labelDelQ, labelDelArgs, err := sqlx.In(labelDelQ, names)
+		lq, labelDelArgs, err := sqlx.In(labelDelQ, queue.Name, names)
 		if err != nil {
 			return nil, err
 		}
-		if _, err := c.ExecContext(ctx, c.Rebind(labelDelQ), labelDelArgs...); err != nil {
+		if _, err := c.ExecContext(ctx, c.Rebind(lq), labelDelArgs...); err != nil {
 			return nil, err
 		}
 

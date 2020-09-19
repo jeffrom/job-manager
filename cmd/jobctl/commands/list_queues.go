@@ -53,26 +53,10 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *co
 	}
 	padding := 3
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\t")
+	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\tLABELS\t")
 	for _, q := range qs.Queues {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", q.Name, q.CreatedAt.Format(time.Stamp), q.Version.String())
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", q.Name, q.CreatedAt.Format(time.Stamp), q.Version.String(), q.Labels.String())
 	}
 	// fmt.Fprintln(w)
 	return w.Flush()
 }
-
-// func runListQueues(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
-// 	client := clientFromContext(ctx)
-// 	queues, err := client.ListQueues(ctx, client.ListQueuesOpts{})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	padding := 3
-// 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-// 	fmt.Fprintln(w, "NAME\tCREATED\t")
-// 	for _, q := range queues.Queues {
-// 		fmt.Fprintf(w, "%s\t%s\n", q.Id, q.CreatedAt.AsTime().Format(time.Stamp))
-// 	}
-// 	// fmt.Fprintln(w)
-// 	return w.Flush()
-// }

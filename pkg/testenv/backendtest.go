@@ -166,15 +166,15 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 		Acks: []*resource.Ack{
 			{
 				ID:     jobs[0].ID,
-				Status: resource.StatusComplete,
+				Status: resource.NewStatus(resource.StatusComplete),
 			},
 			{
 				ID:     jobs[1].ID,
-				Status: resource.StatusComplete,
+				Status: resource.NewStatus(resource.StatusComplete),
 			},
 			{
 				ID:     jobs[2].ID,
-				Status: resource.StatusComplete,
+				Status: resource.NewStatus(resource.StatusComplete),
 			},
 		},
 	})
@@ -203,7 +203,7 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 
 func getBasicQueue() *resource.Queue {
 	return &resource.Queue{
-		Name:          "cool",
+		Name:        "cool",
 		Version:     resource.NewVersion(1),
 		Concurrency: 3,
 		Retries:     3,
@@ -336,8 +336,8 @@ func checkJob(t testing.TB, jb *resource.Job) bool {
 
 func checkJobStatus(t testing.TB, expect resource.Status, jb *resource.Job) bool {
 	t.Helper()
-	if st := jb.Status; st != expect {
-		t.Errorf("expected job status %s, got %s", expect, st)
+	if st := jb.Status; *st != expect {
+		t.Errorf("expected job status %s, got %s", resource.NewStatus(expect), st.String())
 	}
 	return !t.Failed()
 }

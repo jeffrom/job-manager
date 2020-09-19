@@ -78,7 +78,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 		QueueV:     jb.QueueVersion.Raw(),
 		Args:       v.Values,
 		Data:       data,
-		Status:     Status(jb.Status),
+		Status:     Status(*jb.Status),
 		Attempt:    int32(jb.Attempt),
 		Checkins:   jobCheckinsToProto(jb.Checkins),
 		Results:    results,
@@ -146,24 +146,24 @@ func NewJobsFromProto(msgs []*Job) ([]*resource.Job, error) {
 	return jobs, nil
 }
 
-func jobStatusFromProto(status Status) resource.Status {
+func jobStatusFromProto(status Status) *resource.Status {
 	switch status {
 	case Status_STATUS_UNSPECIFIED:
-		return resource.StatusUnspecified
+		return resource.NewStatus(resource.StatusUnspecified)
 	case Status_STATUS_QUEUED:
-		return resource.StatusQueued
+		return resource.NewStatus(resource.StatusQueued)
 	case Status_STATUS_RUNNING:
-		return resource.StatusRunning
+		return resource.NewStatus(resource.StatusRunning)
 	case Status_STATUS_COMPLETE:
-		return resource.StatusComplete
+		return resource.NewStatus(resource.StatusComplete)
 	case Status_STATUS_DEAD:
-		return resource.StatusDead
+		return resource.NewStatus(resource.StatusDead)
 	case Status_STATUS_CANCELLED:
-		return resource.StatusCancelled
+		return resource.NewStatus(resource.StatusCancelled)
 	case Status_STATUS_INVALID:
-		return resource.StatusInvalid
+		return resource.NewStatus(resource.StatusInvalid)
 	case Status_STATUS_FAILED:
-		return resource.StatusFailed
+		return resource.NewStatus(resource.StatusFailed)
 	default:
 		panic("job/v1: unknown status")
 	}
@@ -218,7 +218,7 @@ func jobResultsToProto(results []*resource.JobResult) ([]*Result, error) {
 		}
 		prs[i] = &Result{
 			Attempt:     int32(pr.Attempt),
-			Status:      Status(pr.Status),
+			Status:      Status(*pr.Status),
 			Data:        v,
 			StartedAt:   timestamppb.New(pr.StartedAt),
 			CompletedAt: timestamppb.New(pr.CompletedAt),

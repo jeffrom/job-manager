@@ -152,7 +152,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 	for _, jobData := range jobs.Jobs {
 		jobData.Version.Inc()
 		jobData.Results = append(jobData.Results, &resource.JobResult{StartedAt: now})
-		jobData.Status = resource.StatusRunning
+		jobData.Status = resource.NewStatus(resource.StatusRunning)
 	}
 	return jobs, nil
 }
@@ -164,7 +164,7 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 		if !ok {
 			return backend.ErrNotFound
 		}
-		if jobData.Status != resource.StatusRunning {
+		if *jobData.Status != resource.StatusRunning {
 			// TODO return data about what state specifically caused this
 			return backend.ErrInvalidState
 		}

@@ -1,6 +1,9 @@
 package resource
 
-import "strconv"
+import (
+	"database/sql/driver"
+	"strconv"
+)
 
 type Status int
 
@@ -15,8 +18,33 @@ const (
 	StatusFailed
 )
 
-func (s Status) String() string {
+func NewStatus(s Status) *Status { return &s }
+
+func statusFromString(s string) Status {
 	switch s {
+	case "unspecified":
+		return StatusUnspecified
+	case "queued":
+		return StatusQueued
+	case "running":
+		return StatusRunning
+	case "complete":
+		return StatusComplete
+	case "failed":
+		return StatusFailed
+	case "dead":
+		return StatusDead
+	case "invalid":
+		return StatusInvalid
+	case "cancelled":
+		return StatusCancelled
+	default:
+		return StatusUnspecified
+	}
+}
+
+func (s *Status) String() string {
+	switch *s {
 	case StatusUnspecified:
 		return "unspecified"
 	case StatusQueued:
@@ -34,12 +62,27 @@ func (s Status) String() string {
 	case StatusCancelled:
 		return "cancelled"
 	default:
-		panic("unknown status: " + strconv.FormatInt(int64(s), 10))
+		panic("unknown status: " + strconv.FormatInt(int64(*s), 10))
 	}
 }
 
-func StatusIsAttempted(status Status) bool {
-	switch status {
+func (s *Status) Scan(value interface{}) error {
+	if value == nil {
+		*s = StatusUnspecified
+		return nil
+	}
+
+	valstr := value.(string)
+	*s = statusFromString(valstr)
+	return nil
+}
+
+func (s *Status) Value() (driver.Value, error) {
+	return *s, nil
+}
+
+func StatusIsAttempted(status *Status) bool {
+	switch *status {
 	case StatusComplete, StatusCancelled, StatusInvalid, StatusDead:
 		return true
 	}

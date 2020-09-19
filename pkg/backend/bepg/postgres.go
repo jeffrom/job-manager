@@ -3,6 +3,7 @@ package bepg
 
 import (
 	"context"
+	"strings"
 
 	// "github.com/jackc/pgx/v4/pgxpool"
 
@@ -132,4 +133,13 @@ func (pg *Postgres) GetSetJobKeys(ctx context.Context, keys []string) (bool, err
 
 func (pg *Postgres) DeleteJobKeys(ctx context.Context, keys []string) error {
 	return nil
+}
+
+func sqlFields(fields ...string) (string, string) {
+	cols := strings.Join(fields, ", ")
+	args := make([]string, len(fields))
+	for i, field := range fields {
+		args[i] = ":" + field
+	}
+	return "(" + cols + ")", "(" + strings.Join(args, ", ") + ")"
 }

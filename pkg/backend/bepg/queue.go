@@ -37,7 +37,7 @@ func (pg *Postgres) SaveQueue(ctx context.Context, queue *resource.Queue) (*reso
 	// fmt.Printf("curr: %+v\n", queue)
 	if prev != nil {
 		if !queue.Version.Equals(prev.Version) {
-			return nil, backend.NewVersionConflictError(prev.Version, queue.Version, "queue", queue.ID)
+			return nil, backend.NewVersionConflictError(prev.Version, queue.Version, "queue", queue.Name)
 		}
 		// fmt.Println("equal:", prev.EqualAttrs(queue))
 		if prev.EqualAttrs(queue) {
@@ -72,7 +72,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 			args = append(args, opts.Names)
 		}
 
-		if sel := opts.Selectors; sel.Len() > 0 {
+		if sel := opts.Selectors; sel != nil && sel.Len() > 0 {
 			joins = append(joins, "JOIN queue_labels ON queues.name = queue_labels.queue")
 
 			if names := sel.Names; len(names) > 0 {

@@ -9,16 +9,17 @@ import (
 
 type Job struct {
 	ID           string        `json:"id"`
+	QueueID      int64         `json:"-" db:"queue"`
 	Version      *Version      `json:"version" db:"v"`
-	Name         string        `json:"name" db:"queue"`
+	Name         string        `json:"name"`
 	QueueVersion *Version      `json:"queue_version" db:"queue_v"`
 	Args         []interface{} `json:"args"`
 	Data         *JobData      `json:"data,omitempty"`
-	Status       Status        `json:"status"`
+	Status       *Status       `json:"status"`
 	Attempt      int           `json:"attempt,omitempty"`
 	Checkins     []*JobCheckin `json:"checkins,omitempty"`
 	Results      []*JobResult  `json:"results,omitempty"`
-	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty"`
+	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty" db:"enqueued_at"`
 }
 
 func (jb *Job) String() string {
@@ -77,7 +78,7 @@ func (jb *Job) IsAttempted() bool {
 
 func (jb *Job) HasStatus(statuses ...Status) bool {
 	for _, st := range statuses {
-		if jb.Status == st {
+		if *jb.Status == st {
 			return true
 		}
 	}
@@ -96,6 +97,14 @@ func (jobs *Jobs) IDs() []string {
 	return ids
 }
 
+func (jobs *Jobs) Queues() []string {
+	names := make([]string, len(jobs.Jobs))
+	for i, jb := range jobs.Jobs {
+		names[i] = jb.Name
+	}
+	return names
+}
+
 type JobData struct {
 	Claims label.Claims `json:"claims,omitempty"`
 	Data   interface{}  `json:"data,omitempty"`
@@ -108,7 +117,7 @@ type JobCheckin struct {
 
 type JobResult struct {
 	Attempt     int         `json:"attempt"`
-	Status      Status      `json:"status"`
+	Status      *Status     `json:"status"`
 	Data        interface{} `json:"data,omitempty"`
 	Error       string      `json:"error,omitempty"`
 	StartedAt   time.Time   `json:"started_at"`

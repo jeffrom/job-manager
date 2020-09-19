@@ -41,7 +41,7 @@ func lexicalKey(parts ...string) string {
 }
 
 func buildLexicalIndex(jb *resource.Job, queueName string) map[string][]string {
-	status := strconv.FormatInt(int64(jb.Status), 10)
+	status := strconv.FormatInt(int64(*jb.Status), 10)
 	// fmt.Println("status #", status, jb.Status.String())
 	members := map[string][]string{
 		// job queue / status index

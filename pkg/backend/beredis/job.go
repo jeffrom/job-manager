@@ -30,7 +30,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 		jb.EnqueuedAt = now
 		jb.Version = resource.NewVersion(1)
 		jb.QueueVersion = q.Version
-		jb.Status = resource.StatusQueued
+		jb.Status = resource.NewStatus(resource.StatusQueued)
 	}
 
 	ids, err := be.writeJobs(ctx, jobs.Jobs)
@@ -98,7 +98,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 		}
 		jb := pjb.Copy()
 		jb.Version.Inc()
-		jb.Status = resource.StatusRunning
+		jb.Status = resource.NewStatus(resource.StatusRunning)
 
 		jb.Results = []*resource.JobResult{
 			{
@@ -160,12 +160,12 @@ func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
 		// failed if it succeeded in a concurrent run
 		shouldInc := false
 		// don't update jobs that aren't running
-		if jb.Status != resource.StatusRunning {
+		if *jb.Status != resource.StatusRunning {
 			continue
 		}
 
 		// don't change from complete, in case there are concurrent jobs for the same id
-		if jb.Status != resource.StatusComplete {
+		if *jb.Status != resource.StatusComplete {
 			if jb.Status != ack.Status {
 				shouldInc = true
 				jb.Status = ack.Status

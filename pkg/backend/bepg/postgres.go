@@ -3,6 +3,8 @@ package bepg
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"strings"
 
 	// "github.com/jackc/pgx/v4/pgxpool"
@@ -128,10 +130,50 @@ func (pg *Postgres) Reset(ctx context.Context) error {
 }
 
 func (pg *Postgres) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return false, err
+	}
+	q := "SELECT 't'::boolean FROM job_uniqueness WHERE key IN (?)"
+	args := stringsToBytea(keys)
+	q, iargs, err := sqlx.In(q, args)
+	if err != nil {
+		return false, err
+	}
+	rows, err := c.QueryxContext(ctx, c.Rebind(q), iargs...)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return false, err
+	}
+	for rows.Next() {
+		return true, nil
+	}
+
+	stmt, err := c.PrepareContext(ctx, "INSERT INTO job_uniqueness (key) VALUES ($1)")
+	if err != nil {
+		return false, err
+	}
+	for _, arg := range iargs {
+		if _, err := stmt.ExecContext(ctx, arg); err != nil {
+			return false, err
+		}
+	}
 	return false, nil
 }
 
 func (pg *Postgres) DeleteJobKeys(ctx context.Context, keys []string) error {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+	stmt, err := c.PrepareContext(ctx, "DELETE FROM job_uniqueness WHERE key = $1")
+	if err != nil {
+		return err
+	}
+	for _, key := range keys {
+		if _, err := stmt.ExecContext(ctx, key); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -141,5 +183,13 @@ func sqlFields(fields ...string) (string, string) {
 	for i, field := range fields {
 		args[i] = ":" + field
 	}
-	return "(" + cols + ")", "(" + strings.Join(args, ", ") + ")"
+	return cols, strings.Join(args, ", ")
+}
+
+func stringsToBytea(vals []string) [][]byte {
+	res := make([][]byte, len(vals))
+	for i, val := range vals {
+		res[i] = []byte(val)
+	}
+	return res
 }

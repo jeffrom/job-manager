@@ -78,7 +78,7 @@ func (s *Status) Scan(value interface{}) error {
 }
 
 func (s *Status) Value() (driver.Value, error) {
-	return *s, nil
+	return s.String(), nil
 }
 
 func StatusIsAttempted(status *Status) bool {

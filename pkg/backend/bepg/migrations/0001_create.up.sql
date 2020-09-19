@@ -74,3 +74,8 @@ CREATE TABLE job_results (
     started_at timestamp not null,
     completed_at timestamp not null
 );
+
+CREATE TABLE job_uniqueness (
+    key bytea PRIMARY KEY,
+    created_at timestamp not null default now()
+);

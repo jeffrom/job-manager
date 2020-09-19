@@ -189,10 +189,12 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
 	for _, key := range keys {
 		_, ok := m.uniqueness[key]
-		m.uniqueness[key] = true
 		if ok {
 			return true, nil
 		}
+	}
+	for _, key := range keys {
+		m.uniqueness[key] = true
 	}
 	return false, nil
 }

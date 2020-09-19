@@ -90,6 +90,9 @@ type Jobs struct {
 }
 
 func (jobs *Jobs) IDs() []string {
+	if jobs == nil {
+		return nil
+	}
 	ids := make([]string, len(jobs.Jobs))
 	for i, jb := range jobs.Jobs {
 		ids[i] = jb.ID

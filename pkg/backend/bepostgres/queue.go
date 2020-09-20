@@ -114,7 +114,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 		return nil, err
 	}
 
-	if err := annotateQueuesWithLabels(ctx, c, rows); err != nil {
+	if err := annotateQueues(ctx, c, rows); err != nil {
 		return nil, err
 	}
 
@@ -142,7 +142,7 @@ func getQueueByName(ctx context.Context, c sqlxer, name string) (*resource.Queue
 		return nil, err
 	}
 
-	if err := annotateQueuesWithLabels(ctx, c, []*resource.Queue{queue}); err != nil {
+	if err := annotateQueues(ctx, c, []*resource.Queue{queue}); err != nil {
 		return nil, err
 	}
 	return queue, nil
@@ -154,7 +154,7 @@ type queueLabelRow struct {
 	Value string
 }
 
-func annotateQueuesWithLabels(ctx context.Context, c sqlxer, queues []*resource.Queue) error {
+func annotateQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) error {
 	if len(queues) == 0 {
 		return nil
 	}

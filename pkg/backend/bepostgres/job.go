@@ -79,6 +79,10 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 	if err := sqlx.GetContext(ctx, c, jb, "SELECT * FROM jobs WHERE id = $1", id); err != nil {
 		return nil, err
 	}
+
+	if err := annotateJobs(ctx, c, []*resource.Job{jb}); err != nil {
+		return nil, err
+	}
 	return jb, nil
 }
 
@@ -93,4 +97,42 @@ func uniquenessKeyFromArgs(args []interface{}) (string, error) {
 	}
 	sum := sha256.Sum256(b)
 	return string(sum[:]), nil
+}
+
+func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
+	ids := make([]string, len(jobs))
+	jobmap := make(map[string]*resource.Job)
+	for i, jb := range jobs {
+		ids[i] = jb.ID
+		jobmap[jb.ID] = jb
+	}
+
+	q, args, err := sqlx.In("SELECT * FROM job_checkins WHERE id in (?)", ids)
+	if err != nil {
+		return err
+	}
+
+	var checkins []*resource.JobCheckin
+	if err := sqlx.SelectContext(ctx, c, checkins, q, args...); err != nil {
+		return err
+	}
+	for _, row := range checkins {
+		jb := jobmap[row.JobID]
+		jb.Checkins = append(jb.Checkins, row)
+	}
+
+	q, args, err = sqlx.In("SELECT * FROM job_results WHERE id in (?)", ids)
+	if err != nil {
+		return err
+	}
+
+	var results []*resource.JobResult
+	if err := sqlx.SelectContext(ctx, c, results, q, args...); err != nil {
+		return err
+	}
+	for _, row := range results {
+		jb := jobmap[row.JobID]
+		jb.Results = append(jb.Results, row)
+	}
+	return nil
 }

@@ -114,11 +114,13 @@ type JobData struct {
 }
 
 type JobCheckin struct {
+	JobID     string      `json:"job_id" db:"job_id"`
 	Data      interface{} `json:"data,omitempty"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
 type JobResult struct {
+	JobID       string      `json:"job_id" db:"job_id"`
 	Attempt     int         `json:"attempt"`
 	Status      *Status     `json:"status"`
 	Data        interface{} `json:"data,omitempty"`

@@ -72,7 +72,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 			args = append(args, opts.Names)
 		}
 
-		if sel := opts.Selectors; sel != nil && sel.Len() > 0 {
+		if sel := opts.Selectors; sel.Len() > 0 {
 			joins = append(joins, "JOIN queue_labels ON queues.name = queue_labels.queue")
 
 			if names := sel.Names; len(names) > 0 {
@@ -118,7 +118,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 		return nil, err
 	}
 
-	if opts != nil && opts.Selectors != nil && opts.Selectors.Len() > 0 {
+	if opts != nil && opts.Selectors.Len() > 0 {
 		var frows []*resource.Queue
 		for _, row := range rows {
 			if !opts.Selectors.Match(row.Labels) {

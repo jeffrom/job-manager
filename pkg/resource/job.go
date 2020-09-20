@@ -135,10 +135,10 @@ type JobResult struct {
 }
 
 type JobListParams struct {
-	Names         []string        `json:"names,omitempty"`
-	Statuses      []Status        `json:"statuses,omitempty"`
-	Selectors     label.Selectors `json:"selectors,omitempty"`
-	Claims        label.Claims    `json:"claims,omitempty"`
-	EnqueuedSince time.Time       `json:"enqueued_since,omitempty"`
-	EnqueuedUntil time.Time       `json:"enqueued_until,omitempty"`
+	Names         []string         `json:"names,omitempty"`
+	Statuses      []Status         `json:"statuses,omitempty"`
+	Selectors     *label.Selectors `json:"selectors,omitempty"`
+	Claims        label.Claims     `json:"claims,omitempty"`
+	EnqueuedSince time.Time        `json:"enqueued_since,omitempty"`
+	EnqueuedUntil time.Time        `json:"enqueued_until,omitempty"`
 }

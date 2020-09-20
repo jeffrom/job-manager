@@ -103,13 +103,22 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 
 	q := fmt.Sprintf("SELECT %s FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id", jobFields)
 	// var froms []string
-	// var wheres []string
-	// var args []interface{}
+	var wheres []string
+	var args []interface{}
 
-	// if len(opts.Names) > 0 {
-	// 	joins = append(joins, "JOIN queues ON jobs.queue = queues.id")
-	// 	wheres = append(wheres, "")
-	// }
+	if len(opts.Names) > 0 {
+		wheres = append(wheres, "queues.name IN (?)")
+		args = append(args, opts.Names)
+	}
+	if len(opts.Claims) > 0 {
+
+	}
+	if len(opts.Statuses) > 0 {
+
+	}
+	if len(opts.Claims) > 0 {
+
+	}
 
 	var rows []*resource.Job
 	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {

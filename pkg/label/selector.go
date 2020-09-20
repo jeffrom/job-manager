@@ -33,13 +33,16 @@ func newSelectors() *Selectors {
 	}
 }
 
-func (s Selectors) Len() int {
+func (s *Selectors) Len() int {
+	if s == nil {
+		return 0
+	}
 	return len(s.Names) + len(s.NotNames) + len(s.In) + len(s.NotIn)
 }
 
 // Key returns a string that can be used as a cache key for the selector
 // values.
-func (s Selectors) CacheKey() string {
+func (s *Selectors) CacheKey() string {
 	var b strings.Builder
 	if len(s.Names) > 0 {
 		b.WriteString("names:")
@@ -83,7 +86,7 @@ func (s Selectors) CacheKey() string {
 	return b.String()
 }
 
-func (s Selectors) String() string {
+func (s *Selectors) String() string {
 	var set bool
 	var b strings.Builder
 	b.WriteString("Selector<")
@@ -118,7 +121,7 @@ func (s Selectors) String() string {
 	return b.String()
 }
 
-func (s Selectors) InclusiveKeys() []string {
+func (s *Selectors) InclusiveKeys() []string {
 	// keys := make([]string, len(s.))
 	// for _,  {
 
@@ -126,7 +129,7 @@ func (s Selectors) InclusiveKeys() []string {
 	return nil
 }
 
-func (s Selectors) Match(labels Labels) bool {
+func (s *Selectors) Match(labels Labels) bool {
 	if s.Len() == 0 {
 		return true
 	}

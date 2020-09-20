@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jeffrom/job-manager/pkg/backend/bepg"
+	"github.com/jeffrom/job-manager/pkg/backend/bepostgres"
 	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jeffrom/job-manager/pkg/web"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
@@ -16,9 +16,9 @@ func main() {
 
 	// be := beredis.New()
 	// be := bememory.New()
-	becfg := bepg.DefaultConfig
+	becfg := bepostgres.DefaultConfig
 	becfg.Logger = log
-	be := bepg.New(bepg.WithConfig(becfg))
+	be := bepostgres.New(bepostgres.WithConfig(becfg))
 
 	cfg := middleware.NewConfig()
 	cfg.Logger = log

@@ -1,4 +1,4 @@
-package bepg
+package bepostgres
 
 import (
 	"context"

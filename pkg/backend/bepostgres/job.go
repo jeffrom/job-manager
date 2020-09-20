@@ -1,4 +1,4 @@
-package bepg
+package bepostgres
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jmoiron/sqlx"
 )
 
 func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
@@ -30,24 +31,7 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 		jb.Version = resource.NewVersion(1)
 		jb.QueueVersion = q.Version
 		jb.Status = resource.NewStatus(resource.StatusQueued)
-		// if q.Unique {
-		// 	sum, err := uniquenessKeyFromArgs(jb.Args)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-
-		// 	uniquenessKeys = append(uniquenessKeys, sum)
-		// }
 	}
-
-	// query := "SELECT 't'::boolean FROM job_uniqueness WHERE key IN (?)"
-	// query, args, err := sqlx.In(query, uniquenessKeys)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if _, err := c.QueryContext(ctx, query, args...); err == nil || !errors.Is(err, sql.ErrNoRows) {
-	// 	return nil, err
-	// }
 
 	fields, vals := sqlFields(
 		"v", "queue", "queue_v",
@@ -68,11 +52,6 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 			return nil, err
 		}
 		jb.ID = strconv.FormatInt(id, 10)
-
-		// _, err := stmt.ExecContext(ctx, jb)
-		// if err != nil {
-		// 	return nil, err
-		// }
 	}
 
 	return jobs, nil
@@ -87,7 +66,20 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 }
 
 func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
-	return nil, nil
+	// id, err := strconv.ParseInt(idstr, 10, 64)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	jb := &resource.Job{}
+	if err := sqlx.GetContext(ctx, c, jb, "SELECT * FROM jobs WHERE id = $1", id); err != nil {
+		return nil, err
+	}
+	return jb, nil
 }
 
 func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {

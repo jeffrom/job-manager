@@ -33,8 +33,8 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 		jb.Status = resource.NewStatus(resource.StatusQueued)
 	}
 
-	fields, vals := namedSQLFields(
-		"v", "queue", "queue_v",
+	fields, vals := sqlFields(
+		"v", "queue_id",
 		"attempt", "status",
 		"args", "data", "enqueued_at",
 	)
@@ -76,7 +76,8 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 	}
 
 	jb := &resource.Job{}
-	if err := sqlx.GetContext(ctx, c, jb, "SELECT * FROM jobs WHERE id = $1", id); err != nil {
+	q := "SELECT jobs.id, jobs.v, queues.name, queues.v AS queue_v, attempt, status, args, data, enqueued_at, started_at FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE jobs.id = $1"
+	if err := sqlx.GetContext(ctx, c, jb, q, id); err != nil {
 		return nil, err
 	}
 
@@ -87,6 +88,19 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 }
 
 func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {
+	if opts == nil {
+		opts = &resource.JobListParams{}
+	}
+
+	// q := "SELECT * FROM jobs"
+	// var froms []string
+	// var wheres []string
+	// var args []interface{}
+
+	// if len(opts.Names) > 0 {
+	// 	joins = append(joins, "JOIN queues ON jobs.queue = queues.id")
+	// 	wheres = append(wheres, "")
+	// }
 	return nil, nil
 }
 
@@ -113,7 +127,7 @@ func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 	}
 
 	var checkins []*resource.JobCheckin
-	if err := sqlx.SelectContext(ctx, c, checkins, q, args...); err != nil {
+	if err := sqlx.SelectContext(ctx, c, &checkins, c.Rebind(q), args...); err != nil {
 		return err
 	}
 	for _, row := range checkins {
@@ -127,7 +141,7 @@ func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 	}
 
 	var results []*resource.JobResult
-	if err := sqlx.SelectContext(ctx, c, results, q, args...); err != nil {
+	if err := sqlx.SelectContext(ctx, c, &results, c.Rebind(q), args...); err != nil {
 		return err
 	}
 	for _, row := range results {

@@ -34,10 +34,8 @@ CREATE TYPE job_status AS ENUM (
 
 CREATE TABLE jobs (
     id bigserial PRIMARY KEY,
-    root_id bigint not null,
     v integer not null,
-    queue bigint not null REFERENCES queues (id),
-    queue_v integer not null,
+    queue_id bigint not null REFERENCES queues (id),
     attempt smallint,
     status job_status not null,
     args jsonb,

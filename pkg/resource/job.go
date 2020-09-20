@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -9,17 +10,19 @@ import (
 
 type Job struct {
 	ID           string        `json:"id"`
-	QueueID      int64         `json:"-" db:"queue"`
+	QueueID      int64         `json:"-" db:"queue_id"`
 	Version      *Version      `json:"version" db:"v"`
 	Name         string        `json:"name"`
 	QueueVersion *Version      `json:"queue_version" db:"queue_v"`
 	Args         []interface{} `json:"args"`
+	ArgsRaw      string        `json:"-" db:"args"`
 	Data         *JobData      `json:"data,omitempty"`
 	Status       *Status       `json:"status"`
 	Attempt      int           `json:"attempt,omitempty"`
 	Checkins     []*JobCheckin `json:"checkins,omitempty"`
 	Results      []*JobResult  `json:"results,omitempty"`
 	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty" db:"enqueued_at"`
+	StartedAt    sql.NullTime  `json:"started_at,omitempty" db:"started_at"`
 }
 
 func (jb *Job) String() string {
@@ -114,19 +117,21 @@ type JobData struct {
 }
 
 type JobCheckin struct {
-	JobID     string      `json:"job_id" db:"job_id"`
+	ID        string      `json:"-"`
+	JobID     string      `json:"-" db:"job_id"`
 	Data      interface{} `json:"data,omitempty"`
-	CreatedAt time.Time   `json:"created_at"`
+	CreatedAt time.Time   `json:"created_at" db:"created_at"`
 }
 
 type JobResult struct {
-	JobID       string      `json:"job_id" db:"job_id"`
+	ID          string      `json:"-"`
+	JobID       string      `json:"-" db:"job_id"`
 	Attempt     int         `json:"attempt"`
 	Status      *Status     `json:"status"`
 	Data        interface{} `json:"data,omitempty"`
 	Error       string      `json:"error,omitempty"`
-	StartedAt   time.Time   `json:"started_at"`
-	CompletedAt time.Time   `json:"completed_at"`
+	StartedAt   time.Time   `json:"started_at" db:"started_at"`
+	CompletedAt time.Time   `json:"completed_at" db:"completed_at"`
 }
 
 type JobListParams struct {

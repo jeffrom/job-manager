@@ -177,7 +177,7 @@ func (pg *Postgres) DeleteJobKeys(ctx context.Context, keys []string) error {
 	return nil
 }
 
-func namedSQLFields(fields ...string) (string, string) {
+func sqlFields(fields ...string) (string, string) {
 	cols := strings.Join(fields, ", ")
 	args := make([]string, len(fields))
 	for i, field := range fields {

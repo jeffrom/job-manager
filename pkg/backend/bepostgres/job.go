@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/resource"
@@ -101,8 +102,9 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 		return nil, err
 	}
 
-	q := fmt.Sprintf("SELECT %s FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id", jobFields)
-	// var froms []string
+	q := fmt.Sprintf("%s FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id", jobFields)
+	usingLabels := false
+	var joins []string
 	var wheres []string
 	var args []interface{}
 
@@ -114,16 +116,44 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 
 	}
 	if len(opts.Statuses) > 0 {
-
+		wheres = append(wheres, "jobs.status IN (?)")
+		args = append(args, resource.StatusStrings(opts.Statuses...))
 	}
-	if len(opts.Claims) > 0 {
+	if opts.Selectors.Len() > 0 {
+		joins, wheres, args = sqlSelectors(opts.Selectors, joins, wheres, args)
+		usingLabels = true
+	}
 
+	if usingLabels {
+		q = "SELECT DISTINCT ON (id) " + q
+	} else {
+		q = "SELECT " + q
+	}
+
+	if len(joins) > 0 {
+		q += " " + strings.Join(joins, " ")
+	}
+	if len(wheres) > 0 {
+		q += " WHERE " + strings.Join(wheres, " AND ")
+	}
+
+	q, args, err = sqlx.In(q, args...)
+	if err != nil {
+		return nil, err
 	}
 
 	var rows []*resource.Job
-	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {
+	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
 		return nil, err
 	}
+
+	// XXX if we're using labels have to query queue labels here to handle the
+	// !label selector :'(
+
+	if err := annotateJobs(ctx, c, rows); err != nil {
+		return nil, err
+	}
+
 	return &resource.Jobs{Jobs: rows}, nil
 }
 
@@ -137,6 +167,9 @@ func uniquenessKeyFromArgs(args []interface{}) (string, error) {
 }
 
 func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
+	if len(jobs) == 0 {
+		return nil
+	}
 	ids := make([]string, len(jobs))
 	jobmap := make(map[string]*resource.Job)
 	for i, jb := range jobs {

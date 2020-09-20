@@ -178,7 +178,7 @@ func (be *RedisBackend) indexLookupQueueStatus(ctx context.Context, pipe redis.P
 	for _, queueName := range opts.Names {
 		key := indexKey("status", queueName)
 		for _, st := range opts.Statuses {
-			lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
+			lex := lexicalKey(strconv.FormatInt(int64(*st), 10), "")
 			minlex := `[` + lex
 			maxlex := `(` + lex + string(0xff)
 			// fmt.Printf("lex: %q\n", lex)
@@ -196,7 +196,7 @@ func (be *RedisBackend) indexLookupStatus(ctx context.Context, pipe redis.Pipeli
 	key := indexKey("status")
 	var status []*redis.StringSliceCmd
 	for _, st := range opts.Statuses {
-		lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
+		lex := lexicalKey(strconv.FormatInt(int64(*st), 10), "")
 		minlex := `[` + lex
 		maxlex := `(` + lex + string(0xff)
 		status = append(status, pipe.ZRangeByLex(ctx, key, &redis.ZRangeBy{

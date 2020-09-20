@@ -79,9 +79,9 @@ func (jb *Job) IsAttempted() bool {
 	return StatusIsAttempted(jb.Status)
 }
 
-func (jb *Job) HasStatus(statuses ...Status) bool {
+func (jb *Job) HasStatus(statuses ...*Status) bool {
 	for _, st := range statuses {
-		if *jb.Status == st {
+		if *jb.Status == *st {
 			return true
 		}
 	}
@@ -136,7 +136,7 @@ type JobResult struct {
 
 type JobListParams struct {
 	Names         []string         `json:"names,omitempty"`
-	Statuses      []Status         `json:"statuses,omitempty"`
+	Statuses      []*Status        `json:"statuses,omitempty"`
 	Selectors     *label.Selectors `json:"selectors,omitempty"`
 	Claims        label.Claims     `json:"claims,omitempty"`
 	EnqueuedSince time.Time        `json:"enqueued_since,omitempty"`

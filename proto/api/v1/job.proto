@@ -1,10 +1,20 @@
 syntax = "proto3";
 package api.v1;
 
+import "google/protobuf/timestamp.proto";
+
 import "job/v1/job.proto";
 import "api/v1/errors.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
+
+message ListJobsRequest {
+  repeated string name = 1;
+  repeated string status = 2;
+  repeated string selector = 3;
+  google.protobuf.Timestamp created_since = 4;
+  google.protobuf.Timestamp created_until = 5;
+}
 
 message ListJobsResponse {
   repeated job.v1.Job items = 1;

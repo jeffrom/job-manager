@@ -15,6 +15,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 
+	"github.com/jeffrom/job-manager/pkg/label"
 	"github.com/jeffrom/job-manager/pkg/logger"
 )
 
@@ -192,4 +193,35 @@ func stringsToBytea(vals []string) [][]byte {
 		res[i] = []byte(val)
 	}
 	return res
+}
+
+func sqlSelectors(sel *label.Selectors, joins, wheres []string, args []interface{}) ([]string, []string, []interface{}) {
+	if sel.Len() == 0 {
+		return joins, wheres, args
+	}
+
+	joins = append(joins, "JOIN queue_labels ON queues.name = queue_labels.queue")
+
+	if names := sel.Names; len(names) > 0 {
+		wheres = append(wheres, "queue_labels.name IN (?)")
+		args = append(args, names)
+	}
+	if notnames := sel.NotNames; len(notnames) > 0 {
+		wheres = append(wheres, "queue_labels.name NOT IN (?)")
+		args = append(args, notnames)
+	}
+	if in := sel.In; len(in) > 0 {
+		for k, v := range in {
+			wheres = append(wheres, "queue_labels.name = ? AND queue_labels.value IN (?)")
+			args = append(args, k, v)
+		}
+	}
+	if notin := sel.NotIn; len(notin) > 0 {
+		for k, v := range notin {
+			wheres = append(wheres, "queue_labels.name = ? AND queue_labels.value NOT IN (?)")
+			args = append(args, k, v)
+		}
+	}
+
+	return joins, wheres, args
 }

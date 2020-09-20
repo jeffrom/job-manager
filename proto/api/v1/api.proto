@@ -6,7 +6,6 @@ import "api/v1/dequeue.proto";
 import "api/v1/ack.proto";
 import "api/v1/queue.proto";
 import "api/v1/job.proto";
-import "job/v1/job.proto";
 
 option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
 
@@ -15,7 +14,7 @@ service ApiService {
   rpc EnqueueJobs(EnqueueJobsRequest) returns (EnqueueJobsResponse);
   rpc DequeueJobs(DequeueJobsRequest) returns (DequeueJobsResponse);
   rpc AckJobs(AckJobsRequest) returns (AckJobsResponse);
-  rpc ListJobs(job.v1.JobListParams) returns (ListJobsResponse);
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
 
   rpc SaveQueue(SaveQueueRequest) returns (SaveQueueResponse);
   rpc ListQueues(ListQueuesRequest) returns (ListQueuesResponse);

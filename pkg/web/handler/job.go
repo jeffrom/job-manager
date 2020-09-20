@@ -13,12 +13,12 @@ import (
 )
 
 func ListJobs(w http.ResponseWriter, r *http.Request) error {
-	var params jobv1.JobListParams
+	var params apiv1.ListJobsRequest
 	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
 
-	sels, err := label.ParseSelectorStringArray(params.Selectors)
+	sels, err := label.ParseSelectorStringArray(params.Selector)
 	if err != nil {
 		return err
 	}
@@ -26,8 +26,11 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := backend.FromMiddleware(ctx)
 
+	// fmt.Println("status", params.Statuses)
 	resourceParams := &resource.JobListParams{
-		Names:     params.Names,
+		Names: params.Name,
+		// Statuses:  jobv1.JobStatusesFromProto(params.Statuses),
+		Statuses:  resource.StatusesFromStrings(params.Status...),
 		Selectors: sels,
 	}
 	jobs, err := be.ListJobs(ctx, 20, resourceParams)

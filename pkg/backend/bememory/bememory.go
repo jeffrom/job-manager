@@ -116,7 +116,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
-	opts.Statuses = []resource.Status{resource.StatusQueued, resource.StatusFailed}
+	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
 	jobs, err := m.ListJobs(ctx, limit, opts)
 	if err != nil {

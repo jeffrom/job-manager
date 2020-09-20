@@ -72,30 +72,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 			args = append(args, opts.Names)
 		}
 
-		if sel := opts.Selectors; sel.Len() > 0 {
-			joins = append(joins, "JOIN queue_labels ON queues.name = queue_labels.queue")
-
-			if names := sel.Names; len(names) > 0 {
-				wheres = append(wheres, "queue_labels.name IN (?)")
-				args = append(args, names)
-			}
-			if notnames := sel.NotNames; len(notnames) > 0 {
-				wheres = append(wheres, "queue_labels.name NOT IN (?)")
-				args = append(args, notnames)
-			}
-			if in := sel.In; len(in) > 0 {
-				for k, v := range in {
-					wheres = append(wheres, "queue_labels.name = ? AND queue_labels.value IN (?)")
-					args = append(args, k, v)
-				}
-			}
-			if notin := sel.NotIn; len(notin) > 0 {
-				for k, v := range notin {
-					wheres = append(wheres, "queue_labels.name = ? AND queue_labels.value NOT IN (?)")
-					args = append(args, k, v)
-				}
-			}
-		}
+		joins, wheres, args = sqlSelectors(opts.Selectors, joins, wheres, args)
 	}
 	if len(joins) > 0 {
 		q += " " + strings.Join(joins, " ")

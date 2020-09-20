@@ -169,6 +169,14 @@ func jobStatusFromProto(status Status) *resource.Status {
 	}
 }
 
+func JobStatusesFromProto(statuses []Status) []*resource.Status {
+	res := make([]*resource.Status, len(statuses))
+	for i, st := range statuses {
+		res[i] = jobStatusFromProto(st)
+	}
+	return res
+}
+
 func jobCheckinsFromProto(checkins []*Checkin) []*resource.JobCheckin {
 	rcs := make([]*resource.JobCheckin, len(checkins))
 	for i, c := range checkins {

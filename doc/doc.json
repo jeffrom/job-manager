@@ -57,9 +57,9 @@
             {
               "name": "ListJobs",
               "description": "",
-              "requestType": "JobListParams",
-              "requestLongType": ".job.v1.JobListParams",
-              "requestFullType": "job.v1.JobListParams",
+              "requestType": "ListJobsRequest",
+              "requestLongType": "ListJobsRequest",
+              "requestFullType": "api.v1.ListJobsRequest",
               "requestStreaming": false,
               "responseType": "ListJobsResponse",
               "responseLongType": "ListJobsResponse",
@@ -927,6 +927,67 @@
       "enums": [],
       "extensions": [],
       "messages": [
+        {
+          "name": "ListJobsRequest",
+          "longName": "ListJobsRequest",
+          "fullName": "api.v1.ListJobsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "status",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "selector",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_since",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_until",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
         {
           "name": "ListJobsResponse",
           "longName": "ListJobsResponse",

@@ -20,27 +20,35 @@ const (
 
 func NewStatus(s Status) *Status { return &s }
 
-func statusFromString(s string) Status {
+func StatusFromString(s string) *Status {
 	switch s {
 	case "unspecified":
-		return StatusUnspecified
+		return NewStatus(StatusUnspecified)
 	case "queued":
-		return StatusQueued
+		return NewStatus(StatusQueued)
 	case "running":
-		return StatusRunning
+		return NewStatus(StatusRunning)
 	case "complete":
-		return StatusComplete
+		return NewStatus(StatusComplete)
 	case "failed":
-		return StatusFailed
+		return NewStatus(StatusFailed)
 	case "dead":
-		return StatusDead
+		return NewStatus(StatusDead)
 	case "invalid":
-		return StatusInvalid
+		return NewStatus(StatusInvalid)
 	case "cancelled":
-		return StatusCancelled
+		return NewStatus(StatusCancelled)
 	default:
-		return StatusUnspecified
+		return NewStatus(StatusUnspecified)
 	}
+}
+
+func StatusesFromStrings(statuses ...string) []*Status {
+	res := make([]*Status, len(statuses))
+	for i, st := range statuses {
+		res[i] = StatusFromString(st)
+	}
+	return res
 }
 
 func (s *Status) String() string {
@@ -73,7 +81,7 @@ func (s *Status) Scan(value interface{}) error {
 	}
 
 	valstr := value.(string)
-	*s = statusFromString(valstr)
+	*s = *StatusFromString(valstr)
 	return nil
 }
 
@@ -87,4 +95,12 @@ func StatusIsAttempted(status *Status) bool {
 		return true
 	}
 	return false
+}
+
+func StatusStrings(statuses ...*Status) []string {
+	res := make([]string, len(statuses))
+	for i, st := range statuses {
+		res[i] = st.String()
+	}
+	return res
 }

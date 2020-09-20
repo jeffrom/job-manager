@@ -63,7 +63,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
-	opts.Statuses = []resource.Status{resource.StatusQueued, resource.StatusFailed}
+	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
 	ids, err := be.indexLookupJob(ctx, int64(num), opts)
 	if err != nil {

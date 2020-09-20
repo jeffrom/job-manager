@@ -184,7 +184,7 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 
 	resJobs, err := be.ListJobs(ctx, 3, &resource.JobListParams{
 		Names:    []string{"cool"},
-		Statuses: []resource.Status{resource.StatusComplete},
+		Statuses: []*resource.Status{resource.NewStatus(resource.StatusComplete)},
 	})
 	if err != nil {
 		t.Fatal(err)

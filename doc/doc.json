@@ -967,6 +967,16 @@
               "defaultValue": ""
             },
             {
+              "name": "claim",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "created_since",
               "description": "",
               "label": "",

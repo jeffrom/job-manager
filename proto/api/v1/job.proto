@@ -12,8 +12,9 @@ message ListJobsRequest {
   repeated string name = 1;
   repeated string status = 2;
   repeated string selector = 3;
-  google.protobuf.Timestamp created_since = 4;
-  google.protobuf.Timestamp created_until = 5;
+  repeated string claim = 4;
+  google.protobuf.Timestamp created_since = 5;
+  google.protobuf.Timestamp created_until = 6;
 }
 
 message ListJobsResponse {

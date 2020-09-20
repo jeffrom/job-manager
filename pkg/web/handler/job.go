@@ -23,15 +23,20 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	claims, err := label.ParseClaims(params.Claim)
+	if err != nil {
+		return err
+	}
+
 	ctx := r.Context()
 	be := backend.FromMiddleware(ctx)
 
 	// fmt.Println("status", params.Statuses)
 	resourceParams := &resource.JobListParams{
-		Names: params.Name,
-		// Statuses:  jobv1.JobStatusesFromProto(params.Statuses),
+		Names:     params.Name,
 		Statuses:  resource.StatusesFromStrings(params.Status...),
 		Selectors: sels,
+		Claims:    claims,
 	}
 	jobs, err := be.ListJobs(ctx, 20, resourceParams)
 	if err != nil {

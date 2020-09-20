@@ -113,7 +113,11 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 		args = append(args, opts.Names)
 	}
 	if len(opts.Claims) > 0 {
-
+		joins = append(joins, "LEFT JOIN job_claims ON jobs.id = job_claims.job_id")
+		for name, vals := range opts.Claims {
+			wheres = append(wheres, "job_claims.name = ? AND job_claims.value IN (?)")
+			args = append(args, name, vals)
+		}
 	}
 	if len(opts.Statuses) > 0 {
 		wheres = append(wheres, "jobs.status IN (?)")

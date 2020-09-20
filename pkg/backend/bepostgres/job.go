@@ -33,7 +33,7 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 		jb.Status = resource.NewStatus(resource.StatusQueued)
 	}
 
-	fields, vals := sqlFields(
+	fields, vals := namedSQLFields(
 		"v", "queue", "queue_v",
 		"attempt", "status",
 		"args", "data", "enqueued_at",

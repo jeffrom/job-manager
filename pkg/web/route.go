@@ -96,6 +96,7 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 					r.Get("/", handler.Func(handler.GetJobByID))
 					r.Get("/queue", handler.Func(handler.GetQueueByJobID))
 				})
+				r.Get("/", handler.Func(handler.ListJobs))
 			})
 		})
 	})

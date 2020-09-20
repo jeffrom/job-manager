@@ -4,11 +4,16 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jmoiron/sqlx"
+)
+
+const (
+	jobFields = "jobs.id, jobs.v, queues.name, queues.v AS queue_v, attempt, status, args, data, enqueued_at, started_at"
 )
 
 func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
@@ -76,7 +81,7 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 	}
 
 	jb := &resource.Job{}
-	q := "SELECT jobs.id, jobs.v, queues.name, queues.v AS queue_v, attempt, status, args, data, enqueued_at, started_at FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE jobs.id = $1"
+	q := fmt.Sprintf("SELECT %s FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE jobs.id = $1", jobFields)
 	if err := sqlx.GetContext(ctx, c, jb, q, id); err != nil {
 		return nil, err
 	}
@@ -91,8 +96,12 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	// q := "SELECT * FROM jobs"
+	q := fmt.Sprintf("SELECT %s FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id", jobFields)
 	// var froms []string
 	// var wheres []string
 	// var args []interface{}
@@ -101,7 +110,12 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	// 	joins = append(joins, "JOIN queues ON jobs.queue = queues.id")
 	// 	wheres = append(wheres, "")
 	// }
-	return nil, nil
+
+	var rows []*resource.Job
+	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {
+		return nil, err
+	}
+	return &resource.Jobs{Jobs: rows}, nil
 }
 
 func uniquenessKeyFromArgs(args []interface{}) (string, error) {

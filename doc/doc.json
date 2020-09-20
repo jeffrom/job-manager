@@ -55,6 +55,18 @@
               "responseStreaming": false
             },
             {
+              "name": "ListJobs",
+              "description": "",
+              "requestType": "JobListParams",
+              "requestLongType": ".job.v1.JobListParams",
+              "requestFullType": "job.v1.JobListParams",
+              "requestStreaming": false,
+              "responseType": "ListJobsResponse",
+              "responseLongType": "ListJobsResponse",
+              "responseFullType": "api.v1.ListJobsResponse",
+              "responseStreaming": false
+            },
+            {
               "name": "SaveQueue",
               "description": "",
               "requestType": "SaveQueueRequest",
@@ -886,6 +898,51 @@
               "type": "Jobs",
               "longType": "job.v1.Jobs",
               "fullType": "job.v1.Jobs",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "ErrorResponse",
+              "longType": "ErrorResponse",
+              "fullType": "api.v1.ErrorResponse",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
+      "name": "api/v1/job.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "ListJobsResponse",
+          "longName": "ListJobsResponse",
+          "fullName": "api.v1.ListJobsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "items",
+              "description": "",
+              "label": "repeated",
+              "type": "Job",
+              "longType": "job.v1.Job",
+              "fullType": "job.v1.Job",
               "ismap": false,
               "defaultValue": ""
             },

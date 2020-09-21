@@ -2,8 +2,6 @@ package bepostgres
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -44,7 +42,7 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 		"attempt", "status",
 		"args", "data", "enqueued_at",
 	)
-	q := "INSERT INTO jobs (" + fields + ", root_id) VALUES (" + vals + ", 0) RETURNING id"
+	q := "INSERT INTO jobs (" + fields + ") VALUES (" + vals + ") RETURNING id"
 	stmt, err := c.PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -68,7 +66,40 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 		opts = &resource.JobListParams{}
 	}
 	opts.NoUnclaimed = true
-	return nil, nil
+	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
+
+	jobs, err := pg.ListJobs(ctx, limit, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	q := "UPDATE jobs SET status = 'running', attempt = attempt+1, v = v+1, started_at = $1 WHERE id = $2 RETURNING *"
+	stmt, err := sqlx.PreparexContext(ctx, c, q)
+	if err != nil {
+		return nil, err
+	}
+
+	resJobs := make([]*resource.Job, len(jobs.Jobs))
+	for i, jb := range jobs.Jobs {
+		fmt.Println("job:", jb)
+		resJob := jb.Copy()
+		fmt.Println("copy:", resJob)
+		if err := stmt.GetContext(ctx, resJob, now, jb.ID); err != nil {
+			return nil, err
+		}
+		fmt.Println("row:", resJob)
+
+		resJobs[i] = resJob
+	}
+	jobs.Jobs = resJobs
+	return jobs, nil
 }
 
 func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
@@ -76,10 +107,6 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 }
 
 func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
-	// id, err := strconv.ParseInt(idstr, 10, 64)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	c, err := pg.getConn(ctx)
 	if err != nil {
 		return nil, err
@@ -121,6 +148,14 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 		wheres = append(wheres, "queues.name IN (?)")
 		args = append(args, opts.Names)
 	}
+	if len(opts.Statuses) > 0 {
+		wheres = append(wheres, "jobs.status IN (?)")
+		args = append(args, resource.StatusStrings(opts.Statuses...))
+	}
+	if opts.Selectors.Len() > 0 {
+		joins, wheres, args = sqlSelectors(opts.Selectors, joins, wheres, args)
+		usingLabels = true
+	}
 	if opts.NoUnclaimed || len(opts.Claims) > 0 {
 		joins = append(joins, "LEFT JOIN job_claims ON jobs.id = job_claims.job_id")
 		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, completed_at AS completed_at FROM job_results ORDER BY job_id, completed_at DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
@@ -131,17 +166,9 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 	if len(opts.Claims) > 0 {
 		for name, vals := range opts.Claims {
-			wheres = append(wheres, "job_claims.name = ? AND job_claims.value IN (?) AND GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?")
+			wheres = append(wheres, "(job_claims.name = ? AND job_claims.value IN (?)) OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?)")
 			args = append(args, name, vals, now)
 		}
-	}
-	if len(opts.Statuses) > 0 {
-		wheres = append(wheres, "jobs.status IN (?)")
-		args = append(args, resource.StatusStrings(opts.Statuses...))
-	}
-	if opts.Selectors.Len() > 0 {
-		joins, wheres, args = sqlSelectors(opts.Selectors, joins, wheres, args)
-		usingLabels = true
 	}
 
 	if usingLabels {
@@ -166,6 +193,11 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
 		return nil, err
 	}
+	for _, row := range rows {
+		if err := row.Populate(); err != nil {
+			return nil, err
+		}
+	}
 
 	// XXX if we're using labels have to query queue labels here to handle the
 	// !label selector :'(
@@ -175,15 +207,6 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 
 	return &resource.Jobs{Jobs: rows}, nil
-}
-
-func uniquenessKeyFromArgs(args []interface{}) (string, error) {
-	b, err := json.Marshal(args)
-	if err != nil {
-		return "", err
-	}
-	sum := sha256.Sum256(b)
-	return string(sum[:]), nil
 }
 
 func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {

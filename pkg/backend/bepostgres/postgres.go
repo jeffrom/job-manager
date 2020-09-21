@@ -6,13 +6,14 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	// "github.com/jackc/pgx/v4/pgxpool"
+	// _ "github.com/jackc/pgx/v4/stdlib"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/zerologadapter"
 	"github.com/jackc/pgx/v4/stdlib"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/jeffrom/job-manager/pkg/label"
@@ -83,6 +84,10 @@ func (pg *Postgres) ensureConn(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	db.SetMaxOpenConns(32)
+	db.SetMaxIdleConns(32)
+	db.SetConnMaxLifetime(15 * time.Minute)
 	pg.db = db
 	return nil
 }
@@ -135,6 +140,7 @@ func (pg *Postgres) GetSetJobKeys(ctx context.Context, keys []string) (bool, err
 	if err != nil {
 		return false, err
 	}
+
 	q := "SELECT 't'::boolean FROM job_uniqueness WHERE key IN (?)"
 	args := stringsToBytea(keys)
 	q, iargs, err := sqlx.In(q, args)

@@ -14,29 +14,34 @@ const txKey = contextKey("tx")
 
 // Middleware provides transaction middleware.
 func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
+	log := pg.cfg.Logger
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			if err := pg.ensureConn(ctx); err != nil {
-				panic(err)
+				log.Error().Err(err).Msg("getting pg conn failed")
+				return
 			}
 			tx, err := pg.db.BeginTxx(ctx, nil)
 			if err != nil {
-				panic(err)
-				// return
+				log.Error().Err(err).Msg("starting pg transaction failed")
+				return
 			}
 			ctx = setTx(ctx, tx)
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 			next.ServeHTTP(ww, r.WithContext(ctx))
 
 			if statusFailed(ww.Status()) {
+				log.Debug().Msg("rollback")
 				err = tx.Rollback()
 			} else {
+				log.Debug().Msg("commit")
 				err = tx.Commit()
 			}
 
 			if err != nil {
-				panic(err)
+				log.Error().Err(err).Msg("commit/rollback failed")
+				return
 			}
 		}
 

@@ -46,8 +46,6 @@ CREATE TABLE jobs (
     -- completed_at timestamp
 );
 
-COMMENT ON COLUMN jobs.root_id IS 'id of v1 job. 0 if row is v1.';
-
 CREATE TABLE job_claims (
     id bigserial PRIMARY KEY,
     job_id bigint not null REFERENCES jobs (id),

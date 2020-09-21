@@ -15,7 +15,7 @@ type Job struct {
 	Name         string        `json:"name"`
 	QueueVersion *Version      `json:"queue_version" db:"queue_v"`
 	Args         []interface{} `json:"args"`
-	ArgsRaw      string        `json:"-" db:"args"`
+	ArgsRaw      []byte        `json:"-" db:"args"`
 	Data         *JobData      `json:"data,omitempty"`
 	Status       *Status       `json:"status"`
 	Attempt      int           `json:"attempt,omitempty"`
@@ -28,6 +28,23 @@ type Job struct {
 func (jb *Job) String() string {
 	b, _ := json.Marshal(jb)
 	return string(b)
+}
+
+func (jb *Job) Populate() error {
+	if jb.Args != nil {
+		b, err := json.Marshal(jb.Args)
+		if err != nil {
+			return err
+		}
+		jb.ArgsRaw = b
+	} else if len(jb.ArgsRaw) > 0 {
+		args := []interface{}{}
+		if err := json.Unmarshal(jb.ArgsRaw, &args); err != nil {
+			return err
+		}
+		jb.Args = args
+	}
+	return nil
 }
 
 func (jb *Job) Copy() *Job {
@@ -91,6 +108,15 @@ func (jb *Job) HasStatus(statuses ...*Status) bool {
 type Jobs struct {
 	Jobs []*Job `json:"jobs"`
 }
+
+// func (jobs *Jobs) Populate() error {
+// 	for _, jb := range jobs {
+// 		if err := jb.Populate(); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 
 func (jobs *Jobs) IDs() []string {
 	if jobs == nil {

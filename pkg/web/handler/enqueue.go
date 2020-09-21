@@ -79,6 +79,9 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			jobs.Jobs[i] = jb
 
 			jobRes := jobv1.NewJobFromProto(jb, claims)
+			if err := jobRes.Populate(); err != nil {
+				return err
+			}
 			resources.Jobs[i] = jobRes
 			// fmt.Printf("JOB: %+v\n", jobs.Jobs[i])
 		}

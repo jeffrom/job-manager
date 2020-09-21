@@ -17,7 +17,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	be := backend.FromMiddleware(ctx)
 	queueID := chi.URLParam(r, "queueID")
 	var params apiv1.DequeueJobsRequest
-	if err := UnmarshalBody(r, &params, queueID == ""); err != nil {
+	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
 	// TODO error if queueID url param is set and there are more than one queue

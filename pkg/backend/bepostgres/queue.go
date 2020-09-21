@@ -114,7 +114,7 @@ func getQueueByName(ctx context.Context, c sqlxer, name string) (*resource.Queue
 	queue := &resource.Queue{}
 	if err := sqlx.GetContext(ctx, c, queue, q, name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, backend.ErrNotFound
 		}
 		return nil, err
 	}

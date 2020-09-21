@@ -6,3 +6,5 @@ dist/
 /job-manager
 /jobctl
 /proc-consume
+
+graph.svg

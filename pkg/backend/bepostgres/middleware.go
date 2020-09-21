@@ -50,7 +50,7 @@ func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
 }
 
 func statusFailed(status int) bool {
-	return status < 200 || status >= 300
+	return status != 0 && status < 200 || status >= 300
 }
 
 func setTx(ctx context.Context, tx *sqlx.Tx) context.Context {

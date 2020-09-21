@@ -66,7 +66,7 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 			continue
 		}
 
-		jobData, err := be.GetJobByID(ctx, ack.ID)
+		jobData, err := be.GetJobByID(ctx, ack.JobID)
 		if err != nil {
 			return err
 		}

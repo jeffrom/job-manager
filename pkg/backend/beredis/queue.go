@@ -66,7 +66,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 	}
 	queue := queueArg.Copy()
 
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	key := queueKey(queue.Name)
 
 	// TODO this could be TxPipeline? use pop instead of trim?

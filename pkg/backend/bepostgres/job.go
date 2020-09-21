@@ -2,6 +2,7 @@ package bepostgres
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -88,13 +89,10 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 
 	resJobs := make([]*resource.Job, len(jobs.Jobs))
 	for i, jb := range jobs.Jobs {
-		fmt.Println("job:", jb)
 		resJob := jb.Copy()
-		fmt.Println("copy:", resJob)
 		if err := stmt.GetContext(ctx, resJob, now, jb.ID); err != nil {
 			return nil, err
 		}
-		fmt.Println("row:", resJob)
 
 		resJobs[i] = resJob
 	}
@@ -103,6 +101,42 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 }
 
 func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+
+	q := "UPDATE jobs SET status = ?, v = v+1 WHERE id = ? RETURNING *"
+	update, err := sqlx.PreparexContext(ctx, c, c.Rebind(q))
+	if err != nil {
+		return err
+	}
+
+	insertq := "INSERT INTO job_results (job_id, status, data, error, started_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)"
+	insert, err := sqlx.PreparexContext(ctx, c, c.Rebind(insertq))
+	if err != nil {
+		return err
+	}
+
+	for _, ack := range results.Acks {
+		jb := &resource.Job{}
+		status := ack.Status.String()
+		if err := update.GetContext(ctx, jb, status, ack.JobID); err != nil {
+			return err
+		}
+
+		var data []byte
+		if ack.Data != nil {
+			data, err = json.Marshal(ack.Data)
+			if err != nil {
+				return err
+			}
+		}
+		if _, err := insert.ExecContext(ctx, ack.JobID, ack.Status, data, ack.Error, jb.StartedAt, now); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

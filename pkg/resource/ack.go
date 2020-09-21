@@ -1,10 +1,18 @@
 package resource
 
+import "encoding/json"
+
 type Ack struct {
-	ID     string      `json:"id"`
+	ID     string      `json:"-" db:"id"`
+	JobID  string      `json:"job_id" db:"job_id"`
 	Status *Status     `json:"status"`
 	Data   interface{} `json:"data,omitempty"`
 	Error  string      `json:"error,omitempty"`
+}
+
+func (ack *Ack) String() string {
+	b, _ := json.Marshal(ack)
+	return string(b)
 }
 
 type Acks struct {

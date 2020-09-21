@@ -96,7 +96,7 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 }
 
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*resource.Jobs, error) {
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, jobArg := range jobArgs.Jobs {
 		queue, err := m.GetQueue(ctx, jobArg.Name)
 		if err != nil {
@@ -123,7 +123,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 		return nil, err
 	}
 
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 
 	// filter out jobs with an unmet claim window
 	var filtered []*resource.Job
@@ -158,7 +158,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 }
 
 func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, ack := range acks.Acks {
 		jobData, ok := m.jobs[ack.ID]
 		if !ok {

@@ -176,8 +176,8 @@ func (pg *Postgres) DeleteJobKeys(ctx context.Context, keys []string) error {
 	if err != nil {
 		return err
 	}
-	for _, key := range keys {
-		if _, err := stmt.ExecContext(ctx, key); err != nil {
+	for _, key := range stringsToBytea(keys) {
+		if _, err := stmt.ExecContext(ctx, key); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
 	}

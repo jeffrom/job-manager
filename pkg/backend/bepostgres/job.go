@@ -50,6 +50,13 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 	}
 	defer stmt.Close()
 
+	claimQ := "INSERT INTO job_claims (job_id, name, value) VALUES (?, ?, ?)"
+	insertClaims, err := c.PrepareContext(ctx, c.Rebind(claimQ))
+	if err != nil {
+		return nil, err
+	}
+	defer insertClaims.Close()
+
 	for _, jb := range jobs.Jobs {
 		row := stmt.QueryRowContext(ctx, jb)
 		var id int64
@@ -57,6 +64,16 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 			return nil, err
 		}
 		jb.ID = strconv.FormatInt(id, 10)
+
+		if jb.Data != nil && len(jb.Data.Claims) > 0 {
+			for k, vals := range jb.Data.Claims {
+				for _, v := range vals {
+					if _, err := insertClaims.ExecContext(ctx, jb.ID, k, v); err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
 	}
 
 	return jobs, nil
@@ -86,6 +103,7 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
 
 	resJobs := make([]*resource.Job, len(jobs.Jobs))
 	for i, jb := range jobs.Jobs {
@@ -112,12 +130,14 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 	if err != nil {
 		return err
 	}
+	defer update.Close()
 
 	insertq := "INSERT INTO job_results (job_id, status, data, error, started_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)"
 	insert, err := sqlx.PreparexContext(ctx, c, c.Rebind(insertq))
 	if err != nil {
 		return err
 	}
+	defer insert.Close()
 
 	for _, ack := range results.Acks {
 		jb := &resource.Job{}

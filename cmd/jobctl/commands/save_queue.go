@@ -40,6 +40,8 @@ func newSaveQueueCmd(cfg *client.Config) *saveQueueCmd {
 	flags.IntVarP(&opts.Concurrency, "concurrency", "c", 0, "job concurrency")
 	flags.IntVarP(&opts.MaxRetries, "retries", "r", 0, "max retries")
 	flags.DurationVarP(&opts.JobDuration, "duration", "d", 0, "job max duration")
+	flags.DurationVar(&opts.CheckinDuration, "checkin-duration", 0, "job checkin duration")
+	flags.DurationVar(&opts.ClaimDuration, "claim-duration", 0, "job claim duration")
 	flags.StringArrayVarP(&opts.LabelFlags, "label", "l", nil, "set label `name=value`")
 	flags.StringVarP(&opts.SchemaPath, "schema", "S", "", "path to json schema")
 	flags.BoolVarP(&opts.Unique, "unique", "U", false, "run one unique arg list concurrently")
@@ -83,13 +85,15 @@ func runSaveQueue(ctx context.Context, cfg *client.Config, opts *saveQueueOpts, 
 	}
 
 	q, err := cl.SaveQueue(ctx, id, client.SaveQueueOpts{
-		Concurrency: opts.Concurrency,
-		MaxRetries:  opts.MaxRetries,
-		JobDuration: opts.JobDuration,
-		Labels:      labels,
-		Schema:      scmb,
-		Unique:      opts.Unique,
-		Version:     v,
+		Concurrency:     opts.Concurrency,
+		MaxRetries:      opts.MaxRetries,
+		JobDuration:     opts.JobDuration,
+		CheckinDuration: opts.CheckinDuration,
+		ClaimDuration:   opts.ClaimDuration,
+		Labels:          labels,
+		Schema:          scmb,
+		Unique:          opts.Unique,
+		Version:         v,
 	})
 	if err != nil {
 		return err

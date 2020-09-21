@@ -17,6 +17,7 @@ type Job struct {
 	Args         []interface{} `json:"args"`
 	ArgsRaw      []byte        `json:"-" db:"args"`
 	Data         *JobData      `json:"data,omitempty"`
+	DataRaw      []byte        `json:"-" db:"data"`
 	Status       *Status       `json:"status"`
 	Attempt      int           `json:"attempt,omitempty"`
 	Checkins     []*JobCheckin `json:"checkins,omitempty"`
@@ -43,6 +44,23 @@ func (jb *Job) Populate() error {
 			return err
 		}
 		jb.Args = args
+	}
+
+	if jb.Data != nil && jb.Data.Data != nil {
+		b, err := json.Marshal(jb.Data)
+		if err != nil {
+			return err
+		}
+		jb.DataRaw = b
+	} else if len(jb.DataRaw) > 0 {
+		var data interface{}
+		if err := json.Unmarshal(jb.DataRaw, &data); err != nil {
+			return err
+		}
+		if jb.Data == nil {
+			jb.Data = &JobData{}
+		}
+		jb.Data.Data = data
 	}
 	return nil
 }

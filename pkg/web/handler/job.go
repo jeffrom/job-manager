@@ -33,10 +33,11 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 
 	// fmt.Println("status", params.Statuses)
 	resourceParams := &resource.JobListParams{
-		Names:     params.Name,
-		Statuses:  resource.StatusesFromStrings(params.Status...),
-		Selectors: sels,
-		Claims:    claims,
+		Names:       params.Name,
+		Statuses:    resource.StatusesFromStrings(params.Status...),
+		Selectors:   sels,
+		Claims:      claims,
+		NoUnclaimed: params.NoUnclaimed,
 	}
 	jobs, err := be.ListJobs(ctx, 20, resourceParams)
 	if err != nil {

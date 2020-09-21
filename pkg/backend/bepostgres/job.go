@@ -64,6 +64,10 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 }
 
 func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {
+	if opts == nil {
+		opts = &resource.JobListParams{}
+	}
+	opts.NoUnclaimed = true
 	return nil, nil
 }
 
@@ -101,6 +105,11 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	if err != nil {
 		return nil, err
 	}
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+
+	// XXX for claims (to get the claim duration) and selectors (for
+	// queue_labels), we need a queue map. for claims the version matters, for
+	// labels it doesn't.
 
 	q := fmt.Sprintf("%s FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id", jobFields)
 	usingLabels := false
@@ -112,11 +121,18 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 		wheres = append(wheres, "queues.name IN (?)")
 		args = append(args, opts.Names)
 	}
-	if len(opts.Claims) > 0 {
+	if opts.NoUnclaimed || len(opts.Claims) > 0 {
 		joins = append(joins, "LEFT JOIN job_claims ON jobs.id = job_claims.job_id")
+		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, completed_at AS completed_at FROM job_results ORDER BY job_id, completed_at DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
+	}
+	if opts.NoUnclaimed && len(opts.Claims) == 0 {
+		wheres = append(wheres, "GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?")
+		args = append(args, now)
+	}
+	if len(opts.Claims) > 0 {
 		for name, vals := range opts.Claims {
-			wheres = append(wheres, "job_claims.name = ? AND job_claims.value IN (?)")
-			args = append(args, name, vals)
+			wheres = append(wheres, "job_claims.name = ? AND job_claims.value IN (?) AND GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?")
+			args = append(args, name, vals, now)
 		}
 	}
 	if len(opts.Statuses) > 0 {

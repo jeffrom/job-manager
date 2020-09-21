@@ -977,6 +977,16 @@
               "defaultValue": ""
             },
             {
+              "name": "no_unclaimed",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "created_since",
               "description": "",
               "label": "",

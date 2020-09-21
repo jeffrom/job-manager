@@ -150,9 +150,13 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 
 	for _, jobData := range jobs.Jobs {
+		status := resource.NewStatus(resource.StatusRunning)
 		jobData.Version.Inc()
-		jobData.Results = append(jobData.Results, &resource.JobResult{StartedAt: now})
-		jobData.Status = resource.NewStatus(resource.StatusRunning)
+		jobData.Results = append(jobData.Results, &resource.JobResult{
+			StartedAt: now,
+			Status:    status,
+		})
+		jobData.Status = status
 	}
 	return jobs, nil
 }
@@ -160,14 +164,14 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, ack := range acks.Acks {
-		jobData, ok := m.jobs[ack.ID]
+		jobData, ok := m.jobs[ack.JobID]
 		if !ok {
 			return backend.ErrNotFound
 		}
-		if *jobData.Status != resource.StatusRunning {
-			// TODO return data about what state specifically caused this
-			return backend.ErrInvalidState
-		}
+		// if *jobData.Status != resource.StatusRunning {
+		// 	// TODO return data about what state specifically caused this
+		// 	return backend.ErrInvalidState
+		// }
 
 		jobData.Version.Inc()
 

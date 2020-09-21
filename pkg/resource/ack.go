@@ -19,10 +19,10 @@ type Acks struct {
 	Acks []*Ack `json:"acks"`
 }
 
-func (as *Acks) IDs() []string {
+func (as *Acks) JobIDs() []string {
 	ids := make([]string, len(as.Acks))
 	for i, ack := range as.Acks {
-		ids[i] = ack.ID
+		ids[i] = ack.JobID
 	}
 	return ids
 }

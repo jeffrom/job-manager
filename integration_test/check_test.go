@@ -40,8 +40,8 @@ func checkJob(t testing.TB, jobData *resource.Job) {
 		t.Errorf("jobv1.EnqueuedAt is zero")
 	}
 
-	if jobData.Status == resource.StatusUnspecified {
-		t.Errorf("job.Status is %s", resource.StatusUnspecified)
+	if *jobData.Status == resource.StatusUnspecified {
+		t.Errorf("job.Status is %s", resource.NewStatus(resource.StatusUnspecified))
 	}
 	if jobData.Attempt < 0 {
 		t.Errorf("jobv1.Attempt was %d", jobData.Attempt)

@@ -111,10 +111,12 @@ func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, s
 
 func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id string, status resource.Status, opts client.AckJobOpts) {
 	t.Helper()
+	t.Logf("AckJobOpts(%q, %s, %+v)", id, resource.NewStatus(status), opts)
 	if err := tc.ctx.client.AckJobOpts(ctx, id, status, opts); err != nil {
+		t.Logf("-> Error: %v", err)
 		t.Fatal(err)
 	}
-	t.Logf("ack %s: %s", id, status.String())
+	t.Logf("-> OK")
 }
 
 func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *resource.Job {

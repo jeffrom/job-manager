@@ -2,8 +2,6 @@
 package v1
 
 import (
-	"fmt"
-
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -66,7 +64,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 		}
 	}
 
-	fmt.Printf("marshal data: %#v\n", data)
+	// fmt.Printf("marshal data: %#v\n", data)
 	results, err := jobResultsToProto(jb.Results)
 	if err != nil {
 		return nil, err

@@ -98,11 +98,13 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 		}
 		jb := pjb.Copy()
 		jb.Version.Inc()
-		jb.Status = resource.NewStatus(resource.StatusRunning)
+		status := resource.NewStatus(resource.StatusRunning)
+		jb.Status = status
 
 		jb.Results = []*resource.JobResult{
 			{
 				StartedAt: now,
+				Status:    status,
 				// TODO Attempt:
 			},
 		}
@@ -140,7 +142,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 }
 
 func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
-	ids, err := be.lookupCheckpoints(ctx, req.IDs())
+	ids, err := be.lookupCheckpoints(ctx, req.JobIDs())
 	if err != nil {
 		return err
 	}

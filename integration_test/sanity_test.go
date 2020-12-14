@@ -11,11 +11,11 @@ import (
 	"github.com/go-redis/redis/v8"
 
 	"github.com/jeffrom/job-manager/mjob/client"
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/backend/bememory"
 	"github.com/jeffrom/job-manager/pkg/backend/beredis"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -111,10 +111,12 @@ func (tc *sanityTestCase) ackJob(ctx context.Context, t testing.TB, id string, s
 
 func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id string, status resource.Status, opts client.AckJobOpts) {
 	t.Helper()
+	t.Logf("AckJobOpts(%q, %s, %+v)", id, resource.NewStatus(status), opts)
 	if err := tc.ctx.client.AckJobOpts(ctx, id, status, opts); err != nil {
+		t.Logf("-> Error: %v", err)
 		t.Fatal(err)
 	}
-	t.Logf("ack %s: %s", id, status.String())
+	t.Logf("-> OK")
 }
 
 func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *resource.Job {
@@ -246,8 +248,8 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q == nil {
 		t.Fatal("queue result was nil")
 	}
-	if q.ID != expectID {
-		t.Errorf("expected queue name %q, got %q", expectID, q.ID)
+	if q.Name != expectID {
+		t.Errorf("expected queue name %q, got %q", expectID, q.Name)
 	}
 	var defaultConcurrency int = 10
 	if q.Concurrency != defaultConcurrency {

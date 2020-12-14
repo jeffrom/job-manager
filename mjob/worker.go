@@ -3,7 +3,7 @@ package mjob
 import (
 	"context"
 
-	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
 type consumerWorker struct {

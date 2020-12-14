@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/internal"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 const streamKey = "mjob:jobs"
@@ -30,7 +30,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 		jb.EnqueuedAt = now
 		jb.Version = resource.NewVersion(1)
 		jb.QueueVersion = q.Version
-		jb.Status = resource.StatusQueued
+		jb.Status = resource.NewStatus(resource.StatusQueued)
 	}
 
 	ids, err := be.writeJobs(ctx, jobs.Jobs)
@@ -47,7 +47,7 @@ func (be *RedisBackend) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*
 	_, err = be.rds.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for _, jb := range jobs.Jobs {
 			q := queues[jb.Name]
-			if err := be.indexJob(ctx, pipe, q.ID, q.Labels, jb, nil); err != nil {
+			if err := be.indexJob(ctx, pipe, q.Name, q.Labels, jb, nil); err != nil {
 				return err
 			}
 			if err := be.checkpointJob(ctx, pipe, jb.ID, jb.ID); err != nil {
@@ -63,7 +63,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
-	opts.Statuses = []resource.Status{resource.StatusQueued, resource.StatusFailed}
+	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
 	ids, err := be.indexLookupJob(ctx, int64(num), opts)
 	if err != nil {
@@ -98,11 +98,13 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 		}
 		jb := pjb.Copy()
 		jb.Version.Inc()
-		jb.Status = resource.StatusRunning
+		status := resource.NewStatus(resource.StatusRunning)
+		jb.Status = status
 
 		jb.Results = []*resource.JobResult{
 			{
 				StartedAt: now,
+				Status:    status,
 				// TODO Attempt:
 			},
 		}
@@ -140,7 +142,7 @@ func (be *RedisBackend) DequeueJobs(ctx context.Context, num int, opts *resource
 }
 
 func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
-	ids, err := be.lookupCheckpoints(ctx, req.IDs())
+	ids, err := be.lookupCheckpoints(ctx, req.JobIDs())
 	if err != nil {
 		return err
 	}
@@ -160,12 +162,12 @@ func (be *RedisBackend) AckJobs(ctx context.Context, req *resource.Acks) error {
 		// failed if it succeeded in a concurrent run
 		shouldInc := false
 		// don't update jobs that aren't running
-		if jb.Status != resource.StatusRunning {
+		if *jb.Status != resource.StatusRunning {
 			continue
 		}
 
 		// don't change from complete, in case there are concurrent jobs for the same id
-		if jb.Status != resource.StatusComplete {
+		if *jb.Status != resource.StatusComplete {
 			if jb.Status != ack.Status {
 				shouldInc = true
 				jb.Status = ack.Status

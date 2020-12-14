@@ -5,17 +5,19 @@ go 1.13
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-playground/form v3.1.4+incompatible
-	github.com/go-redis/redis/v8 v8.0.0-beta.12
-	github.com/golang/protobuf v1.4.2
-	github.com/hashicorp/go-multierror v1.1.0
+	github.com/go-redis/redis/v8 v8.4.2
+	github.com/golang-migrate/migrate/v4 v4.14.1
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/imdario/mergo v0.3.11
+	github.com/jackc/pgx/v4 v4.10.0
 	github.com/jeffrom/job-manager/mjob v0.0.0-00010101000000-000000000000
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.9.0 // indirect
 	github.com/qri-io/jsonschema v0.2.0
-	github.com/rs/zerolog v1.19.0
+	github.com/rs/zerolog v1.20.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/spf13/cobra v1.0.0
-	github.com/tdewolff/minify/v2 v2.9.1
+	github.com/spf13/cobra v1.1.1
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )

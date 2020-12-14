@@ -3,16 +3,27 @@ package main
 import (
 	"net"
 	"net/http"
+	"os"
 
-	"github.com/jeffrom/job-manager/pkg/backend/bememory"
+	"github.com/jeffrom/job-manager/pkg/backend/bepostgres"
+	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jeffrom/job-manager/pkg/web"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func main() {
+	log := logger.New(os.Stdout, false)
+
 	// be := beredis.New()
-	be := bememory.New()
-	h, err := web.NewControllerRouter(middleware.NewConfig(), be)
+	// be := bememory.New()
+	becfg := bepostgres.DefaultConfig
+	becfg.Logger = log
+	be := bepostgres.New(bepostgres.WithConfig(becfg))
+
+	cfg := middleware.NewConfig()
+	cfg.Logger = log
+
+	h, err := web.NewControllerRouter(cfg, be)
 	if err != nil {
 		panic(err)
 	}

@@ -5,7 +5,7 @@ import "google/protobuf/struct.proto";
 
 import "job/v1/status.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
+option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
 
 
 message AckJobsRequestArgs {

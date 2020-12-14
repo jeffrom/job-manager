@@ -55,6 +55,18 @@
               "responseStreaming": false
             },
             {
+              "name": "ListJobs",
+              "description": "",
+              "requestType": "ListJobsRequest",
+              "requestLongType": "ListJobsRequest",
+              "requestFullType": "api.v1.ListJobsRequest",
+              "requestStreaming": false,
+              "responseType": "ListJobsResponse",
+              "responseLongType": "ListJobsResponse",
+              "responseFullType": "api.v1.ListJobsResponse",
+              "responseStreaming": false
+            },
+            {
               "name": "SaveQueue",
               "description": "",
               "requestType": "SaveQueueRequest",
@@ -503,12 +515,12 @@
           "extensions": [],
           "fields": [
             {
-              "name": "data",
+              "name": "items",
               "description": "",
-              "label": "",
-              "type": "Queues",
-              "longType": "job.v1.Queues",
-              "fullType": "job.v1.Queues",
+              "label": "repeated",
+              "type": "Queue",
+              "longType": "job.v1.Queue",
+              "fullType": "job.v1.Queue",
               "ismap": false,
               "defaultValue": ""
             }
@@ -880,12 +892,138 @@
           "extensions": [],
           "fields": [
             {
-              "name": "jobs",
+              "name": "items",
+              "description": "",
+              "label": "repeated",
+              "type": "Job",
+              "longType": "job.v1.Job",
+              "fullType": "job.v1.Job",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "ErrorResponse",
+              "longType": "ErrorResponse",
+              "fullType": "api.v1.ErrorResponse",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
+      "name": "api/v1/job.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "ListJobsRequest",
+          "longName": "ListJobsRequest",
+          "fullName": "api.v1.ListJobsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "status",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "selector",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "claim",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "no_unclaimed",
               "description": "",
               "label": "",
-              "type": "Jobs",
-              "longType": "job.v1.Jobs",
-              "fullType": "job.v1.Jobs",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_since",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "created_until",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ListJobsResponse",
+          "longName": "ListJobsResponse",
+          "fullName": "api.v1.ListJobsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "items",
+              "description": "",
+              "label": "repeated",
+              "type": "Job",
+              "longType": "job.v1.Job",
+              "fullType": "job.v1.Job",
               "ismap": false,
               "defaultValue": ""
             },

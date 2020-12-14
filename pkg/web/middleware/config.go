@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+
+	"github.com/jeffrom/job-manager/pkg/logger"
 )
 
 func init() {
@@ -26,7 +28,7 @@ type Config struct {
 	DefaultConcurrency   int           `json:"json:"default_concurrency""`
 	DefaultMaxRetries    int           `json:"default_max_retries"`
 
-	Logger    zerolog.Logger `json:"-"`
+	Logger    *logger.Logger `json:"-"`
 	LogOutput io.Writer      `json:"-"`
 }
 
@@ -49,14 +51,8 @@ func (c *Config) ResetLogOutput(out io.Writer) {
 	c.Logger = c.newLogger(out)
 }
 
-func (c *Config) newLogger(out io.Writer) zerolog.Logger {
-	if !c.LogJSON {
-		out = zerolog.ConsoleWriter{Out: out}
-	}
-	c.LogOutput = out
-	l := zerolog.New(out).With().Timestamp().Logger()
-
-	return l
+func (c *Config) newLogger(out io.Writer) *logger.Logger {
+	return logger.New(out, c.LogJSON)
 }
 
 func ConfigFromContext(ctx context.Context) Config {

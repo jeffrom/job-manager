@@ -5,9 +5,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 )
 
 type AckJobOpts struct {

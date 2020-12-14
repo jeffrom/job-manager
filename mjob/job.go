@@ -1,6 +1,6 @@
 package mjob
 
-import "github.com/jeffrom/job-manager/pkg/resource"
+import "github.com/jeffrom/job-manager/mjob/resource"
 
 type Job struct {
 	*resource.Job
@@ -8,7 +8,7 @@ type Job struct {
 
 func (jb *Job) RunSuccess(data interface{}) (*resource.JobResult, error) {
 	res := &resource.JobResult{
-		Status: resource.StatusComplete,
+		Status: resource.NewStatus(resource.StatusComplete),
 		Data:   data,
 	}
 
@@ -26,7 +26,7 @@ func (jb *Job) RunFail(err error, data interface{}) (*resource.JobResult, error)
 	}
 	res := &resource.JobResult{
 		Error:  errStr,
-		Status: resource.StatusFailed,
+		Status: resource.NewStatus(resource.StatusFailed),
 		Data:   data,
 	}
 

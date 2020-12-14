@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
 const idxKey = "mjob:idx"
@@ -41,7 +41,7 @@ func lexicalKey(parts ...string) string {
 }
 
 func buildLexicalIndex(jb *resource.Job, queueName string) map[string][]string {
-	status := strconv.FormatInt(int64(jb.Status), 10)
+	status := strconv.FormatInt(int64(*jb.Status), 10)
 	// fmt.Println("status #", status, jb.Status.String())
 	members := map[string][]string{
 		// job queue / status index
@@ -178,9 +178,9 @@ func (be *RedisBackend) indexLookupQueueStatus(ctx context.Context, pipe redis.P
 	for _, queueName := range opts.Names {
 		key := indexKey("status", queueName)
 		for _, st := range opts.Statuses {
-			lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
+			lex := lexicalKey(strconv.FormatInt(int64(*st), 10), "")
 			minlex := `[` + lex
-			maxlex := `(` + lex + string(0xff)
+			maxlex := `(` + lex + string(rune(0xff))
 			// fmt.Printf("lex: %q\n", lex)
 			queueStatus = append(queueStatus, pipe.ZRangeByLex(ctx, key, &redis.ZRangeBy{
 				Min:   minlex,
@@ -196,9 +196,9 @@ func (be *RedisBackend) indexLookupStatus(ctx context.Context, pipe redis.Pipeli
 	key := indexKey("status")
 	var status []*redis.StringSliceCmd
 	for _, st := range opts.Statuses {
-		lex := lexicalKey(strconv.FormatInt(int64(st), 10), "")
+		lex := lexicalKey(strconv.FormatInt(int64(*st), 10), "")
 		minlex := `[` + lex
-		maxlex := `(` + lex + string(0xff)
+		maxlex := `(` + lex + string(rune(0xff))
 		status = append(status, pipe.ZRangeByLex(ctx, key, &redis.ZRangeBy{
 			Min:   minlex,
 			Max:   maxlex,
@@ -226,13 +226,13 @@ func (be *RedisBackend) indexLookupClaims(ctx context.Context, pipe redis.Pipeli
 func (be *RedisBackend) indexQueue(ctx context.Context, pipe redis.Pipeliner, queue, prev *resource.Queue) error {
 	if prev != nil {
 		for key, val := range prev.Labels {
-			pipe.SRem(ctx, indexKey("qlabel", key), prev.ID)
-			pipe.SRem(ctx, indexKey("qlabel", key+"="+val), prev.ID)
+			pipe.SRem(ctx, indexKey("qlabel", key), prev.Name)
+			pipe.SRem(ctx, indexKey("qlabel", key+"="+val), prev.Name)
 		}
 	}
 	for key, val := range queue.Labels {
-		pipe.SAdd(ctx, indexKey("qlabel", key), queue.ID)
-		pipe.SAdd(ctx, indexKey("qlabel", key+"="+val), queue.ID)
+		pipe.SAdd(ctx, indexKey("qlabel", key), queue.Name)
+		pipe.SAdd(ctx, indexKey("qlabel", key+"="+val), queue.Name)
 	}
 	return nil
 }

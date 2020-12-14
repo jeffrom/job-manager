@@ -11,10 +11,10 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	"github.com/jeffrom/job-manager/pkg/web/middleware"
+	"github.com/jeffrom/job-manager/pkg/logger"
 )
 
 type httpError interface {
@@ -29,7 +29,7 @@ type protoError interface {
 func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := fn(w, r); err != nil {
-			reqLog := middleware.RequestLogFromContext(r.Context())
+			reqLog := logger.RequestLogFromContext(r.Context())
 			// fmt.Printf("req error: %T %+v\n", err, err)
 
 			// set status depending on the error returned
@@ -58,14 +58,14 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 			}
 
 			// log the error
-			log := middleware.LoggerFromContext(r.Context())
+			log := logger.FromContext(r.Context())
 			logRequestError(log, status, err)
 			w.WriteHeader(status)
 
 			if pr, ok := err.(protoError); ok {
 				// fmt.Printf("handler: %T %+v\n", pr.Message(), pr.Message())
 				if err := MarshalResponse(w, r, pr.Message()); err != nil {
-					middleware.LoggerFromContext(r.Context()).Error().Err(err).Msg("marshal response failed")
+					logger.FromContext(r.Context()).Error().Err(err).Msg("marshal response failed")
 				}
 			}
 		}
@@ -73,7 +73,7 @@ func Func(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFun
 }
 
 func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
-	log := middleware.LoggerFromContext(r.Context())
+	log := logger.FromContext(r.Context())
 	defer r.Body.Close()
 	ct := r.Header.Get("content-type")
 	var b []byte
@@ -129,7 +129,7 @@ func MarshalResponse(w http.ResponseWriter, r *http.Request, v proto.Message) er
 		panic("handler: unknown content-type: " + ct)
 	}
 
-	log := middleware.LoggerFromContext(r.Context())
+	log := logger.FromContext(r.Context())
 	log.Debug().
 		Interface("data", v).
 		Str("type", fmt.Sprintf("%T", v)).
@@ -140,7 +140,7 @@ func MarshalResponse(w http.ResponseWriter, r *http.Request, v proto.Message) er
 	return err
 }
 
-func logRequestError(log *middleware.Logger, status int, err error) {
+func logRequestError(log *logger.Logger, status int, err error) {
 	ev := log.Warn()
 	if status >= http.StatusInternalServerError {
 		ev = log.Error()

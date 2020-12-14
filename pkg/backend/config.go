@@ -1,16 +1,17 @@
 package backend
 
-type Config struct {
-	// MaxStreamSize is the maximum number of stream events to store.
-	MaxStreamSize int
+import "github.com/jeffrom/job-manager/pkg/logger"
 
+type Config struct {
 	// HistoryLimit is the maximum number of resource versions to store.
 	HistoryLimit int
 
+	Debug    bool
 	TestMode bool
+	Logger   *logger.Logger
 }
 
 var DefaultConfig = Config{
-	MaxStreamSize: 100000,
-	HistoryLimit:  10,
+	HistoryLimit: 10,
+	Debug:        true,
 }

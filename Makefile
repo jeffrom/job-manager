@@ -9,7 +9,7 @@ protofiles := $(wildcard proto/*.proto proto/**/*.proto proto/**/**/*.proto prot
 prototargets := $(wildcard doc/doc.json *.pb.go **/*.pb.go **/**/*.pb.go **/**/**/*.pb.go)
 
 write_jsonschema_bin := script/write_jsonschema.sh
-self_schema_target := pkg/schema/self_schema.go
+self_schema_target := mjob/schema/self_schema.go
 self_schema_deps := jsonschema/Self.json
 
 buf := $(shell which buf)

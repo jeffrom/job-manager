@@ -3,8 +3,9 @@ package backend
 
 import (
 	"context"
+	"net/http"
 
-	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
 // Interface defines the backend interface. Some required properties:
@@ -31,4 +32,8 @@ type Interface interface {
 
 	GetJobByID(ctx context.Context, id string) (*resource.Job, error)
 	ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)
+}
+
+type MiddlewareProvider interface {
+	Middleware() func(next http.Handler) http.Handler
 }

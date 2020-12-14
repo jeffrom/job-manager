@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 const queueListKey = "mjob:queues"
@@ -61,13 +61,13 @@ func (be *RedisBackend) GetQueues(ctx context.Context, ids []string) (*resource.
 }
 
 func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue) (*resource.Queue, error) {
-	if queueArg == nil || queueArg.ID == "" {
+	if queueArg == nil || queueArg.Name == "" {
 		return nil, backend.ErrInvalidResource
 	}
 	queue := queueArg.Copy()
 
-	now := internal.GetTimeProvider(ctx).Now()
-	key := queueKey(queue.ID)
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	key := queueKey(queue.Name)
 
 	// TODO this could be TxPipeline? use pop instead of trim?
 	err := be.rds.Watch(ctx, func(tx *redis.Tx) error {
@@ -102,7 +102,7 @@ func (be *RedisBackend) SaveQueue(ctx context.Context, queueArg *resource.Queue)
 		} else if prev != nil && !prev.Version.Equals(queueV) {
 			return &backend.VersionConflictError{
 				Resource:   "queue",
-				ResourceID: queue.ID,
+				ResourceID: queue.Name,
 				Prev:       prev.Version.String(),
 				Curr:       queue.Version.String(),
 			}

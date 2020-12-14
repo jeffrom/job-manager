@@ -11,10 +11,10 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 	"github.com/jeffrom/job-manager/mjob/internal"
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/querystring"
-	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/mjob/querystring"
+	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
 type Interface interface {

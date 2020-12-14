@@ -4,7 +4,7 @@ package api.v1;
 import "job/v1/job.proto";
 import "api/v1/errors.proto";
 
-option go_package = "github.com/jeffrom/job-manager/pkg/api/v1";
+option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
 
 message DequeueJobsRequest {
   int32 num = 1;
@@ -14,6 +14,6 @@ message DequeueJobsRequest {
 }
 
 message DequeueJobsResponse {
-  job.v1.Jobs jobs = 1;
+  repeated job.v1.Job items = 1;
   repeated ErrorResponse errors = 2;
 }

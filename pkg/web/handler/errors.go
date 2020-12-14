@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jeffrom/job-manager/mjob/resource"
+	"github.com/jeffrom/job-manager/mjob/schema"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 func newVersionConflictError(e *backend.VersionConflictError) *resource.Error {

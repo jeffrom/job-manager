@@ -5,11 +5,11 @@ import (
 
 	"github.com/go-chi/chi"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
@@ -17,7 +17,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	be := backend.FromMiddleware(ctx)
 	queueID := chi.URLParam(r, "queueID")
 	var params apiv1.DequeueJobsRequest
-	if err := UnmarshalBody(r, &params, queueID == ""); err != nil {
+	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
 	// TODO error if queueID url param is set and there are more than one queue
@@ -53,8 +53,6 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return MarshalResponse(w, r, &apiv1.DequeueJobsResponse{
-		Jobs: &jobv1.Jobs{
-			Jobs: jobsResp,
-		},
+		Items: jobsResp,
 	})
 }

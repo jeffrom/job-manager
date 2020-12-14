@@ -9,13 +9,13 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
+	"github.com/jeffrom/job-manager/mjob/schema"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 type EnqueueJobs struct {
@@ -57,7 +57,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				if unique {
 					// return conflict error
-					return resource.NewUnprocessableEntityError("queue", queue.ID, "A job with matching arguments is executing")
+					return resource.NewUnprocessableEntityError("queue", queue.Name, "A job with matching arguments is executing")
 				}
 			}
 
@@ -79,6 +79,9 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			jobs.Jobs[i] = jb
 
 			jobRes := jobv1.NewJobFromProto(jb, claims)
+			if err := jobRes.Populate(); err != nil {
+				return err
+			}
 			resources.Jobs[i] = jobRes
 			// fmt.Printf("JOB: %+v\n", jobs.Jobs[i])
 		}

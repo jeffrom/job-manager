@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
+	"github.com/jeffrom/job-manager/mjob/schema"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/schema"
 )
 
 func Ack(w http.ResponseWriter, r *http.Request) error {
@@ -66,7 +66,7 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 			continue
 		}
 
-		jobData, err := be.GetJobByID(ctx, ack.ID)
+		jobData, err := be.GetJobByID(ctx, ack.JobID)
 		if err != nil {
 			return err
 		}

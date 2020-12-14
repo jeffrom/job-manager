@@ -3,11 +3,11 @@ package handler
 import (
 	"net/http"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 func ListQueues(w http.ResponseWriter, r *http.Request) error {
@@ -32,8 +32,6 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return MarshalResponse(w, r, &apiv1.ListQueuesResponse{
-		Data: &jobv1.Queues{
-			Queues: jobv1.NewQueuesFromResources(queues.Queues),
-		},
+		Items: jobv1.NewQueuesFromResources(queues.Queues),
 	})
 }

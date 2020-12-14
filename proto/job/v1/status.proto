@@ -1,7 +1,7 @@
 syntax = "proto3";
 package job.v1;
 
-option go_package = "github.com/jeffrom/job-manager/pkg/resource/job/v1";
+option go_package = "github.com/jeffrom/job-manager/mjob/resource/job/v1";
 
 
 enum Status {

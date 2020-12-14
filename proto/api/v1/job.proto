@@ -1,0 +1,24 @@
+syntax = "proto3";
+package api.v1;
+
+import "google/protobuf/timestamp.proto";
+
+import "job/v1/job.proto";
+import "api/v1/errors.proto";
+
+option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
+
+message ListJobsRequest {
+  repeated string name = 1;
+  repeated string status = 2;
+  repeated string selector = 3;
+  repeated string claim = 4;
+  bool no_unclaimed = 5;
+  google.protobuf.Timestamp created_since = 6;
+  google.protobuf.Timestamp created_until = 7;
+}
+
+message ListJobsResponse {
+  repeated job.v1.Job items = 1;
+  repeated ErrorResponse errors = 2;
+}

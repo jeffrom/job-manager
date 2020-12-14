@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	chimw "github.com/go-chi/chi/middleware"
+
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/web/handler"
@@ -34,7 +35,7 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 
 	debugRoutes(r)
 
-	logger := middleware.NewLogger(cfg.Logger)
+	logger := cfg.Logger
 	logger.Info().Interface("config", cfg).Msg("new router")
 
 	r.Group(func(r chi.Router) {
@@ -52,6 +53,10 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 			logger.Middleware,
 			chimw.Recoverer,
 		)
+
+		if mwp, ok := be.(backend.MiddlewareProvider); ok {
+			r.Use(mwp.Middleware())
+		}
 
 		r.Route("/internal", func(r chi.Router) {
 			r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +96,7 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 					r.Get("/", handler.Func(handler.GetJobByID))
 					r.Get("/queue", handler.Func(handler.GetQueueByJobID))
 				})
+				r.Get("/", handler.Func(handler.ListJobs))
 			})
 		})
 	})

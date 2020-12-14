@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 )
 
 type DequeueOpts struct {
@@ -45,7 +45,7 @@ func (c *Client) DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts)
 		return nil, err
 	}
 
-	resJobs, err := jobv1.NewJobsFromProto(resp.Jobs.Jobs)
+	resJobs, err := jobv1.NewJobsFromProto(resp.Items)
 	if err != nil {
 		return nil, err
 	}

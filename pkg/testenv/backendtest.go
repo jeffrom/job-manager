@@ -3,14 +3,16 @@ package testenv
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
-	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 type BackendTestConfig struct {
@@ -73,7 +75,7 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 		// same attrs should result in no changes
 		nextNow := now.Add(1 * time.Second)
 		ctx = internal.SetMockTime(ctx, nextNow)
-		q = mustSaveQueue(ctx, t, be, getBasicQueue())
+		q = mustSaveQueue(ctx, t, be, q)
 		mustCheck(t, checkQueue(t, q))
 		mustCheck(t, checkVersion(t, 1, q.Version))
 		if !q.CreatedAt.Equal(now) {
@@ -86,7 +88,7 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 		// a legit update should work
 		lastNow := now.Add(1 * time.Second)
 		ctx = internal.SetMockTime(ctx, lastNow)
-		q2 := getBasicQueue()
+		q2 := q
 		q2.Concurrency++
 		res := mustSaveQueue(ctx, t, be, q2)
 		mustCheck(t, checkQueue(t, res))
@@ -99,13 +101,13 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 		}
 	})
 
-	t.Run("get", func(t *testing.T) {
+	// t.Run("get", func(t *testing.T) {
 
-	})
+	// })
 
-	t.Run("delete", func(t *testing.T) {
+	// t.Run("delete", func(t *testing.T) {
 
-	})
+	// })
 }
 
 func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContext) {
@@ -136,12 +138,9 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 	// now dequeue them
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
-	deqRes, err := be.DequeueJobs(ctx, 3, &resource.JobListParams{
+	deqRes := mustDequeueJobs(ctx, t, be, 3, &resource.JobListParams{
 		Names: []string{"cool"},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
 	}
@@ -162,49 +161,46 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 	// now ack
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
-	err = be.AckJobs(ctx, &resource.Acks{
-		Acks: []*resource.Ack{
-			{
-				ID:     jobs[0].ID,
-				Status: resource.StatusComplete,
-			},
-			{
-				ID:     jobs[1].ID,
-				Status: resource.StatusComplete,
-			},
-			{
-				ID:     jobs[2].ID,
-				Status: resource.StatusComplete,
-			},
+	acks := []*resource.Ack{
+		{
+			JobID:  jobs[0].ID,
+			Status: resource.NewStatus(resource.StatusComplete),
 		},
-	})
-	if err != nil {
-		t.Fatal(err)
+		{
+			JobID:  jobs[1].ID,
+			Status: resource.NewStatus(resource.StatusComplete),
+		},
+		{
+			JobID:  jobs[2].ID,
+			Status: resource.NewStatus(resource.StatusComplete),
+		},
 	}
+	mustAckJobs(ctx, t, be, acks)
 
-	resJobs, err := be.ListJobs(ctx, 3, &resource.JobListParams{
+	// time.Sleep(1 * time.Second)
+	resJobs := mustListJobs(ctx, t, be, 3, &resource.JobListParams{
 		Names:    []string{"cool"},
-		Statuses: []resource.Status{resource.StatusComplete},
+		Statuses: []*resource.Status{resource.NewStatus(resource.StatusComplete)},
 	})
-	if err != nil {
-		t.Fatal(err)
+	if l := len(resJobs.Jobs); l != 3 {
+		t.Fatalf("expected to list 3 jobs, got %d", l)
 	}
-	jobs = resJobs.Jobs
-	checkJob(t, jobs[0])
-	checkJobStatus(t, resource.StatusComplete, jobs[0])
-	checkVersion(t, 3, jobs[0].Version)
-	checkJob(t, jobs[1])
-	checkJobStatus(t, resource.StatusComplete, jobs[1])
-	checkVersion(t, 3, jobs[1].Version)
-	checkJob(t, jobs[2])
-	checkJobStatus(t, resource.StatusComplete, jobs[2])
-	checkVersion(t, 3, jobs[2].Version)
+	ackedJobs := resJobs.Jobs
+	checkJob(t, ackedJobs[0])
+	checkJobStatus(t, resource.StatusComplete, ackedJobs[0])
+	checkVersion(t, 3, ackedJobs[0].Version)
+	checkJob(t, ackedJobs[1])
+	checkJobStatus(t, resource.StatusComplete, ackedJobs[1])
+	checkVersion(t, 3, ackedJobs[1].Version)
+	checkJob(t, ackedJobs[2])
+	checkJobStatus(t, resource.StatusComplete, ackedJobs[2])
+	checkVersion(t, 3, ackedJobs[2].Version)
 }
 
 func getBasicQueue() *resource.Queue {
 	return &resource.Queue{
-		ID:          "cool",
-		Version:     resource.NewVersion(1),
+		Name: "cool",
+		// Version:     resource.NewVersion(1),
 		Concurrency: 3,
 		Retries:     3,
 	}
@@ -231,6 +227,43 @@ func getBasicJobs() *resource.Jobs {
 
 func jobArgs(args ...interface{}) []interface{} { return args }
 
+func runMiddleware(ctx context.Context, t testing.TB, be backend.Interface) (context.Context, func(t testing.TB, err error)) {
+	t.Helper()
+	origCtx := ctx
+
+	ctxC := make(chan context.Context)
+	done := make(chan error)
+
+	if mwer, ok := be.(backend.MiddlewareProvider); ok {
+		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctxC <- r.Context()
+
+			if err := <-done; err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		})
+
+		go func() {
+			mockH := mwer.Middleware()(h)
+			mockH.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/", nil))
+		}()
+		// mw := mwer.Middleware()
+
+		ctx = <-ctxC
+	} else {
+		go func() {
+			<-done
+		}()
+	}
+
+	ctx = internal.SetTimeProvider(ctx, internal.GetTimeProvider(origCtx))
+	// ctx = internal.SetTicker(ctx, internal.GetTicker(origCtx))
+	return ctx, func(t testing.TB, err error) {
+		t.Helper()
+		done <- err
+	}
+}
+
 func mustReset(ctx context.Context, t testing.TB, be backend.Interface) context.Context {
 	t.Helper()
 	t.Logf("Resetting %T", be)
@@ -243,26 +276,85 @@ func mustReset(ctx context.Context, t testing.TB, be backend.Interface) context.
 
 func mustSaveQueue(ctx context.Context, t testing.TB, be backend.Interface, q *resource.Queue) *resource.Queue {
 	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
 
 	t.Logf("SaveQueue(%+v)", readable(q))
 	res, err := be.SaveQueue(ctx, q)
 	if err != nil {
 		t.Logf("-> err: %v", err)
+		done(t, err)
 		t.Fatal(err)
 	}
 	t.Logf("-> %s", readable(res))
+	done(t, nil)
 	return res
 }
 
 func mustEnqueueJobs(ctx context.Context, t testing.TB, be backend.Interface, jobs *resource.Jobs) *resource.Jobs {
 	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
 
 	t.Logf("EnqueueJobs(%+v)", readable(jobs.Jobs))
 	res, err := be.EnqueueJobs(ctx, jobs)
 	if err != nil {
+		t.Logf("-> Error: %v", err)
+		done(t, err)
 		t.Fatal(err)
 	}
+	t.Logf("-> %+v", readable(res.Jobs))
 
+	done(t, nil)
+	return res
+}
+
+func mustDequeueJobs(ctx context.Context, t testing.TB, be backend.Interface, limit int, opts *resource.JobListParams) *resource.Jobs {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("DequeueJobsOpts(%d, %+v)", limit, readable(opts))
+	res, err := be.DequeueJobs(ctx, limit, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if err != nil {
+		t.Logf("-> Error: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> %+v", readable(res.Jobs))
+
+	done(t, nil)
+	return res
+}
+
+func mustAckJobs(ctx context.Context, t testing.TB, be backend.Interface, acks []*resource.Ack) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("AckJobs(%+v)", readable(acks))
+	err := be.AckJobs(ctx, &resource.Acks{Acks: acks})
+	if err != nil {
+		t.Logf("-> Error: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> OK")
+	done(t, nil)
+}
+
+func mustListJobs(ctx context.Context, t testing.TB, be backend.Interface, limit int, opts *resource.JobListParams) *resource.Jobs {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("ListJobs(%d, %+v)", limit, readable(opts))
+	res, err := be.ListJobs(ctx, limit, opts)
+	if err != nil {
+		t.Logf("-> Error: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> %+v", readable(res.Jobs))
+
+	done(t, nil)
 	return res
 }
 
@@ -280,7 +372,7 @@ func checkQueue(t testing.TB, q *resource.Queue) bool {
 		return !t.Failed()
 	}
 
-	if q.ID == "" {
+	if q.Name == "" {
 		t.Error("queue id was empty")
 	}
 
@@ -336,8 +428,8 @@ func checkJob(t testing.TB, jb *resource.Job) bool {
 
 func checkJobStatus(t testing.TB, expect resource.Status, jb *resource.Job) bool {
 	t.Helper()
-	if st := jb.Status; st != expect {
-		t.Errorf("expected job status %s, got %s", expect, st)
+	if st := jb.Status; *st != expect {
+		t.Errorf("expected job status %s, got %s", resource.NewStatus(expect), st.String())
 	}
 	return !t.Failed()
 }

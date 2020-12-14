@@ -11,5 +11,5 @@ func TestBackendMemory(t *testing.T) {
 	testenv.BackendTest(testenv.BackendTestConfig{
 		Backend: be,
 		Fail:    true,
-	})
+	})(t)
 }

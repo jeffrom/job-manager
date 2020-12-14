@@ -7,10 +7,10 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
-	"github.com/jeffrom/job-manager/pkg/label"
-	"github.com/jeffrom/job-manager/pkg/resource"
 )
 
 // Memory is an in-memory backend intended to be a reference implementation
@@ -35,6 +35,9 @@ func (m *Memory) Ping(ctx context.Context) error {
 }
 
 func (m *Memory) Reset(ctx context.Context) error {
+	m.queues = make(map[string]*resource.Queue)
+	m.jobs = make(map[string]*resource.Job)
+	m.uniqueness = make(map[string]bool)
 	return nil
 }
 
@@ -46,15 +49,18 @@ func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, er
 }
 
 func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error) {
+	if queue.Version == nil {
+		queue.Version = resource.NewVersion(0)
+	}
 	// if it already exists and no version was supplied, or if version was
 	// supplied but they don't match, return conflict
-	prev, ok := m.queues[queue.ID]
+	prev, ok := m.queues[queue.Name]
 	// fmt.Printf("prev: %+v, found: %v\n", prev, ok)
 	if ok {
 		if queue.Version.Raw() == 0 || queue.Version.Raw() != prev.Version.Raw() {
 			return nil, &backend.VersionConflictError{
 				Resource:   "queue",
-				ResourceID: queue.ID,
+				ResourceID: queue.Name,
 				Prev:       prev.Version.String(),
 				Curr:       queue.Version.String(),
 			}
@@ -62,9 +68,14 @@ func (m *Memory) SaveQueue(ctx context.Context, queue *resource.Queue) (*resourc
 	}
 	// fmt.Printf("prev: %+v, curr: %+v\n", prev, queue)
 	if prev == nil || !queue.EqualAttrs(prev) {
+		now := internal.GetTimeProvider(ctx).Now().UTC()
+		if queue.CreatedAt.IsZero() {
+			queue.CreatedAt = now
+		}
+		queue.UpdatedAt = now
 		queue.Version.Inc()
 	}
-	m.queues[queue.ID] = queue
+	m.queues[queue.Name] = queue.Copy()
 	return queue, nil
 }
 
@@ -89,14 +100,14 @@ func (m *Memory) ListQueues(ctx context.Context, opts *resource.QueueListParams)
 }
 
 func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.Selectors) bool {
-	if len(names) > 0 && !valIn(queue.ID, names) {
+	if len(names) > 0 && !valIn(queue.Name, names) {
 		return true
 	}
 	return !sels.Match(queue.Labels)
 }
 
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*resource.Jobs, error) {
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, jobArg := range jobArgs.Jobs {
 		queue, err := m.GetQueue(ctx, jobArg.Name)
 		if err != nil {
@@ -104,8 +115,12 @@ func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*reso
 		}
 		jobArg.ID = newID()
 		jobArg.EnqueuedAt = now
+		if jobArg.Version == nil {
+			jobArg.Version = resource.NewVersion(0)
+		}
 		jobArg.Version.Inc()
 		jobArg.QueueVersion = queue.Version
+		jobArg.Status = resource.NewStatus(resource.StatusQueued)
 		m.jobs[jobArg.ID] = jobArg
 	}
 	return jobArgs, nil
@@ -116,14 +131,14 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
-	opts.Statuses = []resource.Status{resource.StatusQueued, resource.StatusFailed}
+	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
 	jobs, err := m.ListJobs(ctx, limit, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 
 	// filter out jobs with an unmet claim window
 	var filtered []*resource.Job
@@ -150,24 +165,28 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 
 	for _, jobData := range jobs.Jobs {
+		status := resource.NewStatus(resource.StatusRunning)
 		jobData.Version.Inc()
-		jobData.Results = append(jobData.Results, &resource.JobResult{StartedAt: now})
-		jobData.Status = resource.StatusRunning
+		jobData.Results = append(jobData.Results, &resource.JobResult{
+			StartedAt: now,
+			Status:    status,
+		})
+		jobData.Status = status
 	}
 	return jobs, nil
 }
 
 func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
-	now := internal.GetTimeProvider(ctx).Now()
+	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, ack := range acks.Acks {
-		jobData, ok := m.jobs[ack.ID]
+		jobData, ok := m.jobs[ack.JobID]
 		if !ok {
 			return backend.ErrNotFound
 		}
-		if jobData.Status != resource.StatusRunning {
-			// TODO return data about what state specifically caused this
-			return backend.ErrInvalidState
-		}
+		// if *jobData.Status != resource.StatusRunning {
+		// 	// TODO return data about what state specifically caused this
+		// 	return backend.ErrInvalidState
+		// }
 
 		jobData.Version.Inc()
 
@@ -189,10 +208,12 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
 	for _, key := range keys {
 		_, ok := m.uniqueness[key]
-		m.uniqueness[key] = true
 		if ok {
 			return true, nil
 		}
+	}
+	for _, key := range keys {
+		m.uniqueness[key] = true
 	}
 	return false, nil
 }

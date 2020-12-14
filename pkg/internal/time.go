@@ -24,6 +24,11 @@ func SetTicker(ctx context.Context, tick Ticker) context.Context {
 
 func GetTimeProvider(ctx context.Context) TimeProvider {
 	return ctx.Value(timeContextKey).(TimeProvider)
+	// tp, ok := ctx.Value(timeContextKey).(TimeProvider)
+	// if !ok {
+	// 	return Time(0)
+	// }
+	// return tp
 }
 
 func GetTicker(ctx context.Context) Ticker {

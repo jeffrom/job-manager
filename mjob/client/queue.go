@@ -7,10 +7,10 @@ import (
 
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/schema"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
+	"github.com/jeffrom/job-manager/mjob/schema"
 )
 
 type Queue struct {
@@ -99,7 +99,7 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource
 	if err := c.doRequest(ctx, req, resp); err != nil {
 		return nil, err
 	}
-	return &resource.Queues{Queues: jobv1.NewQueuesFromProto(resp.Data.Queues)}, nil
+	return &resource.Queues{Queues: jobv1.NewQueuesFromProto(resp.Items)}, nil
 }
 
 func (c *Client) GetQueue(ctx context.Context, id string) (*resource.Queue, error) {

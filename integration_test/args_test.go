@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/jeffrom/job-manager/mjob/client"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend/bememory"
-	"github.com/jeffrom/job-manager/pkg/resource"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 	"github.com/qri-io/jsonschema"

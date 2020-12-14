@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-chi/chi"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
 )
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
@@ -23,6 +23,7 @@ func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return handleBackendErrors(err, "queue", queueID)
 	}
+	// fmt.Printf("kewl %+v\n", queue)
 	return MarshalResponse(w, r, &apiv1.GetQueueResponse{
 		Data: jobv1.NewQueueFromResource(queue),
 	})

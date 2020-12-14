@@ -3,10 +3,11 @@ package client
 import (
 	"errors"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
-	"github.com/jeffrom/job-manager/pkg/resource"
-	"github.com/jeffrom/job-manager/pkg/schema"
 	"github.com/qri-io/jsonschema"
+
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	"github.com/jeffrom/job-manager/mjob/resource"
+	"github.com/jeffrom/job-manager/mjob/schema"
 )
 
 type APIError struct {

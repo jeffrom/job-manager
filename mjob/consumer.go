@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jeffrom/job-manager/mjob/client"
-	"github.com/jeffrom/job-manager/pkg/resource"
+	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
 type Runner interface {

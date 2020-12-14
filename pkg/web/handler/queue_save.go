@@ -7,18 +7,19 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	apiv1 "github.com/jeffrom/job-manager/pkg/api/v1"
+	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
+	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
+	"github.com/jeffrom/job-manager/mjob/schema"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
-	jobv1 "github.com/jeffrom/job-manager/pkg/resource/job/v1"
-	"github.com/jeffrom/job-manager/pkg/schema"
+	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
 
 func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	cfg := middleware.ConfigFromContext(ctx)
-	reqLog := middleware.RequestLogFromContext(ctx)
+	reqLog := logger.RequestLogFromContext(ctx)
 	be := backend.FromMiddleware(ctx)
 	queueID := chi.URLParam(r, "queueID")
 	reqLog.Str("queue", queueID)

@@ -19,6 +19,7 @@ func init() {
 }
 
 type Config struct {
+	Host            string        `json:"host"`
 	LogJSON         bool          `json:"log_json"`
 	DebugLog        bool          `json:"debug_log"`
 	Backend         string        `json:"backend"`
@@ -35,6 +36,7 @@ type Config struct {
 func NewConfig() Config {
 	out := os.Stdout
 	c := Config{
+		Host:                 ":1874",
 		LogOutput:            out,
 		DebugLog:             true,
 		Backend:              "memory",

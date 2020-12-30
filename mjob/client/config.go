@@ -2,9 +2,9 @@ package client
 
 // Config holds configuration data for the job client.
 type Config struct {
-	Addr string `envconfig:"addr" json:"addr"`
+	Host string `envconfig:"host" json:"host"`
 }
 
 var ConfigDefaults = Config{
-	Addr: ":1874",
+	Host: ":1874",
 }

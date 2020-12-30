@@ -2,6 +2,7 @@ package mjob
 
 import (
 	"context"
+	"time"
 
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/mjob/resource"
@@ -59,13 +60,13 @@ func (c *Consumer) Run(ctx context.Context) error {
 	workers := make([]*consumerWorker, n)
 	for i := 0; i < n; i++ {
 		ch := make(chan *resource.Job)
-		wrk := newWorker(c.cfg, ch, c.resultC)
+		wrk := newWorker(c.cfg, c.runner, ch, c.resultC)
 		workers[i] = wrk
-		wrk.start(ctx)
+		go wrk.start(ctx)
 	}
 	c.workers = workers
 
-	curr := make([]*resource.Job, c.cfg.Concurrency+c.cfg.Backpressure)
+	curr := make([]*resource.Job, 0, c.cfg.Concurrency+c.cfg.Backpressure)
 	for {
 		select {
 		case <-c.stop:
@@ -74,10 +75,13 @@ func (c *Consumer) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			// trigger the shutdown sequence
 			return c.Stop()
+		default:
 		}
 
-		n := (c.cfg.Concurrency + c.cfg.Backpressure) - (int(c.running) + len(curr))
-		var jobs *resource.Jobs
+		// fmt.Println("counts", c.cfg.Concurrency, c.cfg.Backpressure, c.running, len(curr))
+		n := (c.cfg.Concurrency) - (int(c.running) + len(curr))
+		// fmt.Println("will get", n, "jobs")
+		jobs := &resource.Jobs{}
 		if n > 0 {
 			var err error
 			jobs, err = c.client.DequeueJobsOpts(ctx, n, c.cfg.DequeueOpts)
@@ -87,14 +91,19 @@ func (c *Consumer) Run(ctx context.Context) error {
 			}
 		}
 
+		njobs := len(jobs.Jobs)
+		// fmt.Println("consumer got", njobs, "jobs")
 		remaining, err := c.processJobs(ctx, append(curr, jobs.Jobs...))
+		// fmt.Println("consumer processed jobs.", len(remaining), "jobs remain", "err:", err)
 		if err != nil {
 			// TODO handle this? should processJobs ever error? only if a
 			// worker doesn't finish in time.
 			return err
 		}
 		curr = remaining
-		return nil
+		if njobs == 0 {
+			time.Sleep(2 * time.Second)
+		}
 	}
 	return nil
 }
@@ -103,7 +112,8 @@ func (c *Consumer) Run(ctx context.Context) error {
 // job, so that subsequent jobs can start on that worker, but it should
 // start as many jobs as possible first.
 func (c *Consumer) processJobs(ctx context.Context, jobs []*resource.Job) ([]*resource.Job, error) {
-	currJobs := jobs
+	currJobs := make([]*resource.Job, len(jobs))
+	copy(currJobs, jobs)
 	for {
 		if len(currJobs) == 0 {
 			break
@@ -112,34 +122,53 @@ func (c *Consumer) processJobs(ctx context.Context, jobs []*resource.Job) ([]*re
 
 		if c.startJob(ctx, jb) {
 			currJobs = currJobs[1:]
+		} else {
+			break
 		}
 	}
 
 	// TODO wait up to JobDuration, then throw it in a penalty box where
 	// concurrency is decreased by one until the worker completes? To start
 	// maybe just stop the consumer.
+	// maybe just backoff on acks?
 	// finished := make(map[string]bool)
+Loop:
 	for {
 		select {
-		case <-c.resultC:
+		case res := <-c.resultC:
+			if res == nil || res.JobID == "" {
+				panic("consumer: job id was empty")
+			}
+			// we should make an effort to ack all jobs, but it is always
+			// possible for a job to run twice
+			if err := c.client.AckJobOpts(ctx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data}); err != nil {
+				return currJobs, err
+			}
+			for i, jb := range currJobs {
+				if jb.ID == res.JobID {
+					// remove job from processing list
+					currJobs = append(currJobs[:i], currJobs[i+1:]...)
+				}
+			}
+			// fmt.Printf("processJobs: got a result: %+v\n", res)
 		default:
-			break
+			// fmt.Println("processJobs: got no results")
+			break Loop
 		}
 	}
-	return jobs, nil
+
+	return currJobs, nil
 }
 
 func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {
-	started := false
 	for _, wrk := range c.workers {
 		select {
 		case wrk.in <- jb:
-			started = true
-			break
+			return true
 		default:
 		}
 	}
-	return started
+	return false
 }
 
 // Stop cancels any pending jobs, waits for any currently running jobs to

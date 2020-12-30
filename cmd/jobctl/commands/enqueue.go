@@ -92,7 +92,7 @@ func completeQueueList(ctx context.Context, toComplete string) ([]string, error)
 	}
 	cfg := icfg.(*client.Config)
 
-	c := client.New(cfg.Addr, client.WithConfig(cfg))
+	c := client.New(cfg.Host, client.WithConfig(cfg))
 	queues, err := c.ListQueues(ctx, client.ListQueuesOpts{})
 	if err != nil {
 		return nil, err

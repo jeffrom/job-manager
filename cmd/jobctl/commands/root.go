@@ -27,13 +27,14 @@ func newRootCmd(cfg *client.Config) *rootCmd {
 	cmd := c.Cmd()
 
 	flags := cmd.PersistentFlags()
-	flags.StringVarP(&cfg.Addr, "host", "H", "", "set host:port (env: $HOST)")
+	flags.StringVarP(&cfg.Host, "host", "H", "", "set host:port (env: $HOST)")
 
 	cmd.AddCommand(
 		wrapCobraCommand(cfg, newListCmd(cfg)),
 		wrapCobraCommand(cfg, newSaveCmd(cfg)),
 		wrapCobraCommand(cfg, newEnqueueCmd(cfg)),
 		wrapCobraCommand(cfg, newAckCmd(cfg)),
+		wrapCobraCommand(cfg, newWorkerCmd(cfg)),
 		wrapCobraCommand(cfg, newCompletionCmd(cfg)),
 	)
 	return c

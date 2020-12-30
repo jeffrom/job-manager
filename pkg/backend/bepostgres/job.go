@@ -183,6 +183,7 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
+	// fmt.Printf("ASDF: %+v\n", opts)
 	c, err := pg.getConn(ctx)
 	if err != nil {
 		return nil, err
@@ -239,6 +240,8 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 		q += " WHERE " + strings.Join(wheres, " AND ")
 	}
 
+	q += fmt.Sprintf(" LIMIT %d", limit)
+
 	q, args, err = sqlx.In(q, args...)
 	if err != nil {
 		return nil, err
@@ -275,7 +278,7 @@ func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 		jobmap[jb.ID] = jb
 	}
 
-	q, args, err := sqlx.In("SELECT * FROM job_checkins WHERE id in (?)", ids)
+	q, args, err := sqlx.In("SELECT * FROM job_checkins WHERE job_id in (?)", ids)
 	if err != nil {
 		return err
 	}
@@ -289,7 +292,7 @@ func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 		jb.Checkins = append(jb.Checkins, row)
 	}
 
-	q, args, err = sqlx.In("SELECT * FROM job_results WHERE id in (?)", ids)
+	q, args, err = sqlx.In("SELECT * FROM job_results WHERE job_id in (?)", ids)
 	if err != nil {
 		return err
 	}

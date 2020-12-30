@@ -103,7 +103,7 @@ $(self_schema_target): $(write_jsonschema_bin) $(self_schema_deps)
 
 .PHONY: dev
 dev:
-	$(tulpa) -v --ignore proto --ignore .make --ignore doc "make .make/$(server_bin) && .make/$(server_bin)"
+	$(tulpa) -v --ignore proto --ignore .make --ignore doc --app-port 1874 "make .make/$(server_bin) && .make/$(server_bin)"
 
 .PHONY: code
 code: code.depgraph

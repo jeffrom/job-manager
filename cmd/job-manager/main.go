@@ -28,7 +28,11 @@ func main() {
 		panic(err)
 	}
 
-	ln, err := net.Listen("tcp", ":3000")
+	host := ":1874"
+	if cfg.Host != "" {
+		host = cfg.Host
+	}
+	ln, err := net.Listen("tcp", host)
 	if err != nil {
 		panic(err)
 	}

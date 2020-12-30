@@ -23,6 +23,9 @@ var ctxClientKey contextKey = "client"
 
 func ExecuteArgs(args []string) error {
 	cfg := &client.Config{}
+	if host := os.Getenv("HOST"); host != "" {
+		cfg.Host = host
+	}
 	cmd := newRootCmd(cfg)
 	cmd.SetArgs(args)
 	ctx := context.Background()
@@ -57,7 +60,7 @@ func wrapCmdRun(cfgFlags *client.Config, fn wrappedCobraRun) func(cmd *cobra.Com
 		cfg := icfg.(*client.Config)
 
 		ctx := cmd.Context()
-		c := client.New(cfg.Addr, client.WithConfig(cfg))
+		c := client.New(cfg.Host, client.WithConfig(cfg))
 		ctx = context.WithValue(ctx, ctxClientKey, c)
 		return fn(ctx, cfg, cmd, args)
 	}

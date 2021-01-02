@@ -214,7 +214,7 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 	if opts.NoUnclaimed || len(opts.Claims) > 0 {
 		joins = append(joins, "LEFT JOIN job_claims ON jobs.id = job_claims.job_id")
-		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, completed_at AS completed_at FROM job_results ORDER BY job_id, completed_at DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
+		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, completed_at AS completed_at FROM job_results ORDER BY job_id, id DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
 	}
 	if opts.NoUnclaimed && len(opts.Claims) == 0 {
 		wheres = append(wheres, "GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?")

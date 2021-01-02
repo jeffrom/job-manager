@@ -182,19 +182,22 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 		Names:    []string{"cool"},
 		Statuses: []*resource.Status{resource.NewStatus(resource.StatusComplete)},
 	})
-	if l := len(resJobs.Jobs); l != 3 {
-		t.Fatalf("expected to list 3 jobs, got %d", l)
+
+	// this can be eventually consistent, but we should get either 0 or 3 rows back now.
+	if l := len(resJobs.Jobs); l == 3 {
+		ackedJobs := resJobs.Jobs
+		checkJob(t, ackedJobs[0])
+		checkJobStatus(t, resource.StatusComplete, ackedJobs[0])
+		checkVersion(t, 3, ackedJobs[0].Version)
+		checkJob(t, ackedJobs[1])
+		checkJobStatus(t, resource.StatusComplete, ackedJobs[1])
+		checkVersion(t, 3, ackedJobs[1].Version)
+		checkJob(t, ackedJobs[2])
+		checkJobStatus(t, resource.StatusComplete, ackedJobs[2])
+		checkVersion(t, 3, ackedJobs[2].Version)
+	} else if l != 0 {
+		t.Fatalf("expected 3 or 0 rows, got %d", l)
 	}
-	ackedJobs := resJobs.Jobs
-	checkJob(t, ackedJobs[0])
-	checkJobStatus(t, resource.StatusComplete, ackedJobs[0])
-	checkVersion(t, 3, ackedJobs[0].Version)
-	checkJob(t, ackedJobs[1])
-	checkJobStatus(t, resource.StatusComplete, ackedJobs[1])
-	checkVersion(t, 3, ackedJobs[1].Version)
-	checkJob(t, ackedJobs[2])
-	checkJobStatus(t, resource.StatusComplete, ackedJobs[2])
-	checkVersion(t, 3, ackedJobs[2].Version)
 }
 
 func getBasicQueue() *resource.Queue {

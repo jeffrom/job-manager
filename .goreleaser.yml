@@ -9,6 +9,7 @@ before:
     - go mod download
     # you may remove this if you don't need go generate
     - go generate ./...
+    - '[ -n "$DOCKER_USER" ] && [ -n "$DOCKER_PASS" ] && echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
 
 builds:
   - id: job-manager

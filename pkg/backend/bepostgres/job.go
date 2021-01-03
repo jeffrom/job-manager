@@ -217,12 +217,12 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, completed_at AS completed_at FROM job_results ORDER BY job_id, id DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
 	}
 	if opts.NoUnclaimed && len(opts.Claims) == 0 {
-		wheres = append(wheres, "GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?")
+		wheres = append(wheres, "(job_claims.job_id IS NULL OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
 		args = append(args, now)
 	}
 	if len(opts.Claims) > 0 {
 		for name, vals := range opts.Claims {
-			wheres = append(wheres, "(job_claims.name = ? AND job_claims.value IN (?)) OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + (queues.claim_duration * INTERVAL '1 microsecond') <= ?)")
+			wheres = append(wheres, "((job_claims.name = ? AND job_claims.value IN (?)) OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
 			args = append(args, name, vals, now)
 		}
 	}

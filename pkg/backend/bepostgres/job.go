@@ -87,7 +87,7 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 	opts.NoUnclaimed = true
 	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
-	jobs, err := pg.ListJobs(ctx, limit, opts)
+	jobs, err := pg.listJobs(ctx, limit, opts, true)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +180,10 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 }
 
 func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error) {
+	return pg.listJobs(ctx, limit, opts, false)
+}
+
+func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobListParams, forDequeue bool) (*resource.Jobs, error) {
 	if opts == nil {
 		opts = &resource.JobListParams{}
 	}
@@ -241,6 +245,9 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 
 	q += fmt.Sprintf(" LIMIT %d", limit)
+	if forDequeue {
+		q += " FOR UPDATE OF jobs SKIP LOCKED"
+	}
 
 	q, args, err = sqlx.In(q, args...)
 	if err != nil {
@@ -265,6 +272,7 @@ func (pg *Postgres) ListJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 
 	return &resource.Jobs{Jobs: rows}, nil
+
 }
 
 func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {

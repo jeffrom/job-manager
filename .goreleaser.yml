@@ -19,7 +19,7 @@ builds:
     ldflags: -s -w -X github.com/jeffrom/job-manager/release.Version={{.Version}} -X github.com/jeffrom/job-manager/release.Commit={{.ShortCommit}} -X github.com/jeffrom/job-manager/release.Date={{.Date}}
 
 dockers:
-- dockerfile: Dockerfile
+- dockerfile: .goreleaser/Dockerfile
   binaries:
     - job-manager
   image_templates:

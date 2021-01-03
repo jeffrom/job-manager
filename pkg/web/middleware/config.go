@@ -33,13 +33,23 @@ type Config struct {
 	LogOutput io.Writer      `json:"-"`
 }
 
+var ConfigDefaults = Config{
+	Host:                 ":1874",
+	DebugLog:             true,
+	Backend:              "postgres",
+	ShutdownTimeout:      30 * time.Second,
+	DefaultMaxJobTimeout: 10 * time.Minute,
+	DefaultConcurrency:   10,
+	DefaultMaxRetries:    10,
+}
+
 func NewConfig() Config {
 	out := os.Stdout
 	c := Config{
 		Host:                 ":1874",
 		LogOutput:            out,
 		DebugLog:             true,
-		Backend:              "memory",
+		Backend:              "postgres",
 		ShutdownTimeout:      30 * time.Second,
 		DefaultMaxJobTimeout: 10 * time.Minute,
 		DefaultConcurrency:   10,
@@ -51,6 +61,7 @@ func NewConfig() Config {
 
 func (c *Config) ResetLogOutput(out io.Writer) {
 	c.Logger = c.newLogger(out)
+	c.LogOutput = out
 }
 
 func (c *Config) newLogger(out io.Writer) *logger.Logger {

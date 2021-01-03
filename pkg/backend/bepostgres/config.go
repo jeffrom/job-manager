@@ -16,12 +16,12 @@ var DefaultConfig = Config{
 type Config struct {
 	backend.Config
 
-	Database string `json:"database"`
-	Host     string `json:"host,omitempty"`
-	Port     int    `json:"port,omitempty"`
-	User     string `json:"user,omitempty"`
-	Password string `json:"password,omitempty"`
-	SSLMode  string `json:"sslmode,omitempty"`
+	Database string `json:"database" envconfig:"postgres_database"`
+	Host     string `json:"host,omitempty" envconfig:"postgres_host"`
+	Port     int    `json:"port,omitempty" envconfig:"postgres_port"`
+	User     string `json:"user,omitempty" envconfig:"postgres_user"`
+	Password string `json:"password,omitempty" envconfig:"postgres_pass"`
+	SSLMode  string `json:"sslmode,omitempty" envconfig:"postgres_sslmode"`
 }
 
 func (c Config) DSN() string {

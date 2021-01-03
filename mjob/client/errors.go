@@ -55,10 +55,15 @@ func newResourceErrorFromMessage(message *apiv1.GenericError) *resource.Error {
 	case "invalid":
 		code = 400
 	}
+
+	msg := message.Message
+	if msg == "" {
+		msg = "internal server error"
+	}
 	return &resource.Error{
 		Status:     code,
 		Kind:       message.Kind,
-		Message:    message.Message,
+		Message:    msg,
 		Resource:   message.Resource,
 		ResourceID: message.ResourceId,
 		Reason:     message.Reason,

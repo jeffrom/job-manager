@@ -23,8 +23,8 @@ dockers:
   binaries:
     - job-manager
   image_templates:
-  - "jeffrom/job-manager:latest"
-  - "jeffrom/job-manager:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+  - "jeffmartin1117/job-manager:latest"
+  - "jeffmartin1117/job-manager:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
   build_flag_templates:
   - "--label=org.label-schema.schema-version=1.0"
   - "--label=org.label-schema.version={{.Version}}"

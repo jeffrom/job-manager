@@ -12,6 +12,9 @@ write_jsonschema_bin := script/write_jsonschema.sh
 self_schema_target := mjob/schema/self_schema.go
 self_schema_deps := jsonschema/Self.json
 
+chart_targets := $(wildcard charts/**/README.md)
+chart_deps := $(wildcard charts/**/values.yaml)
+
 buf := $(shell which buf)
 protoc := $(shell which protoc)
 protoc_gen_go = $(GOPATH)/bin/protoc-gen-go
@@ -22,6 +25,7 @@ gomodoutdated := $(GOPATH)/bin/go-mod-outdated
 tulpa := $(GOPATH)/bin/tulpa
 spectral := $(shell which spectral)
 goda := $(GOPATH)/bin/goda
+helmdocs := $(GOPATH)/bin/helm-docs
 
 ifeq ($(buf),)
 	buf = must-rebuild
@@ -33,7 +37,7 @@ ifeq ($(spectral),)
 	spectral = must-rebuild
 endif
 
-all: build
+all: gen.helmdocs build
 
 build: $(gen) $(gofiles)
 	GO111MODULE=on go install ./...
@@ -101,6 +105,11 @@ gen.jsonschema: $(self_schema_target)
 $(self_schema_target): $(write_jsonschema_bin) $(self_schema_deps)
 	script/write_jsonschema.sh Self selfSchemaRaw $(self_schema_target)
 
+gen.helmdocs: $(chart_targets)
+
+$(chart_targets): $(chart_deps) | $(helmdocs)
+	helm-docs -c charts
+
 .PHONY: dev
 dev:
 	$(tulpa) -v --ignore proto --ignore .make --ignore doc --app-port 1874 "make .make/$(server_bin) && .make/$(server_bin)"
@@ -120,6 +129,9 @@ $(goda):
 
 $(staticcheck):
 	cd $(TMPDIR) && GO111MODULE=on go get honnef.co/go/tools/cmd/staticcheck@2020.1.5
+
+$(helmdocs):
+	cd $(TMPDIR) && GO111MODULE=on go get github.com/norwoodj/helm-docs/cmd/helm-docs
 
 $(gomodoutdated):
 	GO111MODULE=off go get github.com/psampaz/go-mod-outdated

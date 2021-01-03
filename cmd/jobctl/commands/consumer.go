@@ -15,23 +15,23 @@ import (
 	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
-type workerOpts struct {
+type consumerOpts struct {
 	concurrency int
 	claims      []string
 	sleep       time.Duration
 	failTimes   int
 }
 
-type workerCmd struct {
+type consumerCmd struct {
 	*cobra.Command
-	opts *workerOpts
+	opts *consumerOpts
 }
 
-func newWorkerCmd(cfg *client.Config) *workerCmd {
-	opts := &workerOpts{}
-	c := &workerCmd{
+func newConsumerCmd(cfg *client.Config) *consumerCmd {
+	opts := &consumerOpts{}
+	c := &consumerCmd{
 		Command: &cobra.Command{
-			Use:  "worker QUEUE...",
+			Use:  "consumer QUEUE...",
 			Args: cobra.MinimumNArgs(1),
 			// Aliases: []string{"wrk"},
 		},
@@ -41,14 +41,14 @@ func newWorkerCmd(cfg *client.Config) *workerCmd {
 	flags := c.Command.Flags()
 	flags.IntVarP(&opts.concurrency, "concurrency", "C", 1, "max concurrent jobs")
 	flags.IntVar(&opts.failTimes, "fail-times", 0, "number of failures before success")
-	flags.StringArrayVarP(&opts.claims, "claim", "c", nil, "claims for this worker")
+	flags.StringArrayVarP(&opts.claims, "claim", "c", nil, "claims for this consumer")
 	flags.DurationVar(&opts.sleep, "sleep", 0, "sleep before completion")
 
 	return c
 }
 
-func (c *workerCmd) Cmd() *cobra.Command { return c.Command }
-func (c *workerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
+func (c *consumerCmd) Cmd() *cobra.Command { return c.Command }
+func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
 	var claims label.Claims
 	if len(c.opts.claims) > 0 {
 		var err error
@@ -67,12 +67,12 @@ func (c *workerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.
 		},
 	}))
 
-	log.Print("Starting worker on queues: ", strings.Join(queues, ", "))
+	log.Print("Starting consumer on queues: ", strings.Join(queues, ", "))
 	return consumer.Run(ctx)
 }
 
 type runner struct {
-	opts *workerOpts
+	opts *consumerOpts
 }
 
 func (r *runner) Run(ctx context.Context, job *resource.Job) (*resource.JobResult, error) {

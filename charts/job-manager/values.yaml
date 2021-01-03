@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: jeffrom/job-manager
+  repository: jeffmartin1117/job-manager
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -34,11 +34,11 @@ securityContext:
   #   - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
-  # runAsUser: 1000
+  runAsUser: 1000
 
 service:
   type: ClusterIP
-  port: 80
+  port: 1874
 
 ingress:
   enabled: false
@@ -77,3 +77,9 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# -- populate environment variables from a secret
+configSecret: ''
+
+# -- populate environment variables from a configmap
+configMap: ''

@@ -29,9 +29,9 @@ dockers:
   - "--label=org.label-schema.schema-version=1.0"
   - "--label=org.label-schema.version={{.Version}}"
   - "--label=org.label-schema.name={{.ProjectName}}"
-  - "--build-arg VERSION={{.Version}}"
-  - "--build-arg COMMIT={{.ShortCommit}}"
-  - "--build-arg DATE={{.Date}}"
+  - "--build-arg=VERSION={{.Version}}"
+  - "--build-arg=COMMIT={{.ShortCommit}}"
+  - "--build-arg=DATE={{.Date}}"
 
 archives:
 - replacements:

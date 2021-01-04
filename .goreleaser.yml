@@ -17,6 +17,12 @@ builds:
     main: ./cmd/job-manager
     binary: job-manager
     ldflags: -s -w -X github.com/jeffrom/job-manager/release.Version={{.Version}} -X github.com/jeffrom/job-manager/release.Commit={{.ShortCommit}} -X github.com/jeffrom/job-manager/release.Date={{.Date}}
+  - id: jobctl
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/jobctl
+    binary: jobctl
+    ldflags: -s -w -X github.com/jeffrom/job-manager/release.Version={{.Version}} -X github.com/jeffrom/job-manager/release.Commit={{.ShortCommit}} -X github.com/jeffrom/job-manager/release.Date={{.Date}}
 
 dockers:
 - dockerfile: .goreleaser/Dockerfile
@@ -25,6 +31,19 @@ dockers:
   image_templates:
   - "jeffmartin1117/job-manager:latest"
   - "jeffmartin1117/job-manager:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+  build_flag_templates:
+  - "--label=org.label-schema.schema-version=1.0"
+  - "--label=org.label-schema.version={{.Version}}"
+  - "--label=org.label-schema.name={{.ProjectName}}"
+  - "--build-arg=VERSION={{.Version}}"
+  - "--build-arg=COMMIT={{.ShortCommit}}"
+  - "--build-arg=DATE={{.Date}}"
+- dockerfile: .goreleaser/jobctl.Dockerfile
+  binaries:
+    - jobctl
+  image_templates:
+  - "jeffmartin1117/jobctl:latest"
+  - "jeffmartin1117/jobctl:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
   build_flag_templates:
   - "--label=org.label-schema.schema-version=1.0"
   - "--label=org.label-schema.version={{.Version}}"

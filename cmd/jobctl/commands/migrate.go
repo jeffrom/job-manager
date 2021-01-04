@@ -57,5 +57,7 @@ func (c *migrateCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra
 		}
 		return fmt.Errorf("got %d error: %s", res.StatusCode, b)
 	}
+
+	fmt.Println("migration ok")
 	return nil
 }

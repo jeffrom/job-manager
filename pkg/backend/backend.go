@@ -37,3 +37,7 @@ type Interface interface {
 type MiddlewareProvider interface {
 	Middleware() func(next http.Handler) http.Handler
 }
+
+type HandlerProvider interface {
+	Handler() http.Handler
+}

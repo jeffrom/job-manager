@@ -40,7 +40,8 @@ func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
 			next.ServeHTTP(ww, r.WithContext(ctx))
 
 			failed := false
-			if statusFailed(ww.Status()) {
+			rescode := ww.Status()
+			if statusFailed(rescode) {
 				failed = true
 				log.Debug().Msg("rollback")
 				err = tx.Rollback()
@@ -49,8 +50,8 @@ func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
 				err = tx.Commit()
 			}
 
-			if failed {
-				writeError(w, err)
+			if false && failed {
+				// w.WriteHeader(rescode)
 			} else {
 				if err := fw.flush(); err != nil {
 					log.Error().Err(err).Msg("flush failed")

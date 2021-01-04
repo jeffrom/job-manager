@@ -30,8 +30,6 @@ func debugRoutes(r chi.Router) {
 
 func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Router, error) {
 	r := chi.NewRouter()
-	r.MethodNotAllowed(handler.Func(handler.MethodNotAllowed))
-	r.NotFound(handler.Func(handler.NotFound))
 
 	debugRoutes(r)
 
@@ -53,6 +51,8 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 			logger.Middleware,
 			chimw.Recoverer,
 		)
+		r.MethodNotAllowed(handler.Func(handler.MethodNotAllowed))
+		r.NotFound(handler.Func(handler.NotFound))
 
 		r.Route("/internal", func(r chi.Router) {
 			r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -63,10 +63,6 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 			})
 		})
 
-		if mwp, ok := be.(backend.MiddlewareProvider); ok {
-			r.Use(mwp.Middleware())
-		}
-
 		r.Route("/api/v1", func(r chi.Router) {
 			r.Use(
 				middleware.Time(internal.Time(0), internal.NewTicker(1*time.Second)),
@@ -74,29 +70,41 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 				// middleware.Backend(cfg.GetBackend()),
 			)
 
-			r.Route("/queues", func(r chi.Router) {
-				r.Get("/", handler.Func(handler.ListQueues))
+			if hp, ok := be.(backend.HandlerProvider); ok {
+				r.Route("/backend", func(r chi.Router) {
+					r.Handle("/*", hp.Handler())
+				})
+			}
 
-				r.Route("/{queueID}", func(r chi.Router) {
-					r.Get("/", handler.Func(handler.GetQueueByID))
-					r.Put("/", handler.Func(handler.SaveQueue))
-					r.Delete("/", handler.Func(handler.DeleteQueue))
+			r.Route("/", func(r chi.Router) {
+				if mwp, ok := be.(backend.MiddlewareProvider); ok {
+					r.Use(mwp.Middleware())
+				}
 
-					enqueueHandler := &handler.EnqueueJobs{}
-					r.Post("/enqueue", enqueueHandler.ServeHTTP)
+				r.Route("/queues", func(r chi.Router) {
+					r.Get("/", handler.Func(handler.ListQueues))
+
+					r.Route("/{queueID}", func(r chi.Router) {
+						r.Get("/", handler.Func(handler.GetQueueByID))
+						r.Put("/", handler.Func(handler.SaveQueue))
+						r.Delete("/", handler.Func(handler.DeleteQueue))
+
+						enqueueHandler := &handler.EnqueueJobs{}
+						r.Post("/enqueue", enqueueHandler.ServeHTTP)
+						r.Post("/dequeue", handler.Func(handler.DequeueJobs))
+					})
+				})
+
+				r.Route("/jobs", func(r chi.Router) {
 					r.Post("/dequeue", handler.Func(handler.DequeueJobs))
-				})
-			})
+					r.Post("/ack", handler.Func(handler.Ack))
 
-			r.Route("/jobs", func(r chi.Router) {
-				r.Post("/dequeue", handler.Func(handler.DequeueJobs))
-				r.Post("/ack", handler.Func(handler.Ack))
-
-				r.Route("/{jobID}", func(r chi.Router) {
-					r.Get("/", handler.Func(handler.GetJobByID))
-					r.Get("/queue", handler.Func(handler.GetQueueByJobID))
+					r.Route("/{jobID}", func(r chi.Router) {
+						r.Get("/", handler.Func(handler.GetJobByID))
+						r.Get("/queue", handler.Func(handler.GetQueueByJobID))
+					})
+					r.Get("/", handler.Func(handler.ListJobs))
 				})
-				r.Get("/", handler.Func(handler.ListJobs))
 			})
 		})
 	})

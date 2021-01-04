@@ -35,6 +35,7 @@ func newRootCmd(cfg *client.Config) *rootCmd {
 		wrapCobraCommand(cfg, newEnqueueCmd(cfg)),
 		wrapCobraCommand(cfg, newAckCmd(cfg)),
 		wrapCobraCommand(cfg, newConsumerCmd(cfg)),
+		wrapCobraCommand(cfg, newMigrateCmd(cfg)),
 		wrapCobraCommand(cfg, newCompletionCmd(cfg)),
 	)
 	return c

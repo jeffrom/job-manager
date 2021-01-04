@@ -15,6 +15,9 @@ self_schema_deps := jsonschema/Self.json
 chart_targets := $(wildcard charts/**/README.md)
 chart_deps := $(wildcard charts/**/values.yaml)
 
+migration_target := pkg/backend/bepostgres/migrations/data.go
+migration_deps := $(wildcard pkg/backend/bepostgres/migrations/*.sql)
+
 buf := $(shell which buf)
 protoc := $(shell which protoc)
 protoc_gen_go = $(GOPATH)/bin/protoc-gen-go
@@ -26,6 +29,7 @@ tulpa := $(GOPATH)/bin/tulpa
 spectral := $(shell which spectral)
 goda := $(GOPATH)/bin/goda
 helmdocs := $(GOPATH)/bin/helm-docs
+gobindata := $(GOPATH)/bin/go-bindata
 
 ifeq ($(buf),)
 	buf = must-rebuild
@@ -37,15 +41,15 @@ ifeq ($(spectral),)
 	spectral = must-rebuild
 endif
 
-all: gen.helmdocs build
+all: build
 
-build: $(gen) $(gofiles)
+build: gen $(gofiles)
 	GO111MODULE=on go install ./...
 
-.make/$(server_bin): .make $(gen) $(gofiles)
+.make/$(server_bin): .make gen $(gofiles)
 	GO111MODULE=on go build -o .make/$(server_bin) ./cmd/$(server_bin)
 
-.make/$(ctl_bin): .make $(gen) $(gofiles)
+.make/$(ctl_bin): .make gen $(gofiles)
 	GO111MODULE=on go build -o .make/$(ctl_bin) ./cmd/$(ctl_bin)
 
 .make:
@@ -56,13 +60,13 @@ clean:
 	git clean -x -n
 
 .PHONY: test
-test: $(gen) $(gofiles) | $(staticcheck) $(buf)
+test: gen $(gofiles) | $(staticcheck) $(buf)
 	GO111MODULE=on go test -short ./...
 
 .PHONY: lint
 lint: lint.go lint.proto lint.jsonschema
 
-lint.go: $(gen) | $(staticcheck)
+lint.go: gen | $(staticcheck)
 	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring)
 
 .PHONY: lint.proto
@@ -74,7 +78,7 @@ lint.jsonschema: $(spectral)
 	$(spectral) lint jsonschema/*
 
 .PHONY: test.cover
-test.cover: $(gen) $(gofiles) | $(gocoverutil)
+test.cover: gen $(gofiles) | $(gocoverutil)
 	$(gocoverutil) -coverprofile=cov.out test -covermode=count ./... \
 		2> >(grep -v "no packages being tested depend on matches for pattern" 1>&2) \
 		| sed -e 's/of statements in .*/of statements/'
@@ -92,7 +96,7 @@ release.dryrun:
 release:
 	goreleaser --rm-dist
 
-gen: gen.proto gen.jsonschema
+gen: gen.migrations gen.helmdocs gen.proto gen.jsonschema
 
 gen.proto: $(prototargets)
 
@@ -109,6 +113,11 @@ gen.helmdocs: $(chart_targets)
 
 $(chart_targets): $(chart_deps) | $(helmdocs)
 	helm-docs -c charts
+
+gen.migrations: $(migration_target)
+
+$(migration_target): $(migration_deps) | $(gobindata)
+	go-bindata -pkg migrations -ignore '\.go$$' -prefix pkg/backend/bepostgres/migrations/ -o pkg/backend/bepostgres/migrations/data.go pkg/backend/bepostgres/migrations
 
 .PHONY: dev
 dev:
@@ -132,6 +141,9 @@ $(staticcheck):
 
 $(helmdocs):
 	cd $(TMPDIR) && GO111MODULE=on go get github.com/norwoodj/helm-docs/cmd/helm-docs
+
+$(gobindata):
+	GO111MODULE=off go get github.com/jteeuwen/go-bindata/...
 
 $(gomodoutdated):
 	GO111MODULE=off go get github.com/psampaz/go-mod-outdated

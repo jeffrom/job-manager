@@ -11,6 +11,8 @@ spec:
   selector:
     matchLabels:
       {{- include "job-manager.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
   template:
     metadata:
       {{- with .Values.podAnnotations }}

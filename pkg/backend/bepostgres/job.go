@@ -176,6 +176,7 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 	if err := annotateJobs(ctx, c, []*resource.Job{jb}); err != nil {
 		return nil, err
 	}
+	// fmt.Printf("GetJobByID: Args: %q\n", jb.ArgsRaw)
 	return jb, nil
 }
 
@@ -275,10 +276,25 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 
 }
 
+func setJobFields(jobs []*resource.Job) error {
+	for _, jb := range jobs {
+		if len(jb.ArgsRaw) > 0 && jb.Args == nil {
+			if err := json.Unmarshal(jb.ArgsRaw, &jb.Args); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 	if len(jobs) == 0 {
 		return nil
 	}
+	if err := setJobFields(jobs); err != nil {
+		return err
+	}
+
 	ids := make([]string, len(jobs))
 	jobmap := make(map[string]*resource.Job)
 	for i, jb := range jobs {

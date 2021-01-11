@@ -6,7 +6,7 @@ type Job struct {
 	*resource.Job
 }
 
-func (jb *Job) RunSuccess(data interface{}) (*resource.JobResult, error) {
+func RunSuccess(data interface{}) (*resource.JobResult, error) {
 	res := &resource.JobResult{
 		Status: resource.NewStatus(resource.StatusComplete),
 		Data:   data,
@@ -15,11 +15,11 @@ func (jb *Job) RunSuccess(data interface{}) (*resource.JobResult, error) {
 	return res, nil
 }
 
-func (jb *Job) RunInvalid(err error, data interface{}) (*resource.JobResult, error) {
+func RunInvalid(err error, data interface{}) (*resource.JobResult, error) {
 	panic("not implemented")
 }
 
-func (jb *Job) RunFail(err error, data interface{}) (*resource.JobResult, error) {
+func RunFail(err error, data interface{}) (*resource.JobResult, error) {
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()

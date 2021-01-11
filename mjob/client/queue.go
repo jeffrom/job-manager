@@ -25,9 +25,6 @@ type SaveQueueOpts struct {
 	ClaimDuration   time.Duration
 	Labels          map[string]string
 	Schema          []byte
-	ArgSchema       []byte
-	DataSchema      []byte
-	ResultSchema    []byte
 	Unique          bool
 	Version         string
 }

@@ -17,7 +17,7 @@ func newListCmd(cfg *client.Config) *listCmd {
 	lqCmd := newListQueuesCmd(cfg)
 	cmd := lqCmd.Cmd()
 	cmd.Use = "list"
-	cmd.Aliases = []string{"ls", "get"}
+	cmd.Aliases = []string{"ls"}
 	c := &listCmd{
 		lqCmd:   lqCmd,
 		Command: cmd,

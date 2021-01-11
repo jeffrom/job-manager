@@ -60,8 +60,10 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 }
 
 func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*resource.Ack) error {
+	// log := logger.FromContext(ctx)
 	var keys []string
 	for _, ack := range acks {
+		// fmt.Printf("ack request: %+v\n", ack)
 		if !resource.StatusIsAttempted(ack.Status) {
 			continue
 		}
@@ -78,6 +80,10 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 		if err != nil {
 			return err
 		}
+		// log.Debug().
+		// 	Str("job_id", ack.JobID).
+		// 	Str("key", ukey).
+		// 	Msg("deleting job uniqueness")
 		keys = append(keys, ukey)
 	}
 	return be.DeleteJobKeys(ctx, keys)

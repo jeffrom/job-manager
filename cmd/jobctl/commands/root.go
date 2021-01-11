@@ -31,11 +31,13 @@ func newRootCmd(cfg *client.Config) *rootCmd {
 
 	cmd.AddCommand(
 		wrapCobraCommand(cfg, newListCmd(cfg)),
+		wrapCobraCommand(cfg, newGetCmd(cfg)),
 		wrapCobraCommand(cfg, newSaveCmd(cfg)),
 		wrapCobraCommand(cfg, newEnqueueCmd(cfg)),
 		wrapCobraCommand(cfg, newAckCmd(cfg)),
 		wrapCobraCommand(cfg, newConsumerCmd(cfg)),
 		wrapCobraCommand(cfg, newMigrateCmd(cfg)),
+		wrapCobraCommand(cfg, newApplyCmd(cfg)),
 		wrapCobraCommand(cfg, newCompletionCmd(cfg)),
 	)
 	return c

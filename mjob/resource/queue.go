@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/jeffrom/job-manager/mjob/label"
@@ -40,7 +39,7 @@ func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
 }
 
 func (q *Queue) EqualAttrs(other *Queue) bool {
-	fmt.Printf("a: %+v\nb: %+v\n", q, other)
+	// fmt.Printf("a: %+v\nb: %+v\n", q, other)
 	return q.Name == other.Name &&
 		q.Retries == other.Retries &&
 		q.Duration == other.Duration &&

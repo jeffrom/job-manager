@@ -33,10 +33,6 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	var concurrency int32 = int32(cfg.DefaultConcurrency)
-	if conc := params.Concurrency; conc > 0 {
-		concurrency = conc
-	}
 	var maxRetries int32 = int32(cfg.DefaultMaxRetries)
 	if mr := params.MaxRetries; mr > 0 {
 		maxRetries = mr
@@ -60,7 +56,6 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 	now := timestamppb.New(internal.GetTimeProvider(ctx).Now())
 	queue := &jobv1.Queue{
 		Id:              queueID,
-		Concurrency:     concurrency,
 		Retries:         maxRetries,
 		Labels:          params.Labels,
 		Duration:        dur,

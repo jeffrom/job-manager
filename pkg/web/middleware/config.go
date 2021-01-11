@@ -26,7 +26,6 @@ type Config struct {
 	ShutdownTimeout time.Duration `json:"shutdown_timeout"`
 
 	DefaultMaxJobTimeout time.Duration `json:"default_max_job_timeout"`
-	DefaultConcurrency   int           `json:"json:"default_concurrency""`
 	DefaultMaxRetries    int           `json:"default_max_retries"`
 
 	Logger    *logger.Logger `json:"-"`
@@ -39,7 +38,6 @@ var ConfigDefaults = Config{
 	Backend:              "postgres",
 	ShutdownTimeout:      30 * time.Second,
 	DefaultMaxJobTimeout: 10 * time.Minute,
-	DefaultConcurrency:   10,
 	DefaultMaxRetries:    10,
 }
 
@@ -52,7 +50,6 @@ func NewConfig() Config {
 		Backend:              "postgres",
 		ShutdownTimeout:      30 * time.Second,
 		DefaultMaxJobTimeout: 10 * time.Minute,
-		DefaultConcurrency:   10,
 		DefaultMaxRetries:    10,
 	}
 	c.Logger = c.newLogger(out)

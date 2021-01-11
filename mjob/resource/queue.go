@@ -14,7 +14,6 @@ type Queue struct {
 	ID              int64        `json:"-"`
 	Name            string       `json:"name"`
 	Version         *Version     `json:"version" db:"v"`
-	Concurrency     int          `json:"concurrency,omitempty"`
 	Retries         int          `json:"retries,omitempty"`
 	Duration        Duration     `json:"duration,omitempty"`
 	CheckinDuration Duration     `json:"checkin_duration,omitempty" db:"checkin_duration"`
@@ -43,7 +42,6 @@ func (q *Queue) ClaimExpired(job *Job, now time.Time) bool {
 func (q *Queue) EqualAttrs(other *Queue) bool {
 	fmt.Printf("a: %+v\nb: %+v\n", q, other)
 	return q.Name == other.Name &&
-		q.Concurrency == other.Concurrency &&
 		q.Retries == other.Retries &&
 		q.Duration == other.Duration &&
 		q.CheckinDuration == other.CheckinDuration &&

@@ -71,7 +71,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 	var wheres []string
 	var joins []string
 	var args []interface{}
-	q := "SELECT DISTINCT ON (name) id, queues.name, v, concurrency, retries, unique_args, duration, checkin_duration, claim_duration, job_schema, created_at FROM queues"
+	q := "SELECT DISTINCT ON (name) id, queues.name, v, retries, unique_args, duration, checkin_duration, claim_duration, job_schema, created_at FROM queues"
 	if opts != nil {
 		if len(opts.Names) > 0 {
 			wheres = append(wheres, "name IN (?)")
@@ -181,7 +181,7 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 		return nil, nil
 	}
 
-	q := "INSERT INTO queues (name, v, concurrency, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, created_at, updated_at) VALUES (:name, :v, :concurrency, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, :created_at, :updated_at) RETURNING *"
+	q := "INSERT INTO queues (name, v, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, created_at, updated_at) VALUES (:name, :v, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, :created_at, :updated_at) RETURNING *"
 	stmt, err := c.PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err

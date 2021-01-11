@@ -21,7 +21,6 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 	return &resource.Queue{
 		Name:            msg.Id,
 		Version:         resource.NewVersion(msg.V),
-		Concurrency:     int(msg.Concurrency),
 		Retries:         int(msg.Retries),
 		Duration:        resource.Duration(msg.Duration.AsDuration()),
 		ClaimDuration:   resource.Duration(msg.ClaimDuration.AsDuration()),
@@ -54,7 +53,6 @@ func NewQueueFromResource(res *resource.Queue) *Queue {
 	return &Queue{
 		Id:              res.Name,
 		V:               res.Version.Raw(),
-		Concurrency:     int32(res.Concurrency),
 		Retries:         int32(res.Retries),
 		Duration:        durationpb.New(time.Duration(res.Duration)),
 		ClaimDuration:   durationpb.New(time.Duration(res.ClaimDuration)),

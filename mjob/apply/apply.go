@@ -53,7 +53,6 @@ func applyRequest(ctx context.Context, c client.Interface, q *resource.Queue) (*
 
 func toSaveOpts(q *resource.Queue, v string) client.SaveQueueOpts {
 	return client.SaveQueueOpts{
-		Concurrency:     q.Concurrency,
 		MaxRetries:      q.Retries,
 		JobDuration:     time.Duration(q.Duration),
 		CheckinDuration: time.Duration(q.CheckinDuration),

@@ -89,7 +89,7 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 		lastNow := now.Add(1 * time.Second)
 		ctx = internal.SetMockTime(ctx, lastNow)
 		q2 := q
-		q2.Concurrency++
+		q2.Retries++
 		res := mustSaveQueue(ctx, t, be, q2)
 		mustCheck(t, checkQueue(t, res))
 		mustCheck(t, checkVersion(t, 2, res.Version))
@@ -204,8 +204,7 @@ func getBasicQueue() *resource.Queue {
 	return &resource.Queue{
 		Name: "cool",
 		// Version:     resource.NewVersion(1),
-		Concurrency: 3,
-		Retries:     3,
+		Retries: 3,
 	}
 }
 

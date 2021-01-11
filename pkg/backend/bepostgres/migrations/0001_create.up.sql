@@ -2,7 +2,6 @@ CREATE TABLE queues (
     id bigserial PRIMARY KEY,
     name varchar(253) not null,
     v integer not null,
-    concurrency smallint not null,
     retries smallint not null,
     unique_args boolean not null,
     duration bigint not null,

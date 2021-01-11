@@ -18,7 +18,6 @@ type Queue struct {
 }
 
 type SaveQueueOpts struct {
-	Concurrency     int
 	MaxRetries      int
 	JobDuration     time.Duration
 	CheckinDuration time.Duration
@@ -37,9 +36,6 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 	args := &apiv1.SaveQueueParamArgs{
 		Name:   name,
 		Labels: opts.Labels,
-	}
-	if opts.Concurrency > 0 {
-		args.Concurrency = int32(opts.Concurrency)
 	}
 	if opts.MaxRetries > 0 {
 		args.MaxRetries = int32(opts.MaxRetries)

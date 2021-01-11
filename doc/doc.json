@@ -556,16 +556,6 @@
               "defaultValue": ""
             },
             {
-              "name": "concurrency",
-              "description": "",
-              "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
               "name": "max_retries",
               "description": "",
               "label": "",
@@ -1280,16 +1270,6 @@
             },
             {
               "name": "v",
-              "description": "",
-              "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
-              "ismap": false,
-              "defaultValue": ""
-            },
-            {
-              "name": "concurrency",
               "description": "",
               "label": "",
               "type": "int32",

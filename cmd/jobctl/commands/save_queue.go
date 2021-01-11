@@ -37,7 +37,6 @@ func newSaveQueueCmd(cfg *client.Config) *saveQueueCmd {
 
 	cmd := c.Cmd()
 	flags := cmd.Flags()
-	flags.IntVarP(&opts.Concurrency, "concurrency", "c", 0, "job concurrency")
 	flags.IntVarP(&opts.MaxRetries, "retries", "r", 0, "max retries")
 	flags.DurationVarP(&opts.JobDuration, "duration", "d", 0, "job max duration")
 	flags.DurationVar(&opts.CheckinDuration, "checkin-duration", 0, "job checkin duration")
@@ -85,7 +84,6 @@ func runSaveQueue(ctx context.Context, cfg *client.Config, opts *saveQueueOpts, 
 	}
 
 	q, err := cl.SaveQueue(ctx, id, client.SaveQueueOpts{
-		Concurrency:     opts.Concurrency,
 		MaxRetries:      opts.MaxRetries,
 		JobDuration:     opts.JobDuration,
 		CheckinDuration: opts.CheckinDuration,

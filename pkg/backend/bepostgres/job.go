@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	jobFields = "jobs.id, jobs.v, queues.name, queues.v AS queue_v, attempt, status, args, data, enqueued_at, started_at"
+	jobFields = "jobs.id, jobs.v, queues.name, queues.v AS queue_v, queues.backoff_initial_duration, queues.backoff_max_duration, queues.backoff_factor, attempt, status, args, data, enqueued_at, started_at"
 )
 
 func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {
@@ -230,6 +230,10 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 			wheres = append(wheres, "((job_claims.name = ? AND job_claims.value IN (?)) OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
 			args = append(args, name, vals, now)
 		}
+	}
+	if forDequeue {
+		wheres = append(wheres, "(queues.backoff_initial_duration = 0 OR queues.backoff_factor = 0 OR last_attempt.completed_at IS NULL OR (? > last_attempt.completed_at + (LEAST(queues.backoff_max_duration, (queues.backoff_initial_duration * (jobs.attempt ^ queues.backoff_factor)) / 1000) * INTERVAL '1 microsecond')))")
+		args = append(args, now)
 	}
 
 	if usingLabels {

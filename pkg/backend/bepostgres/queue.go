@@ -181,7 +181,7 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 		return nil, nil
 	}
 
-	q := "INSERT INTO queues (name, v, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, created_at, updated_at) VALUES (:name, :v, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, :created_at, :updated_at) RETURNING *"
+	q := "INSERT INTO queues (name, v, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, backoff_initial_duration, backoff_max_duration, backoff_factor, created_at, updated_at) VALUES (:name, :v, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, :backoff_initial_duration, :backoff_max_duration, :backoff_factor, :created_at, :updated_at) RETURNING *"
 	stmt, err := c.PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err

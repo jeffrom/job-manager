@@ -18,6 +18,7 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 	}
 	isDeleted := msg.DeletedAt != nil
 	deletedAt := sql.NullTime{Valid: isDeleted, Time: msg.DeletedAt.AsTime()}
+
 	return &resource.Queue{
 		Name:            msg.Id,
 		Version:         resource.NewVersion(msg.V),
@@ -28,6 +29,9 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 		Unique:          msg.Unique,
 		Labels:          label.Labels(msg.Labels),
 		SchemaRaw:       msg.Schema,
+		BackoffInitial:  resource.Duration(msg.BackoffInitialDuration.AsDuration()),
+		BackoffMax:      resource.Duration(msg.BackoffMaxDuration.AsDuration()),
+		BackoffFactor:   msg.BackoffFactor,
 		CreatedAt:       msg.CreatedAt.AsTime(),
 		UpdatedAt:       msg.UpdatedAt.AsTime(),
 		DeletedAt:       deletedAt,
@@ -51,18 +55,21 @@ func NewQueueFromResource(res *resource.Queue) *Queue {
 		deletedAt = timestamppb.New(res.DeletedAt.Time)
 	}
 	return &Queue{
-		Id:              res.Name,
-		V:               res.Version.Raw(),
-		Retries:         int32(res.Retries),
-		Duration:        durationpb.New(time.Duration(res.Duration)),
-		ClaimDuration:   durationpb.New(time.Duration(res.ClaimDuration)),
-		CheckinDuration: durationpb.New(time.Duration(res.CheckinDuration)),
-		Unique:          res.Unique,
-		Labels:          res.Labels,
-		Schema:          res.SchemaRaw,
-		CreatedAt:       timestamppb.New(res.CreatedAt),
-		UpdatedAt:       timestamppb.New(res.UpdatedAt),
-		DeletedAt:       deletedAt,
+		Id:                     res.Name,
+		V:                      res.Version.Raw(),
+		Retries:                int32(res.Retries),
+		Duration:               durationpb.New(time.Duration(res.Duration)),
+		ClaimDuration:          durationpb.New(time.Duration(res.ClaimDuration)),
+		CheckinDuration:        durationpb.New(time.Duration(res.CheckinDuration)),
+		Unique:                 res.Unique,
+		Labels:                 res.Labels,
+		Schema:                 res.SchemaRaw,
+		BackoffInitialDuration: durationpb.New(time.Duration(res.BackoffInitial)),
+		BackoffMaxDuration:     durationpb.New(time.Duration(res.BackoffMax)),
+		BackoffFactor:          res.BackoffFactor,
+		CreatedAt:              timestamppb.New(res.CreatedAt),
+		UpdatedAt:              timestamppb.New(res.UpdatedAt),
+		DeletedAt:              deletedAt,
 	}
 }
 

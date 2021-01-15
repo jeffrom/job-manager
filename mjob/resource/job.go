@@ -9,21 +9,24 @@ import (
 )
 
 type Job struct {
-	ID           string        `json:"id"`
-	QueueID      int64         `json:"-" db:"queue_id"`
-	Version      *Version      `json:"version" db:"v"`
-	Name         string        `json:"name"`
-	QueueVersion *Version      `json:"queue_version" db:"queue_v"`
-	Args         []interface{} `json:"args"`
-	ArgsRaw      []byte        `json:"-" db:"args"`
-	Data         *JobData      `json:"data,omitempty"`
-	DataRaw      []byte        `json:"-" db:"data"`
-	Status       *Status       `json:"status"`
-	Attempt      int           `json:"attempt,omitempty"`
-	Checkins     []*JobCheckin `json:"checkins,omitempty"`
-	Results      []*JobResult  `json:"results,omitempty"`
-	EnqueuedAt   time.Time     `json:"enqueued_at,omitempty" db:"enqueued_at"`
-	StartedAt    sql.NullTime  `json:"started_at,omitempty" db:"started_at"`
+	ID             string        `json:"id"`
+	QueueID        int64         `json:"-" db:"queue_id"`
+	Version        *Version      `json:"version" db:"v"`
+	Name           string        `json:"name"`
+	QueueVersion   *Version      `json:"queue_version" db:"queue_v"`
+	Args           []interface{} `json:"args"`
+	ArgsRaw        []byte        `json:"-" db:"args"`
+	Data           *JobData      `json:"data,omitempty"`
+	DataRaw        []byte        `json:"-" db:"data"`
+	Status         *Status       `json:"status"`
+	Attempt        int           `json:"attempt,omitempty"`
+	Checkins       []*JobCheckin `json:"checkins,omitempty"`
+	Results        []*JobResult  `json:"results,omitempty"`
+	EnqueuedAt     time.Time     `json:"enqueued_at,omitempty" db:"enqueued_at"`
+	StartedAt      sql.NullTime  `json:"started_at,omitempty" db:"started_at"`
+	BackoffInitial Duration      `json:"-" db:"backoff_initial_duration"`
+	BackoffMax     Duration      `json:"-" db:"backoff_max_duration"`
+	BackoffFactor  float32       `json:"-" db:"backoff_factor"`
 }
 
 func (jb *Job) String() string {

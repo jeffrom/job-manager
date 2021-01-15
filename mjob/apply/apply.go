@@ -61,5 +61,8 @@ func toSaveOpts(q *resource.Queue, v string) client.SaveQueueOpts {
 		Schema:          q.SchemaRaw,
 		Unique:          q.Unique,
 		Version:         v,
+		BackoffInitial:  time.Duration(q.BackoffInitial),
+		BackoffMax:      time.Duration(q.BackoffMax),
+		BackoffFactor:   q.BackoffFactor,
 	}
 }

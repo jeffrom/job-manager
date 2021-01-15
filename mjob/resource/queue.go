@@ -20,6 +20,9 @@ type Queue struct {
 	Unique          bool         `json:"unique,omitempty" db:"unique_args"`
 	Labels          label.Labels `json:"labels,omitempty"`
 	SchemaRaw       []byte       `json:"schema_raw,omitempty" db:"job_schema"`
+	BackoffInitial  Duration     `json:"backoff_initial" db:"backoff_initial_duration"`
+	BackoffMax      Duration     `json:"backoff_max" db:"backoff_max_duration"`
+	BackoffFactor   float32      `json:"backoff_factor" db:"backoff_factor"`
 	CreatedAt       time.Time    `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time    `json:"updated_at,omitempty" db:"updated_at"`
 	DeletedAt       sql.NullTime `json:"deleted_at,omitempty" db:"deleted_at"`
@@ -46,6 +49,9 @@ func (q *Queue) EqualAttrs(other *Queue) bool {
 		q.CheckinDuration == other.CheckinDuration &&
 		q.ClaimDuration == other.ClaimDuration &&
 		q.Unique == other.Unique &&
+		q.BackoffFactor == other.BackoffFactor &&
+		q.BackoffInitial == other.BackoffInitial &&
+		q.BackoffMax == other.BackoffMax &&
 		q.Labels.Equals(other.Labels) &&
 		// (q.DeletedAt == nil || q.DeletedAt.Valid == false) == (other.DeletedAt == nil || other.DeletedAt.Valid == false) &&
 		q.DeletedAt.Valid == other.DeletedAt.Valid &&

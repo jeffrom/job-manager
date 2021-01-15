@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -53,18 +54,36 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		checkinDur = params.CheckinDuration
 	}
 
+	var boFactor float32 = 2.0
+	if params.BackoffFactor > 0 {
+		boFactor = params.BackoffFactor
+	}
+
+	boInitial := durationpb.New(1 * time.Second)
+	if params.BackoffInitialDuration != nil {
+		boInitial = params.BackoffInitialDuration
+	}
+
+	boMax := durationpb.New(20 * time.Minute)
+	if params.BackoffMaxDuration != nil {
+		boMax = params.BackoffMaxDuration
+	}
+
 	now := timestamppb.New(internal.GetTimeProvider(ctx).Now())
 	queue := &jobv1.Queue{
-		Id:              queueID,
-		Retries:         maxRetries,
-		Labels:          params.Labels,
-		Duration:        dur,
-		ClaimDuration:   claimDur,
-		CheckinDuration: checkinDur,
-		Schema:          params.Schema,
-		CreatedAt:       now,
-		Unique:          params.Unique,
-		V:               params.V,
+		Id:                     queueID,
+		Retries:                maxRetries,
+		Labels:                 params.Labels,
+		Duration:               dur,
+		ClaimDuration:          claimDur,
+		CheckinDuration:        checkinDur,
+		Schema:                 params.Schema,
+		CreatedAt:              now,
+		Unique:                 params.Unique,
+		V:                      params.V,
+		BackoffFactor:          boFactor,
+		BackoffInitialDuration: boInitial,
+		BackoffMaxDuration:     boMax,
 	}
 	savedQueue, err := be.SaveQueue(ctx, jobv1.NewQueueFromProto(queue))
 	if err != nil {

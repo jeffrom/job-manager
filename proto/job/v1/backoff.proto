@@ -1,0 +1,12 @@
+syntax = "proto3";
+package job.v1;
+
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/jeffrom/job-manager/mjob/resource/job/v1";
+
+message Backoff {
+  google.protobuf.Duration initial = 1;
+  google.protobuf.Duration max = 2;
+  float factor = 3;
+}

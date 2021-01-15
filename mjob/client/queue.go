@@ -26,6 +26,9 @@ type SaveQueueOpts struct {
 	Schema          []byte
 	Unique          bool
 	Version         string
+	BackoffInitial  time.Duration
+	BackoffMax      time.Duration
+	BackoffFactor   float32
 }
 
 func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*resource.Queue, error) {
@@ -58,6 +61,13 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 	}
 	args.Unique = opts.Unique
 	args.V = v.Raw()
+	args.BackoffFactor = opts.BackoffFactor
+	if opts.BackoffInitial > 0 {
+		args.BackoffInitialDuration = durationpb.New(opts.BackoffInitial)
+	}
+	if opts.BackoffMax > 0 {
+		args.BackoffMaxDuration = durationpb.New(opts.BackoffMax)
+	}
 
 	uri := fmt.Sprintf("/api/v1/queues/%s", name)
 	req, err := c.newRequestProto(ctx, "PUT", uri, args)

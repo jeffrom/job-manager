@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
 import "job/v1/job.proto";
+import "job/v1/backoff.proto";
 
 option go_package = "github.com/jeffrom/job-manager/mjob/resource/job/v1";
 
@@ -20,9 +21,13 @@ message Queue {
   bytes schema = 8;
   bool unique = 9;
 
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
-  google.protobuf.Timestamp deleted_at = 12;
+  google.protobuf.Duration backoff_initial_duration = 10;
+  google.protobuf.Duration backoff_max_duration = 11;
+  float backoff_factor = 12;
+
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  google.protobuf.Timestamp deleted_at = 15;
 }
 
 message Queues {

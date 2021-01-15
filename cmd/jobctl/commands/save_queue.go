@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -17,6 +18,10 @@ type saveQueueOpts struct {
 
 	LabelFlags []string
 	SchemaPath string
+
+	BackoffInitial time.Duration
+	BackoffMax     time.Duration
+	BackoffFactor  float32
 }
 
 type saveQueueCmd struct {
@@ -44,6 +49,9 @@ func newSaveQueueCmd(cfg *client.Config) *saveQueueCmd {
 	flags.StringArrayVarP(&opts.LabelFlags, "label", "l", nil, "set label `name=value`")
 	flags.StringVarP(&opts.SchemaPath, "schema", "S", "", "path to json schema")
 	flags.BoolVarP(&opts.Unique, "unique", "U", false, "run one unique arg list concurrently")
+	flags.DurationVar(&opts.BackoffInitial, "backoff-initial", 0, "initial backoff duration")
+	flags.DurationVar(&opts.BackoffMax, "backoff-max", 0, "max backoff duration")
+	flags.Float32Var(&opts.BackoffFactor, "backoff-factor", 1.0, "backoff factor")
 
 	return c
 }
@@ -83,6 +91,19 @@ func runSaveQueue(ctx context.Context, cfg *client.Config, opts *saveQueueOpts, 
 		v = prev.Version.Strict()
 	}
 
+	var boInitial time.Duration
+	var boMax time.Duration
+	var boFactor float32
+	if opts.BackoffFactor > 0 {
+		boFactor = opts.BackoffFactor
+	}
+	if opts.BackoffInitial > 0 {
+		boInitial = opts.BackoffInitial
+	}
+	if opts.BackoffMax > 0 {
+		boMax = opts.BackoffMax
+	}
+
 	q, err := cl.SaveQueue(ctx, id, client.SaveQueueOpts{
 		MaxRetries:      opts.MaxRetries,
 		JobDuration:     opts.JobDuration,
@@ -92,6 +113,9 @@ func runSaveQueue(ctx context.Context, cfg *client.Config, opts *saveQueueOpts, 
 		Schema:          scmb,
 		Unique:          opts.Unique,
 		Version:         v,
+		BackoffInitial:  boInitial,
+		BackoffMax:      boMax,
+		BackoffFactor:   boFactor,
 	})
 	if err != nil {
 		return err

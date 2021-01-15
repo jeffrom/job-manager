@@ -14,3 +14,6 @@ unique: true
 retries: 4
 duration: 1m
 claim_duration: 10s
+backoff_factor: 2.0
+backoff_initial: 2s
+backoff_max: 1m

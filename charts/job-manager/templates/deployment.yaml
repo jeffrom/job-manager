@@ -49,6 +49,9 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: LOG_JSON
+              value: '1'
           {{- if or .Values.configSecret .Values.configMap }}
           envFrom:
           {{- if .Values.configSecret }}

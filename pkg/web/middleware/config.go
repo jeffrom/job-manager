@@ -20,20 +20,21 @@ func init() {
 
 type Config struct {
 	Host            string        `json:"host"`
-	LogJSON         bool          `json:"log_json"`
-	DebugLog        bool          `json:"debug_log"`
-	Backend         string        `json:"backend"`
-	ShutdownTimeout time.Duration `json:"shutdown_timeout"`
+	LogJSON         bool          `json:"log_json" envconfig:"log_json"`
+	DebugLog        bool          `json:"debug_log" envconfig:"debug"`
+	Backend         string        `json:"backend" envconfig:"backend"`
+	ShutdownTimeout time.Duration `json:"shutdown_timeout" envconfig:"shutdown_timeout"`
 
-	DefaultMaxJobTimeout time.Duration `json:"default_max_job_timeout"`
-	DefaultMaxRetries    int           `json:"default_max_retries"`
+	DefaultMaxJobTimeout time.Duration `json:"default_max_job_timeout" envconfig:"default_max_job_timeout"`
+	DefaultMaxRetries    int           `json:"default_max_retries" envconfig:"default_max_retries"`
 
 	Logger    *logger.Logger `json:"-"`
 	LogOutput io.Writer      `json:"-"`
 }
 
 var ConfigDefaults = Config{
-	Host:                 ":1874",
+	Host: ":1874",
+	// TODO DebugLog should be false eventually
 	DebugLog:             true,
 	Backend:              "postgres",
 	ShutdownTimeout:      30 * time.Second,

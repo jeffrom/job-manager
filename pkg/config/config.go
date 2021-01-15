@@ -13,7 +13,7 @@ import (
 // defaults.
 func MergeEnvFlags(cfgFlags interface{}, defs interface{}) (interface{}, error) {
 	cfgEnv := reflect.New(reflect.ValueOf(cfgFlags).Elem().Type()).Interface()
-	if err := envconfig.Process("jobctl", cfgEnv); err != nil {
+	if err := envconfig.Process("", cfgEnv); err != nil {
 		return nil, err
 	}
 	// fmt.Printf("flags: %+v\n", cfgFlags)

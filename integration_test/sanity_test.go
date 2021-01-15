@@ -8,14 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-redis/redis/v8"
-
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/mjob/label"
 	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/backend/bememory"
-	"github.com/jeffrom/job-manager/pkg/backend/beredis"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -138,18 +135,6 @@ func TestIntegrationSanity(t *testing.T) {
 			name:    "default-mem",
 			backend: bememory.New(),
 			srvCfg:  middleware.NewConfig(),
-		},
-		{
-			name: "default-redis",
-			backend: beredis.New(beredis.WithConfig(beredis.Config{
-				Config: defaultBackendCfg,
-				Redis: &redis.Options{
-					Addr:     "localhost:6379",
-					Password: "",
-					DB:       1,
-				},
-			})),
-			srvCfg: middleware.NewConfig(),
 		},
 	}
 

@@ -10,7 +10,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/imdario/mergo v0.3.11
-	github.com/jackc/pgx/v4 v4.10.0
+	github.com/jackc/pgx/v4 v4.10.1
 	github.com/jeffrom/job-manager/mjob v0.0.0-00010101000000-000000000000
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0

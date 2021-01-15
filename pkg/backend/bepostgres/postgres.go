@@ -52,6 +52,13 @@ func WithConfig(cfg Config) ProviderFunc {
 	}
 }
 
+func (pg *Postgres) Close() error {
+	if pg.db != nil {
+		return pg.db.Close()
+	}
+	return nil
+}
+
 func (pg *Postgres) getLogger(ctx context.Context) *logger.Logger {
 	log := logger.FromContext(ctx)
 	if log == nil {

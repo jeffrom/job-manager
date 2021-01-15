@@ -52,9 +52,11 @@ func TestBackendPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer mconn.Close()
 	runMigrations(ctx, t, mconn, cfg.Database)
 
 	be := New(WithConfig(cfg))
+	defer be.Close()
 	testenv.BackendTest(testenv.BackendTestConfig{
 		Backend: be,
 		Fail:    os.Getenv("CI") != "",

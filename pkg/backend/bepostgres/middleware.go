@@ -50,17 +50,14 @@ func (pg *Postgres) Middleware() func(next http.Handler) http.Handler {
 				err = tx.Commit()
 			}
 
-			if false && failed {
-				// w.WriteHeader(rescode)
-			} else {
-				if err := fw.flush(); err != nil {
-					log.Error().Err(err).Msg("flush failed")
-				}
+			if !failed && err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
 			}
-
 			if err != nil {
 				log.Error().Err(err).Msg("commit/rollback failed")
-				return
+			}
+			if err := fw.flush(); err != nil {
+				log.Error().Err(err).Msg("flush failed")
 			}
 		}
 

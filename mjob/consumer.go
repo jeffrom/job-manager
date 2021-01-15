@@ -53,6 +53,13 @@ func ConsumerWithConfig(cfg ConsumerConfig) ConsumerProviderFunc {
 	}
 }
 
+func ConsumerWithQueue(queue string) ConsumerProviderFunc {
+	return func(c *Consumer) *Consumer {
+		c.cfg.DequeueOpts.Queues = append(c.cfg.DequeueOpts.Queues, queue)
+		return c
+	}
+}
+
 // Run consumes jobs until Stop is called. After Stop is called, any currently
 // running jobs will continue until completion.
 func (c *Consumer) Run(ctx context.Context) error {

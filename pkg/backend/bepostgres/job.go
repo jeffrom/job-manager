@@ -249,6 +249,8 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		q += " WHERE " + strings.Join(wheres, " AND ")
 	}
 
+	q += " ORDER BY id"
+
 	q += fmt.Sprintf(" LIMIT %d", limit)
 	if forDequeue {
 		q += " FOR UPDATE OF jobs SKIP LOCKED"

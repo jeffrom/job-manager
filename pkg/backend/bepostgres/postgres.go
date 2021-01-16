@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -133,7 +132,7 @@ func (pg *Postgres) Reset(ctx context.Context) error {
 		}
 		tables = append(tables, table)
 	}
-	fmt.Println(tables)
+	// fmt.Println(tables)
 
 	for _, table := range tables {
 		if _, err := pg.db.ExecContext(ctx, "TRUNCATE TABLE "+table+" CASCADE"); err != nil {

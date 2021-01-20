@@ -14,6 +14,7 @@ type Runner interface {
 
 type Consumer struct {
 	cfg     ConsumerConfig
+	logger  Logger
 	client  client.Interface
 	runner  Runner
 	resultC chan *resource.JobResult
@@ -22,13 +23,14 @@ type Consumer struct {
 	stop    chan struct{}
 }
 
-type ConsumerProviderFunc func(c *Consumer) *Consumer
+type ConsumerProvider func(c *Consumer) *Consumer
 
-func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerProviderFunc) *Consumer {
+func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerProvider) *Consumer {
 	c := &Consumer{
 		client: client,
 		runner: runner,
 		cfg:    defaultConsumerConfig,
+		logger: &DefaultLogger{},
 		stop:   make(chan struct{}),
 	}
 
@@ -46,14 +48,21 @@ func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerPr
 	return c
 }
 
-func ConsumerWithConfig(cfg ConsumerConfig) ConsumerProviderFunc {
+func ConsumerWithConfig(cfg ConsumerConfig) ConsumerProvider {
 	return func(c *Consumer) *Consumer {
 		c.cfg = cfg
 		return c
 	}
 }
 
-func ConsumerWithQueue(queue string) ConsumerProviderFunc {
+func ConsumerWithLogger(logger Logger) ConsumerProvider {
+	return func(c *Consumer) *Consumer {
+		c.logger = logger
+		return c
+	}
+}
+
+func ConsumerWithQueue(queue string) ConsumerProvider {
 	return func(c *Consumer) *Consumer {
 		c.cfg.DequeueOpts.Queues = append(c.cfg.DequeueOpts.Queues, queue)
 		return c
@@ -67,7 +76,7 @@ func (c *Consumer) Run(ctx context.Context) error {
 	workers := make([]*consumerWorker, n)
 	for i := 0; i < n; i++ {
 		ch := make(chan *resource.Job)
-		wrk := newWorker(c.cfg, c.runner, ch, c.resultC)
+		wrk := newWorker(c.cfg, c.logger, c.runner, ch, c.resultC)
 		workers[i] = wrk
 		go wrk.start(ctx)
 	}

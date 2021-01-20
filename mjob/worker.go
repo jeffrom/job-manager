@@ -8,14 +8,16 @@ import (
 
 type consumerWorker struct {
 	cfg    ConsumerConfig
+	logger Logger
 	in     chan *resource.Job
 	out    chan *resource.JobResult
 	runner Runner
 }
 
-func newWorker(cfg ConsumerConfig, runner Runner, in chan *resource.Job, out chan *resource.JobResult) *consumerWorker {
+func newWorker(cfg ConsumerConfig, logger Logger, runner Runner, in chan *resource.Job, out chan *resource.JobResult) *consumerWorker {
 	return &consumerWorker{
 		cfg:    cfg,
+		logger: logger,
 		in:     in,
 		out:    out,
 		runner: runner,
@@ -32,8 +34,14 @@ func (w *consumerWorker) start(ctx context.Context) {
 			if jb == nil {
 				break
 			}
+			w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Starting job", JobID: jb.ID, Data: jb})
 			res, err := w.runner.Run(ctx, jb)
 			w.respond(jb, res, err)
+			if err != nil {
+				w.logger.Log(ctx, &LogEvent{Level: "error", Message: "Job failed: " + err.Error(), JobID: jb.ID, Data: res})
+			} else {
+				w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Job complete", JobID: jb.ID, Data: res})
+			}
 		}
 	}
 }

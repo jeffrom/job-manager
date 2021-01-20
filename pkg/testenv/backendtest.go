@@ -54,6 +54,9 @@ func BackendTest(cfg BackendTestConfig) func(t *testing.T) {
 		if !t.Run("enqueue-dequeue", tc.wrap(ctx, testEnqueueDequeue)) {
 			return
 		}
+		if !t.Run("attempts", tc.wrap(ctx, testAttempts)) {
+			return
+		}
 
 		// ctx = mustReset(ctx, t, be)
 	}
@@ -197,6 +200,132 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 		checkVersion(t, 3, ackedJobs[2].Version)
 	} else if l != 0 {
 		t.Fatalf("expected 3 or 0 rows, got %d", l)
+	}
+}
+
+func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
+	be := tc.cfg.Backend
+	ctx = mustReset(ctx, t, be)
+
+	now := basictime
+	ctx = internal.SetMockTime(ctx, now)
+	q := &resource.Queue{
+		Name:           "cool",
+		Retries:        2,
+		BackoffInitial: resource.Duration(10 * time.Second),
+		BackoffFactor:  2.0,
+		BackoffMax:     resource.Duration(10 * time.Minute),
+	}
+	mustSaveQueue(ctx, t, be, q)
+
+	jobs := getBasicJobs()
+	jobs.Jobs = []*resource.Job{jobs.Jobs[0]}
+	res := mustEnqueueJobs(ctx, t, be, jobs)
+	if len(res.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(res.Jobs))
+	}
+
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes := mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 1 {
+		t.Fatalf("expected to dequeue 1 job, got %d", l)
+	}
+
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	acks := []*resource.Ack{
+		{
+			JobID:  deqRes.Jobs[0].ID,
+			Status: resource.NewStatus(resource.StatusFailed),
+		},
+	}
+	mustAckJobs(ctx, t, be, acks)
+
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 0 {
+		t.Fatalf("expected to dequeue 0 jobs, got %d", l)
+	}
+
+	now = now.Add(10 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 1 {
+		t.Fatalf("expected to dequeue 1 job, got %d", l)
+	}
+	// fail again
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	mustAckJobs(ctx, t, be, acks)
+
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 0 {
+		t.Fatalf("expected to dequeue 0 jobs, got %d", l)
+	}
+
+	now = now.Add(40 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 1 {
+		t.Fatalf("expected to dequeue 1 job, got %d", l)
+	}
+	// fail again
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	mustAckJobs(ctx, t, be, acks)
+
+	// should not retry this again, even after a long time
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 0 {
+		t.Fatalf("expected to dequeue 0 jobs, got %d", l)
+	}
+
+	now = now.Add(60 * time.Minute)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 0 {
+		t.Fatalf("expected to dequeue 0 jobs, got %d", l)
 	}
 }
 

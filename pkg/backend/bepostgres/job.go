@@ -232,6 +232,7 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		}
 	}
 	if forDequeue {
+		wheres = append(wheres, "(jobs.attempt <= queues.retries)")
 		wheres = append(wheres, "(queues.backoff_initial_duration = 0 OR queues.backoff_factor = 0 OR last_attempt.completed_at IS NULL OR (? > last_attempt.completed_at + (LEAST(queues.backoff_max_duration, (queues.backoff_initial_duration * (jobs.attempt ^ queues.backoff_factor)) / 1000) * INTERVAL '1 microsecond')))")
 		args = append(args, now)
 	}

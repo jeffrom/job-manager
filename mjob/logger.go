@@ -3,6 +3,7 @@ package mjob
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -30,6 +31,10 @@ func (l *DefaultLogger) Log(ctx context.Context, e *LogEvent) {
 	if err != nil || e == nil {
 		log.Print("error marshalling log event!", e, err)
 	} else {
-		log.Printf("%s  | %s", msg, string(b))
+		s := fmt.Sprintf("%s  | %s", msg, string(b))
+		if e.Error != nil {
+			s += "  | err: " + e.Error.Error()
+		}
+		log.Print(s)
 	}
 }

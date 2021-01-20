@@ -38,7 +38,7 @@ func (w *consumerWorker) start(ctx context.Context) {
 			res, err := w.runner.Run(ctx, jb)
 			w.respond(jb, res, err)
 			if err != nil {
-				w.logger.Log(ctx, &LogEvent{Level: "error", Message: "Job failed: " + err.Error(), JobID: jb.ID, Data: res})
+				w.logger.Log(ctx, &LogEvent{Level: "error", Message: "Job failed: " + err.Error(), JobID: jb.ID, Data: res, Error: err})
 			} else {
 				w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Job complete", JobID: jb.ID, Data: res})
 			}

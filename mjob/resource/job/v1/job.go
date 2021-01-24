@@ -116,7 +116,7 @@ func NewJobFromProto(msg *Job, claims label.Claims) *resource.Job {
 		QueueVersion: resource.NewVersion(msg.QueueV),
 		Args:         lv.AsSlice(),
 		Data:         data,
-		Status:       jobStatusFromProto(msg.Status),
+		Status:       JobStatusFromProto(msg.Status),
 		Attempt:      int(msg.Attempt),
 		Checkins:     jobCheckinsFromProto(msg.Checkins),
 		Results:      jobResultsFromProto(msg.Results),
@@ -144,7 +144,7 @@ func NewJobsFromProto(msgs []*Job) ([]*resource.Job, error) {
 	return jobs, nil
 }
 
-func jobStatusFromProto(status Status) *resource.Status {
+func JobStatusFromProto(status Status) *resource.Status {
 	switch status {
 	case Status_STATUS_UNSPECIFIED:
 		return resource.NewStatus(resource.StatusUnspecified)
@@ -170,9 +170,34 @@ func jobStatusFromProto(status Status) *resource.Status {
 func JobStatusesFromProto(statuses []Status) []*resource.Status {
 	res := make([]*resource.Status, len(statuses))
 	for i, st := range statuses {
-		res[i] = jobStatusFromProto(st)
+		res[i] = JobStatusFromProto(st)
 	}
 	return res
+}
+
+func JobStatusToProto(status *resource.Status) Status {
+	if status == nil {
+		panic("job/v1: nil status")
+	}
+	switch *status {
+	case resource.StatusUnspecified:
+		return Status_STATUS_UNSPECIFIED
+	case resource.StatusQueued:
+		return Status_STATUS_QUEUED
+	case resource.StatusRunning:
+		return Status_STATUS_RUNNING
+	case resource.StatusComplete:
+		return Status_STATUS_COMPLETE
+	case resource.StatusDead:
+		return Status_STATUS_DEAD
+	case resource.StatusCancelled:
+		return Status_STATUS_CANCELLED
+	case resource.StatusInvalid:
+		return Status_STATUS_INVALID
+	case resource.StatusFailed:
+		return Status_STATUS_FAILED
+	}
+	panic("job/v1: unknown status")
 }
 
 func jobCheckinsFromProto(checkins []*Checkin) []*resource.JobCheckin {
@@ -206,7 +231,7 @@ func jobResultsFromProto(results []*Result) []*resource.JobResult {
 	for i, r := range results {
 		jrs[i] = &resource.JobResult{
 			Attempt:     int(r.Attempt),
-			Status:      jobStatusFromProto(r.Status),
+			Status:      JobStatusFromProto(r.Status),
 			Data:        r.Data.AsInterface(),
 			StartedAt:   r.StartedAt.AsTime(),
 			CompletedAt: r.CompletedAt.AsTime(),

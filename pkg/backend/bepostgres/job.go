@@ -87,6 +87,8 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 	opts.NoUnclaimed = true
 	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
+	// NOTE annotate jobs after the insert loop below if we want to include
+	// job_results when start-while-running happens.
 	jobs, err := pg.listJobs(ctx, limit, opts, true)
 	if err != nil {
 		return nil, err
@@ -99,8 +101,13 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 		return nil, err
 	}
 
-	q := "UPDATE jobs SET status = 'running', attempt = attempt+1, v = v+1, started_at = $1 WHERE id = $2 RETURNING *"
-	stmt, err := sqlx.PreparexContext(ctx, c, q)
+	// NOTE we could insert a job_results row here, but because we don't
+	// actually know what happenned, it makes more sense not to try to pretend
+	// that it did. Plus we don't know when the last job failed, so we could
+	// mess up backoff.
+
+	updateJobQ := "UPDATE jobs SET status = 'running', attempt = attempt+1, v = v+1, started_at = $1 WHERE id = $2 RETURNING *"
+	stmt, err := sqlx.PreparexContext(ctx, c, updateJobQ)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +140,7 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 	}
 	defer update.Close()
 
-	insertq := "INSERT INTO job_results (job_id, status, data, error, started_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)"
-	insert, err := sqlx.PreparexContext(ctx, c, c.Rebind(insertq))
+	insert, err := prepareInsertJobResults(ctx, c)
 	if err != nil {
 		return err
 	}
@@ -210,8 +216,15 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		args = append(args, opts.Names)
 	}
 	if len(opts.Statuses) > 0 {
-		wheres = append(wheres, "jobs.status IN (?)")
-		args = append(args, resource.StatusStrings(opts.Statuses...))
+		if forDequeue {
+			// handle case where job duration has elapsed and the reaper hasn't
+			// updated status yet
+			wheres = append(wheres, "(jobs.status IN (?) OR (jobs.status = 'running' AND ((last_attempt_started_at IS NOT NULL AND ? > last_attempt_started_at + ((queues.duration / 1000) * INTERVAL '1 microsecond')) OR (jobs.started_at IS NOT NULL AND ? > jobs.started_at + ((queues.duration / 1000) * INTERVAL '1 microsecond')))))")
+			args = append(args, resource.StatusStrings(opts.Statuses...), now, now)
+		} else {
+			wheres = append(wheres, "jobs.status IN (?)")
+			args = append(args, resource.StatusStrings(opts.Statuses...))
+		}
 	}
 	if opts.Selectors.Len() > 0 {
 		joins, wheres, args = sqlSelectors(opts.Selectors, joins, wheres, args)
@@ -219,7 +232,7 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 	if opts.NoUnclaimed || len(opts.Claims) > 0 {
 		joins = append(joins, "LEFT JOIN job_claims ON jobs.id = job_claims.job_id")
-		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, completed_at AS completed_at FROM job_results ORDER BY job_id, id DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
+		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, started_at AS last_attempt_started_at, completed_at AS completed_at FROM job_results ORDER BY job_id, id DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
 	}
 	if opts.NoUnclaimed && len(opts.Claims) == 0 {
 		wheres = append(wheres, "(job_claims.job_id IS NULL OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
@@ -250,7 +263,7 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		q += " WHERE " + strings.Join(wheres, " AND ")
 	}
 
-	q += " ORDER BY id"
+	q += " ORDER BY id ASC"
 
 	q += fmt.Sprintf(" LIMIT %d", limit)
 	if forDequeue {
@@ -337,4 +350,10 @@ func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 		jb.Results = append(jb.Results, row)
 	}
 	return nil
+}
+
+func prepareInsertJobResults(ctx context.Context, c sqlxer) (*sqlx.Stmt, error) {
+	sql := "INSERT INTO job_results (job_id, status, data, error, started_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)"
+	q, err := sqlx.PreparexContext(ctx, c, c.Rebind(sql))
+	return q, err
 }

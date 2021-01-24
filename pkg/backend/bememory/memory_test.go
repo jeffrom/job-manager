@@ -9,6 +9,7 @@ import (
 func TestBackendMemory(t *testing.T) {
 	be := New()
 	testenv.BackendTest(testenv.BackendTestConfig{
+		Type:    "memory",
 		Backend: be,
 		Fail:    true,
 	})(t)

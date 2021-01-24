@@ -58,6 +58,7 @@ func TestBackendPostgres(t *testing.T) {
 	be := New(WithConfig(cfg))
 	defer be.Close()
 	testenv.BackendTest(testenv.BackendTestConfig{
+		Type:    "postgres",
 		Backend: be,
 		Fail:    os.Getenv("CI") != "",
 	})(t)

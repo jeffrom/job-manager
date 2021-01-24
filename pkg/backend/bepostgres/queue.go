@@ -71,7 +71,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 	var wheres []string
 	var joins []string
 	var args []interface{}
-	q := "SELECT DISTINCT ON (name) id, queues.name, v, retries, unique_args, duration, checkin_duration, claim_duration, job_schema, created_at FROM queues"
+	q := "SELECT DISTINCT ON (name) id, queues.name, v, retries, unique_args, duration, checkin_duration, claim_duration, backoff_initial_duration, backoff_max_duration, backoff_factor, job_schema, created_at FROM queues"
 	if opts != nil {
 		if len(opts.Names) > 0 {
 			wheres = append(wheres, "name IN (?)")

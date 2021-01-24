@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"text/tabwriter"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	// apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 )
 
@@ -53,10 +55,42 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *co
 	}
 	padding := 3
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\tLABELS\t")
+	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\tRETRIES\tDURATION\tBACKOFF\tUNIQUE\tLABELS\t")
 	for _, q := range qs.Queues {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", q.Name, q.CreatedAt.Format(time.Stamp), q.Version.String(), q.Labels.String())
+		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%s\t%s\t%s\n",
+			q.Name,
+			q.CreatedAt.Format(time.Stamp),
+			q.Version.String(),
+			q.Retries,
+			cleanupDuration(q.Duration.String()),
+			queueBackoff(q),
+			yesno(q.Unique),
+			q.Labels.String())
 	}
 	// fmt.Fprintln(w)
 	return w.Flush()
+}
+
+func yesno(b bool) string {
+	if b {
+		return "y"
+	}
+	return ""
+}
+
+func queueBackoff(q *resource.Queue) string {
+	if q.BackoffInitial == 0 || q.BackoffFactor == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("%s<>%s x %.2f",
+		cleanupDuration(q.BackoffInitial.String()),
+		cleanupDuration(q.BackoffMax.String()),
+		q.BackoffFactor)
+}
+
+var durationCleanupRe = regexp.MustCompile(`([a-z])0[a-z]$`)
+
+func cleanupDuration(d string) string {
+	return durationCleanupRe.ReplaceAllString(d, "$1")
 }

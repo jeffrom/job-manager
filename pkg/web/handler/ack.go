@@ -39,9 +39,10 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
+		finalStatus := getFinalStatus(queue, jobData, jobv1.JobStatusFromProto(ackParam.Status))
 		ack := &jobv1.Ack{
 			Id:     id,
-			Status: ackParam.Status,
+			Status: jobv1.JobStatusToProto(finalStatus),
 			Data:   ackParam.Data,
 			Error:  ackParam.Error,
 		}
@@ -59,12 +60,21 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func getFinalStatus(queue *resource.Queue, jb *resource.Job, status *resource.Status) *resource.Status {
+	if status != nil && *status == resource.StatusFailed &&
+		queue.Retries > 0 &&
+		jb.Attempt >= queue.Retries {
+		return resource.NewStatus(resource.StatusDead)
+	}
+	return status
+}
+
 func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*resource.Ack) error {
 	// log := logger.FromContext(ctx)
 	var keys []string
 	for _, ack := range acks {
 		// fmt.Printf("ack request: %+v\n", ack)
-		if !resource.StatusIsAttempted(ack.Status) {
+		if !resource.StatusIsDone(ack.Status) {
 			continue
 		}
 

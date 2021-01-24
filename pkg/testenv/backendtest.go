@@ -16,6 +16,7 @@ import (
 )
 
 type BackendTestConfig struct {
+	Type    string
 	Backend backend.Interface
 
 	// Fail fails instead of skipping tests when dependency check (ping) fails.
@@ -55,6 +56,9 @@ func BackendTest(cfg BackendTestConfig) func(t *testing.T) {
 			return
 		}
 		if !t.Run("attempts", tc.wrap(ctx, testAttempts)) {
+			return
+		}
+		if !t.Run("dequeue-while-running", tc.wrap(ctx, testDequeueWhileRunning)) {
 			return
 		}
 
@@ -205,6 +209,9 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 
 func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	be := tc.cfg.Backend
+	if tc.cfg.Type == "memory" {
+		t.Skip("skipping as memory backend doesn't currently support attempts")
+	}
 	ctx = mustReset(ctx, t, be)
 
 	now := basictime
@@ -298,10 +305,15 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	if l := len(deqRes.Jobs); l != 1 {
 		t.Fatalf("expected to dequeue 1 job, got %d", l)
 	}
-	// fail again
+	// fail for the final time (handler will set dead status in practice)
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
-	mustAckJobs(ctx, t, be, acks)
+	mustAckJobs(ctx, t, be, []*resource.Ack{
+		{
+			JobID:  deqRes.Jobs[0].ID,
+			Status: resource.NewStatus(resource.StatusDead),
+		},
+	})
 
 	// should not retry this again, even after a long time
 	now = now.Add(1 * time.Second)
@@ -326,6 +338,96 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	}
 	if l := len(deqRes.Jobs); l != 0 {
 		t.Fatalf("expected to dequeue 0 jobs, got %d", l)
+	}
+
+	resJobs := mustListJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if l := len(resJobs.Jobs); l != 1 {
+		t.Fatalf("expected 1 job, got %d", l)
+	}
+	status := resJobs.Jobs[0].Status
+	if *status != resource.StatusDead {
+		t.Fatalf("expected status \"dead\", got %q", status.String())
+	}
+}
+
+func testDequeueWhileRunning(ctx context.Context, t *testing.T, tc *backendTestContext) {
+	be := tc.cfg.Backend
+	if tc.cfg.Type == "memory" {
+		t.Skip("skipping as memory backend doesn't currently support attempts")
+	}
+	ctx = mustReset(ctx, t, be)
+
+	now := basictime
+	ctx = internal.SetMockTime(ctx, now)
+	q := &resource.Queue{
+		Name:           "cool",
+		Duration:       resource.Duration(1 * time.Minute),
+		Retries:        2,
+		BackoffInitial: resource.Duration(50 * time.Second),
+		BackoffFactor:  2.0,
+		BackoffMax:     resource.Duration(10 * time.Minute),
+	}
+	mustSaveQueue(ctx, t, be, q)
+
+	jobs := getBasicJobs()
+	jobs.Jobs = []*resource.Job{jobs.Jobs[0]}
+	res := mustEnqueueJobs(ctx, t, be, jobs)
+	if len(res.Jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(res.Jobs))
+	}
+
+	now = now.Add(1 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes := mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 1 {
+		t.Fatalf("expected to dequeue 1 job, got %d", l)
+	}
+
+	// shouldn't get anything back yet
+	now = now.Add(51 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 0 {
+		t.Fatalf("expected to dequeue 0 jobs, got %d", l)
+	}
+
+	// duration + start delay of 1 second + already waited 50 secs
+	now = now.Add(10 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 1 {
+		t.Fatalf("expected to dequeue 1 job, got %d", l)
+	}
+
+	// we should get it again if it hasn't been acked by the end of its
+	// duration.
+	now = now.Add(61 * time.Second)
+	ctx = internal.SetMockTime(ctx, now)
+	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
+		Names: []string{"cool"},
+	})
+	if deqRes == nil {
+		t.Fatal("expected dequeue result not to be nil")
+	}
+	if l := len(deqRes.Jobs); l != 1 {
+		t.Fatalf("expected to dequeue 1 job, got %d", l)
 	}
 }
 
@@ -358,6 +460,8 @@ func getBasicJobs() *resource.Jobs {
 
 func jobArgs(args ...interface{}) []interface{} { return args }
 
+// runMiddleware tries to wrap a call to a backend with its middleware. It
+// shouldn't be relied upon for transaction-type middleware.
 func runMiddleware(ctx context.Context, t testing.TB, be backend.Interface) (context.Context, func(t testing.TB, err error)) {
 	t.Helper()
 	origCtx := ctx

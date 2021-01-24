@@ -4,6 +4,8 @@ package bememory
 
 import (
 	"context"
+	"math"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 
@@ -140,19 +142,28 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 
 	now := internal.GetTimeProvider(ctx).Now().UTC()
 
-	// filter out jobs with an unmet claim window
+	// filter out jobs with an unmet claim window or have failed too recently
 	var filtered []*resource.Job
 	for _, jb := range jobs.Jobs {
+		queue, err := m.GetQueue(ctx, jb.Name)
+		if err != nil {
+			return nil, err
+		}
 		if jb.Data != nil && len(jb.Data.Claims) > 0 {
-			queue, err := m.GetQueue(ctx, jb.Name)
-			if err != nil {
-				return nil, err
-			}
 			match := jb.Data.Claims.Match(opts.Claims)
 			expired := queue.ClaimExpired(jb, now)
 			// fmt.Println("claim filter:", jb.ID, "match:", match, "expired:", expired)
 			if !expired && !match {
 				continue
+			}
+		}
+
+		if len(jb.Results) > 0 {
+			lastRes := jb.Results[len(jb.Results)-1]
+			if lastRes.Status != nil && *lastRes.Status == resource.StatusFailed {
+				if !lastRes.CompletedAt.IsZero() && now.After(lastRes.CompletedAt.Add(calculateBackoff(jb, queue))) {
+					continue
+				}
 			}
 		}
 
@@ -262,4 +273,23 @@ func valIn(val string, vals []string) bool {
 
 func newID() string {
 	return uuid.NewV4().String()
+}
+
+func calculateBackoff(jb *resource.Job, queue *resource.Queue) time.Duration {
+	initial := time.Duration(queue.BackoffInitial)
+	if initial == 0 {
+		initial = time.Second
+	}
+	max := time.Duration(queue.BackoffMax)
+	factor := queue.BackoffFactor
+	if factor == 0 {
+		factor = 2.0
+	}
+	attempt := jb.Attempt
+
+	res := time.Duration(initial * time.Duration(math.Pow(float64(attempt), float64(factor))))
+	if max > 0 && res > max {
+		return max
+	}
+	return res
 }

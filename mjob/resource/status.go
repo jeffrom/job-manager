@@ -89,7 +89,7 @@ func (s *Status) Value() (driver.Value, error) {
 	return s.String(), nil
 }
 
-func StatusIsAttempted(status *Status) bool {
+func StatusIsDone(status *Status) bool {
 	switch *status {
 	case StatusComplete, StatusCancelled, StatusInvalid, StatusDead:
 		return true

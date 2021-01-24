@@ -114,7 +114,7 @@ func (jb *Job) LastClaimWindow() time.Time {
 }
 
 func (jb *Job) IsAttempted() bool {
-	return StatusIsAttempted(jb.Status)
+	return StatusIsDone(jb.Status)
 }
 
 func (jb *Job) HasStatus(statuses ...*Status) bool {

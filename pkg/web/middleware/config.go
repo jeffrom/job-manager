@@ -47,7 +47,6 @@ var ConfigDefaults = Config{
 	DefaultMaxRetries:    10,
 	InvalidateInterval:   15 * time.Second,
 	ReapInterval:         10 * time.Minute,
-	ReapAge:              24 * time.Hour * 60,
 }
 
 func NewConfig() Config {

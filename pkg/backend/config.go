@@ -19,7 +19,7 @@ type Config struct {
 
 var DefaultConfig = Config{
 	QueueHistoryLimit: 10,
-	ReapAge:           10 * time.Minute,
+	ReapAge:           24 * time.Hour * 60,
 	Debug:             true,
-	// ReapAge:           time.Hour * 24 * 60,
+	// ReapAge:           10 * time.Minute,
 }

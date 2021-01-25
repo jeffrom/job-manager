@@ -6,7 +6,7 @@ metadata:
     {{- include "job-manager.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ default .Values.replicaCount 1 }}
   {{- end }}
   selector:
     matchLabels:
@@ -52,9 +52,13 @@ spec:
           env:
             - name: LOG_JSON
               value: '1'
-          {{- if eq .Values.replicaCount 1 }}
+          {{- if eq (default .Values.replicaCount 1) 1 }}
             - name: REAPER
               value: '1'
+          {{- end }}
+          {{- if .Values.reapAge }}
+            - name: REAP_AGE
+              value: {{ .Values.reapAge | quote }}
           {{- end }}
           {{- if or .Values.configSecret .Values.configMap }}
           envFrom:

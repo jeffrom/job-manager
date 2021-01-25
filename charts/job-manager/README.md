@@ -29,6 +29,7 @@ Background job server
 | nodeSelector | object | `{}` |  |
 | podAnnotations | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
+| reapAge | string | `"60d"` |  |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
 | securityContext.readOnlyRootFilesystem | bool | `true` |  |

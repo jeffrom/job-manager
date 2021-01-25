@@ -83,3 +83,6 @@ configSecret: ''
 
 # -- populate environment variables from a configmap
 configMap: ''
+
+# -- age of jobs to delete (default 1440h or 60 days)
+reapAge: ''

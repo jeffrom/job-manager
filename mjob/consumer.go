@@ -114,9 +114,9 @@ Loop:
 				continue
 			}
 		}
+		dequeuedJobs := len(jobs.Jobs)
 
-		njobs := len(jobs.Jobs)
-		// fmt.Println("consumer got", njobs, "jobs")
+		// fmt.Println("consumer got", dequeuedJobs, "jobs with limit", n)
 		remaining, err := c.processJobs(ctx, append(curr, jobs.Jobs...))
 		// fmt.Println("consumer processed jobs.", len(remaining), "jobs remain", "err:", err)
 		if err != nil {
@@ -130,7 +130,7 @@ Loop:
 			continue
 		}
 		curr = remaining
-		if njobs == 0 {
+		if dequeuedJobs == 0 && n != 0 {
 			sleep(ctx, 2*time.Second)
 		}
 	}

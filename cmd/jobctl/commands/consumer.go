@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -26,6 +27,7 @@ type consumerOpts struct {
 	shutdownTimeout time.Duration
 	jitter          time.Duration
 	doPanic         bool
+	consumers       int
 }
 
 type consumerCmd struct {
@@ -46,6 +48,7 @@ func newConsumerCmd(cfg *client.Config) *consumerCmd {
 
 	flags := c.Command.Flags()
 	flags.IntVarP(&opts.concurrency, "concurrency", "C", 1, "max concurrent jobs")
+	flags.IntVar(&opts.consumers, "consumers", 1, "number of consumers (total is consumers * concurrency)")
 	flags.IntVar(&opts.failTimes, "fail-times", 0, "number of failures before success")
 	flags.StringArrayVarP(&opts.claims, "claim", "c", nil, "claims for this consumer")
 	flags.DurationVar(&opts.sleep, "sleep", 0, "sleep before completion")
@@ -68,14 +71,6 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 	}
 	cl := clientFromContext(ctx)
 	queues := args
-	consumer := mjob.NewConsumer(cl, &runner{opts: c.opts}, mjob.ConsumerWithConfig(mjob.ConsumerConfig{
-		ShutdownTimeout: c.opts.shutdownTimeout,
-		Concurrency:     c.opts.concurrency,
-		DequeueOpts: client.DequeueOpts{
-			Claims: claims,
-			Queues: queues,
-		},
-	}))
 
 	var done context.CancelFunc
 	ctx, done = context.WithCancel(ctx)
@@ -88,7 +83,29 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 		done()
 	}()
 	log.Print("Starting consumer on queues: ", strings.Join(queues, ", "))
-	return consumer.Run(ctx)
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < c.opts.consumers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			consumer := mjob.NewConsumer(cl, &runner{opts: c.opts}, mjob.ConsumerWithConfig(mjob.ConsumerConfig{
+				ShutdownTimeout: c.opts.shutdownTimeout,
+				Concurrency:     c.opts.concurrency,
+				DequeueOpts: client.DequeueOpts{
+					Claims: claims,
+					Queues: queues,
+				},
+			}))
+			err := consumer.Run(ctx)
+			if err != nil {
+				log.Print("consumer", i, err)
+			}
+		}()
+	}
+
+	wg.Wait()
+	return nil
 }
 
 type runner struct {

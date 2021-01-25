@@ -2,8 +2,11 @@
 package v1
 
 import (
+	"time"
+
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -77,6 +80,7 @@ func NewJobFromResource(jb *resource.Job) (*Job, error) {
 		Args:       v.Values,
 		Data:       data,
 		Status:     Status(*jb.Status),
+		Duration:   durationpb.New(time.Duration(jb.Duration)),
 		Attempt:    int32(jb.Attempt),
 		Checkins:   jobCheckinsToProto(jb.Checkins),
 		Results:    results,
@@ -121,6 +125,7 @@ func NewJobFromProto(msg *Job, claims label.Claims) *resource.Job {
 		Checkins:     jobCheckinsFromProto(msg.Checkins),
 		Results:      jobResultsFromProto(msg.Results),
 		EnqueuedAt:   msg.EnqueuedAt.AsTime(),
+		Duration:     resource.Duration(msg.Duration.AsDuration()),
 	}
 }
 

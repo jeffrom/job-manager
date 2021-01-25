@@ -1779,6 +1779,16 @@
               "defaultValue": ""
             },
             {
+              "name": "duration",
+              "description": "",
+              "label": "",
+              "type": "Duration",
+              "longType": "google.protobuf.Duration",
+              "fullType": "google.protobuf.Duration",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "status",
               "description": "",
               "label": "",

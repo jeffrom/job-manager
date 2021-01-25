@@ -2,6 +2,8 @@ package mjob
 
 import (
 	"context"
+	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/jeffrom/job-manager/mjob/client"
@@ -31,7 +33,7 @@ func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerPr
 		runner: runner,
 		cfg:    defaultConsumerConfig,
 		logger: &DefaultLogger{},
-		stop:   make(chan struct{}),
+		stop:   make(chan struct{}, 1),
 	}
 
 	for _, provider := range providers {
@@ -42,9 +44,6 @@ func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerPr
 		panic("concurrency config was 0")
 	}
 	c.resultC = make(chan *resource.JobResult, c.cfg.Concurrency)
-	if c.cfg.Backpressure == 0 {
-		c.cfg.Backpressure = c.cfg.Concurrency / 2
-	}
 	return c
 }
 
@@ -82,20 +81,22 @@ func (c *Consumer) Run(ctx context.Context) error {
 	}
 	c.workers = workers
 
-	curr := make([]*resource.Job, 0, c.cfg.Concurrency+c.cfg.Backpressure)
+	curr := make([]*resource.Job, 0, c.cfg.Concurrency)
+Loop:
 	for {
 		select {
 		case <-c.stop:
-			// do the shutdown sequence
-			return nil
+			// fmt.Println("<- c.stop")
+			break Loop
 		case <-ctx.Done():
+			// fmt.Println("<- ctx.Done")
 			// trigger the shutdown sequence
-			return c.Stop()
+			break Loop
 		default:
 		}
 
 		// fmt.Println("counts", c.cfg.Concurrency, c.cfg.Backpressure, c.running, len(curr))
-		n := (c.cfg.Concurrency) - (int(c.running) + len(curr))
+		n := (c.cfg.Concurrency) - (int(atomic.LoadInt32(&c.running)) + len(curr))
 		// fmt.Println("will get", n, "jobs")
 		jobs := &resource.Jobs{}
 		if n > 0 {
@@ -103,7 +104,14 @@ func (c *Consumer) Run(ctx context.Context) error {
 			jobs, err = c.client.DequeueJobsOpts(ctx, n, c.cfg.DequeueOpts)
 			if err != nil {
 				// TODO backoff
-				return err
+				c.logger.Log(ctx, &LogEvent{
+					Level:   "error",
+					Error:   err,
+					Message: "dequeue failed",
+				})
+
+				sleep(ctx, 2*time.Second)
+				continue
 			}
 		}
 
@@ -114,13 +122,69 @@ func (c *Consumer) Run(ctx context.Context) error {
 		if err != nil {
 			// TODO handle this? should processJobs ever error? only if a
 			// worker doesn't finish in time.
-			return err
+			c.logger.Log(ctx, &LogEvent{
+				Level:   "error",
+				Error:   err,
+				Message: "processJobs failed",
+			})
+			continue
 		}
 		curr = remaining
 		if njobs == 0 {
-			time.Sleep(2 * time.Second)
+			sleep(ctx, 2*time.Second)
 		}
 	}
+
+	currRunning := atomic.LoadInt32(&c.running)
+	if currRunning == 0 {
+		c.logger.Log(ctx, &LogEvent{
+			Level:   "info",
+			Message: "skipping shutdown sequence as there are 0 jobs running",
+		})
+		return nil
+	}
+
+	c.logger.Log(ctx, &LogEvent{
+		Level:   "info",
+		Message: "shutdown sequence beginning",
+		Data:    map[string]int32{"running": currRunning},
+	})
+
+	shutdownCtx, shutdownDone := context.WithDeadline(context.Background(), time.Now().Add(c.cfg.ShutdownTimeout))
+	defer shutdownDone()
+ShutdownLoop:
+	// cleanup
+	for {
+		select {
+		case <-shutdownCtx.Done():
+			n := atomic.LoadInt32(&c.running)
+			c.logger.Log(context.Background(), &LogEvent{
+				Level:   "error",
+				Message: fmt.Sprintf("shut down with %d jobs still in progress", n),
+				Data:    map[string]int32{"running": n},
+			})
+			break ShutdownLoop
+		case res := <-c.resultC:
+			n := atomic.AddInt32(&c.running, -1)
+			if err := c.client.AckJobOpts(shutdownCtx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data}); err != nil {
+				c.logger.Log(shutdownCtx, &LogEvent{
+					Level:   "error",
+					Error:   err,
+					Message: "ackJobs failed",
+				})
+			}
+			if n == 0 {
+				break ShutdownLoop
+			}
+		}
+	}
+	for _, wrk := range c.workers {
+		close(wrk.in)
+	}
+	c.logger.Log(shutdownCtx, &LogEvent{
+		Level:   "info",
+		Message: "shutdown sequence complete",
+	})
 	return nil
 }
 
@@ -143,19 +207,15 @@ func (c *Consumer) processJobs(ctx context.Context, jobs []*resource.Job) ([]*re
 		}
 	}
 
-	// TODO wait up to JobDuration, then throw it in a penalty box where
-	// concurrency is decreased by one until the worker completes? To start
-	// maybe just stop the consumer.
-	// maybe just backoff on acks?
-	// finished := make(map[string]bool)
 Loop:
 	for {
 		select {
 		case res := <-c.resultC:
+			atomic.AddInt32(&c.running, -1)
 			if res == nil || res.JobID == "" {
 				panic("consumer: job id was empty")
 			}
-			// we should make an effort to ack all jobs, but it is always
+			// TODO we should make an effort to ack all jobs, but it is always
 			// possible for a job to run twice
 			if err := c.client.AckJobOpts(ctx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data}); err != nil {
 				return currJobs, err
@@ -180,6 +240,7 @@ func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {
 	for _, wrk := range c.workers {
 		select {
 		case wrk.in <- jb:
+			atomic.AddInt32(&c.running, 1)
 			return true
 		default:
 		}
@@ -187,15 +248,18 @@ func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {
 	return false
 }
 
-// Stop cancels any pending jobs, waits for any currently running jobs to
-// complete, then stops the consumer.
-func (c *Consumer) Stop() error {
-	for _, wrk := range c.workers {
-		close(wrk.in)
+// Stop initiates the consumer's shutdown sequence.
+func (c *Consumer) Stop() {
+	c.stop <- struct{}{}
+}
+
+func sleep(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
-
-	// TODO cancel pending jobs
-
-	// TODO process remaining jobs
-	return nil
 }

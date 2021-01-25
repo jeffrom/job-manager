@@ -23,13 +23,14 @@ message Job {
   Data data = 6;
 
   int32 attempt = 7;
+  google.protobuf.Duration duration = 8;
 
-  Status status = 8;
+  Status status = 9;
 
-  repeated Checkin checkins = 9;
-  repeated Result results = 10;
+  repeated Checkin checkins = 10;
+  repeated Result results = 11;
 
-  google.protobuf.Timestamp enqueued_at = 11;
+  google.protobuf.Timestamp enqueued_at = 12;
 }
 
 message Jobs {

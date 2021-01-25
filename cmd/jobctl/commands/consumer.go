@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
+	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -16,10 +19,13 @@ import (
 )
 
 type consumerOpts struct {
-	concurrency int
-	claims      []string
-	sleep       time.Duration
-	failTimes   int
+	concurrency     int
+	claims          []string
+	sleep           time.Duration
+	failTimes       int
+	shutdownTimeout time.Duration
+	jitter          time.Duration
+	doPanic         bool
 }
 
 type consumerCmd struct {
@@ -43,6 +49,9 @@ func newConsumerCmd(cfg *client.Config) *consumerCmd {
 	flags.IntVar(&opts.failTimes, "fail-times", 0, "number of failures before success")
 	flags.StringArrayVarP(&opts.claims, "claim", "c", nil, "claims for this consumer")
 	flags.DurationVar(&opts.sleep, "sleep", 0, "sleep before completion")
+	flags.DurationVar(&opts.shutdownTimeout, "shutdown-timeout", 15*time.Second, "graceful shutdown period")
+	flags.DurationVar(&opts.jitter, "jitter", 0, "jitter effect for sleep")
+	flags.BoolVar(&opts.doPanic, "panic", false, "panic when failing")
 
 	return c
 }
@@ -60,13 +69,24 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 	cl := clientFromContext(ctx)
 	queues := args
 	consumer := mjob.NewConsumer(cl, &runner{opts: c.opts}, mjob.ConsumerWithConfig(mjob.ConsumerConfig{
-		Concurrency: c.opts.concurrency,
+		ShutdownTimeout: c.opts.shutdownTimeout,
+		Concurrency:     c.opts.concurrency,
 		DequeueOpts: client.DequeueOpts{
 			Claims: claims,
 			Queues: queues,
 		},
 	}))
 
+	var done context.CancelFunc
+	ctx, done = context.WithCancel(ctx)
+	defer done()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt)
+	go func() {
+		<-sigs
+		done()
+	}()
 	log.Print("Starting consumer on queues: ", strings.Join(queues, ", "))
 	return consumer.Run(ctx)
 }
@@ -78,12 +98,26 @@ type runner struct {
 func (r *runner) Run(ctx context.Context, job *resource.Job) (*resource.JobResult, error) {
 	log.Printf("consumer executing on job %s", job.ID)
 	if r.opts.sleep > 0 {
-		time.Sleep(r.opts.sleep)
+		d := r.opts.sleep
+		if r.opts.jitter != 0 {
+			neg := rand.Intn(1) == 1
+			jit := time.Duration(rand.Intn(int(r.opts.jitter)))
+			if neg {
+				d += jit
+			} else {
+				d -= jit
+			}
+		}
+		time.Sleep(d)
 	}
-	fmt.Println(r.opts.failTimes, job.Attempt)
+
 	if ft := r.opts.failTimes; ft > 0 && job.Attempt <= ft {
 		log.Printf("failing job %s on attempt %d", job.ID, job.Attempt)
-		return nil, fmt.Errorf("failing job attempt %d", job.Attempt)
+		err := fmt.Errorf("failing job attempt %d", job.Attempt)
+		if r.opts.doPanic {
+			panic(err)
+		}
+		return nil, err
 	}
 	log.Printf("job %s complete", job.ID)
 	return nil, nil

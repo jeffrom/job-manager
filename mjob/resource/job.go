@@ -27,6 +27,8 @@ type Job struct {
 	BackoffInitial Duration      `json:"-" db:"backoff_initial_duration"`
 	BackoffMax     Duration      `json:"-" db:"backoff_max_duration"`
 	BackoffFactor  float32       `json:"-" db:"backoff_factor"`
+	// Duration lives on queues, but consumers need it for correct timeouts.
+	Duration Duration `json:"duration,omitempty" db:"duration"`
 }
 
 func (jb *Job) String() string {

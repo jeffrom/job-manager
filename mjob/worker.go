@@ -2,6 +2,10 @@ package mjob
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"runtime/debug"
+	"time"
 
 	"github.com/jeffrom/job-manager/mjob/resource"
 )
@@ -34,8 +38,7 @@ func (w *consumerWorker) start(ctx context.Context) {
 			if jb == nil {
 				break
 			}
-			w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Starting job", JobID: jb.ID, Data: jb})
-			res, err := w.runner.Run(ctx, jb)
+			res, err := w.runOneJob(ctx, jb)
 			w.respond(jb, res, err)
 			if err != nil {
 				w.logger.Log(ctx, &LogEvent{Level: "error", Message: "Job failed: " + err.Error(), JobID: jb.ID, Data: res, Error: err})
@@ -44,6 +47,31 @@ func (w *consumerWorker) start(ctx context.Context) {
 			}
 		}
 	}
+}
+
+func (w *consumerWorker) runOneJob(ctx context.Context, jb *resource.Job) (res *resource.JobResult, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if rerr, ok := r.(error); ok {
+				err = rerr
+			} else {
+				err = errors.New(fmt.Sprintf("consumer error: %+v", r))
+			}
+			w.logger.Log(ctx, &LogEvent{
+				Level:   "error",
+				Message: fmt.Sprintf("panic: %+v\n%s", r, debug.Stack()),
+			})
+		}
+	}()
+
+	if jb.Duration > 0 {
+		var done context.CancelFunc
+		ctx, done = context.WithDeadline(context.Background(), time.Now().Add(time.Duration(jb.Duration)))
+		defer done()
+	}
+	w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Starting job", JobID: jb.ID, Data: jb})
+	res, err = w.runner.Run(ctx, jb)
+	return res, err
 }
 
 func (w *consumerWorker) respond(jb *resource.Job, res *resource.JobResult, err error) {

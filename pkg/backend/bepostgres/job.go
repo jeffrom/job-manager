@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	jobFields = "jobs.id, jobs.v, queues.name, queues.v AS queue_v, queues.backoff_initial_duration, queues.backoff_max_duration, queues.backoff_factor, attempt, status, args, data, enqueued_at, started_at"
+	jobFields = "jobs.id, jobs.v, queues.name, queues.v AS queue_v, queues.duration, queues.backoff_initial_duration, queues.backoff_max_duration, queues.backoff_factor, attempt, status, args, data, enqueued_at, started_at"
 )
 
 func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error) {

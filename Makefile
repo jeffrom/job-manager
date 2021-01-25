@@ -121,7 +121,7 @@ $(migration_target): $(migration_deps) | $(gobindata)
 
 .PHONY: dev
 dev:
-	$(tulpa) -v --ignore proto --ignore .make --ignore doc --app-port 1874 "make .make/$(server_bin) && .make/$(server_bin)"
+	$(tulpa) -v --ignore proto --ignore .make --ignore doc --app-port 1874 "make .make/$(server_bin) && REAPER=1 .make/$(server_bin)"
 
 .PHONY: code
 code: code.depgraph

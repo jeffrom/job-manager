@@ -52,6 +52,10 @@ spec:
           env:
             - name: LOG_JSON
               value: '1'
+          {{- if eq .Values.replicaCount 1 }}
+            - name: REAPER
+              value: '1'
+          {{- end }}
           {{- if or .Values.configSecret .Values.configMap }}
           envFrom:
           {{- if .Values.configSecret }}

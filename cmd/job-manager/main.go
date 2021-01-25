@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
 
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/backend/bememory"
@@ -30,9 +33,59 @@ func main() {
 		panic(err)
 	}
 
-	if err := run(cfg, be); err != nil {
+	proc := web.NewProcessor(*cfg, be)
+	srv, ln, err := createSrv(cfg, be)
+	if err != nil {
 		panic(err)
 	}
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt)
+	ctx, done := context.WithCancel(context.Background())
+	defer done()
+	go func() {
+		<-sigs
+		srv.Shutdown(ctx)
+		done()
+	}()
+
+	if len(os.Args) >= 2 {
+		switch os.Args[1] {
+		case "reaper":
+			if err := proc.Run(ctx); err != nil {
+				panic(err)
+			}
+			return
+		case "reap":
+			if err := proc.RunOnce(ctx); err != nil {
+				panic(err)
+			}
+			return
+		}
+		panic("unknown arg: " + os.Args[1])
+	}
+
+	wg := sync.WaitGroup{}
+	if dev := os.Getenv("REAPER"); dev != "" {
+		cfg.Logger.Info().Msg("running local reaper/invalidator")
+		wg.Add(1)
+		go func() {
+			if err := proc.Run(ctx); err != nil {
+				panic(err)
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
 }
 
 func backendWithConfig(name string, logger *logger.Logger) (backend.Interface, error) {
@@ -50,6 +103,30 @@ func backendWithConfig(name string, logger *logger.Logger) (backend.Interface, e
 	}
 
 	return nil, errors.New("unknown backend: " + name)
+}
+
+func createSrv(cfg *middleware.Config, be backend.Interface) (*http.Server, net.Listener, error) {
+	h, err := web.NewControllerRouter(*cfg, be)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	addr := ":1874"
+	if cfg.Host != "" {
+		addr = cfg.Host
+	}
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: h,
+	}
+
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return srv, ln, nil
 }
 
 func run(cfg *middleware.Config, be backend.Interface) error {

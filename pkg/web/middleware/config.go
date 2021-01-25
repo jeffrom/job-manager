@@ -28,6 +28,11 @@ type Config struct {
 	DefaultMaxJobTimeout time.Duration `json:"default_max_job_timeout" envconfig:"default_max_job_timeout"`
 	DefaultMaxRetries    int           `json:"default_max_retries" envconfig:"default_max_retries"`
 
+	InvalidateInterval time.Duration `json:"invalidate_interval,omitempty" envconfig:"invalidate_interval"`
+	ReapInterval       time.Duration `json:"reap_interval,omitempty" envconfig:"reap_interval"`
+	ReapAge            time.Duration `json:"reap_age,omitempty" envconfig:"reap_age"`
+	ReapMax            int           `json:"reap_max,omitempty" envconfig:"reap_max"`
+
 	Logger    *logger.Logger `json:"-"`
 	LogOutput io.Writer      `json:"-"`
 }
@@ -40,6 +45,9 @@ var ConfigDefaults = Config{
 	ShutdownTimeout:      30 * time.Second,
 	DefaultMaxJobTimeout: 10 * time.Minute,
 	DefaultMaxRetries:    10,
+	InvalidateInterval:   15 * time.Second,
+	ReapInterval:         10 * time.Minute,
+	ReapAge:              24 * time.Hour * 60,
 }
 
 func NewConfig() Config {

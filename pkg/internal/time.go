@@ -14,6 +14,13 @@ func SetTimeProvider(ctx context.Context, t TimeProvider) context.Context {
 	return context.WithValue(ctx, timeContextKey, t)
 }
 
+func EnsureTimeProvider(ctx context.Context) context.Context {
+	if _, ok := ctx.Value(timeContextKey).(TimeProvider); ok {
+		return ctx
+	}
+	return SetTimeProvider(ctx, Time(0))
+}
+
 func SetMockTime(ctx context.Context, nows ...time.Time) context.Context {
 	return SetTimeProvider(ctx, &MockTime{nows: nows})
 }
@@ -38,8 +45,6 @@ func GetTicker(ctx context.Context) Ticker {
 type TimeProvider interface {
 	Now() time.Time
 }
-
-var defaultTimeProvider = Time(0)
 
 type Time int
 

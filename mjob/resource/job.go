@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"time"
@@ -126,6 +127,21 @@ func (jb *Job) HasStatus(statuses ...*Status) bool {
 		}
 	}
 	return false
+}
+
+func (jb *Job) ArgKey() (string, error) {
+	var b []byte
+	var err error
+	if len(jb.ArgsRaw) > 0 {
+		b = jb.ArgsRaw
+	} else {
+		b, err = json.Marshal(jb.Args)
+		if err != nil {
+			return "", err
+		}
+	}
+	sum := sha256.Sum256(b)
+	return string(sum[:]), nil
 }
 
 type Jobs struct {

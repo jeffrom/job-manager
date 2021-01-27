@@ -56,12 +56,16 @@ CREATE TABLE job_claims (
     UNIQUE (job_id, name, value)
 );
 
+CREATE INDEX job_claims_job_id ON job_claims (job_id);
+
 CREATE TABLE job_checkins (
     id bigserial PRIMARY KEY,
     job_id bigint not null REFERENCES jobs (id),
     data jsonb,
     created_at timestamp not null default now()
 );
+
+CREATE INDEX job_checkins_job_id ON job_checkins (job_id);
 
 CREATE TABLE job_results (
     id bigserial PRIMARY KEY,
@@ -72,6 +76,8 @@ CREATE TABLE job_results (
     started_at timestamp not null,
     completed_at timestamp not null
 );
+
+CREATE INDEX job_results_job_id ON job_results (job_id);
 
 CREATE TABLE job_uniqueness (
     key bytea PRIMARY KEY,

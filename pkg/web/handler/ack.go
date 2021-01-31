@@ -63,7 +63,7 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 func getFinalStatus(queue *resource.Queue, jb *resource.Job, status *resource.Status) *resource.Status {
 	if status != nil && *status == resource.StatusFailed &&
 		queue.Retries > 0 &&
-		jb.Attempt >= queue.Retries {
+		jb.Attempt > queue.Retries {
 		return resource.NewStatus(resource.StatusDead)
 	}
 	return status

@@ -20,7 +20,7 @@ func init() {
 
 type Config struct {
 	Host            string        `json:"host"`
-	LogJSON         bool          `json:"log_json" envconfig:"log_json"`
+	DevLog          bool          `json:"dev_log" envconfig:"dev_log"`
 	DebugLog        bool          `json:"debug_log" envconfig:"debug"`
 	Backend         string        `json:"backend" envconfig:"backend"`
 	ShutdownTimeout time.Duration `json:"shutdown_timeout" envconfig:"shutdown_timeout"`
@@ -38,15 +38,14 @@ type Config struct {
 }
 
 var ConfigDefaults = Config{
-	Host: ":1874",
-	// TODO DebugLog should be false eventually
-	DebugLog:             true,
+	Host:                 ":1874",
 	Backend:              "postgres",
 	ShutdownTimeout:      30 * time.Second,
 	DefaultMaxJobTimeout: 10 * time.Minute,
 	DefaultMaxRetries:    10,
 	InvalidateInterval:   15 * time.Second,
 	ReapInterval:         10 * time.Minute,
+	// DebugLog:             true,
 }
 
 func NewConfig() Config {
@@ -54,7 +53,6 @@ func NewConfig() Config {
 	c := Config{
 		Host:                 ":1874",
 		LogOutput:            out,
-		DebugLog:             true,
 		Backend:              "postgres",
 		ShutdownTimeout:      30 * time.Second,
 		DefaultMaxJobTimeout: 10 * time.Minute,
@@ -70,7 +68,7 @@ func (c *Config) ResetLogOutput(out io.Writer) {
 }
 
 func (c *Config) newLogger(out io.Writer) *logger.Logger {
-	return logger.New(out, c.LogJSON)
+	return logger.New(out, !c.DevLog, c.DebugLog)
 }
 
 func ConfigFromContext(ctx context.Context) Config {

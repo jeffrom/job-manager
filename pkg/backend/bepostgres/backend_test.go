@@ -21,7 +21,7 @@ import (
 func TestBackendPostgres(t *testing.T) {
 	defaultCfg := backend.DefaultConfig
 	defaultCfg.TestMode = true
-	defaultCfg.Logger = logger.New(os.Stdout, false)
+	defaultCfg.Logger = logger.New(os.Stdout, false, true)
 	cfg := Config{
 		Config:   defaultCfg,
 		Database: "job_manager_test",

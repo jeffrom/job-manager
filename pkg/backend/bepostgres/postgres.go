@@ -203,6 +203,8 @@ func registerConnConfig(dsn string, logger zerolog.Logger, debug bool) (string, 
 	pgCfg.Logger = zerologadapter.NewLogger(logger)
 	if debug {
 		pgCfg.LogLevel = pgx.LogLevelTrace
+	} else {
+		pgCfg.LogLevel = pgx.LogLevelError
 	}
 
 	return stdlib.RegisterConnConfig(pgCfg), nil

@@ -36,11 +36,16 @@ func RequestLogFromContext(ctx context.Context) *zerolog.Event {
 	return nil
 }
 
-func New(out io.Writer, useJSON bool) *Logger {
+func New(out io.Writer, useJSON, debug bool) *Logger {
 	if !useJSON {
 		out = zerolog.ConsoleWriter{Out: out}
 	}
 	l := zerolog.New(out).With().Timestamp().Logger()
+	if debug {
+		l = l.Level(zerolog.DebugLevel)
+	} else {
+		l = l.Level(zerolog.InfoLevel)
+	}
 	return &Logger{Logger: l}
 }
 

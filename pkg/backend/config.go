@@ -11,8 +11,8 @@ type Config struct {
 	QueueHistoryLimit int           `json:"queue_history_limit" envconfig:"queue_history_limit"`
 	ReapAge           time.Duration `json:"reap_age" envconfig:"reap_age"`
 	ReapMax           int           `json:"reap_max" envconfig:"reap_max"`
+	TestMode          bool          `json:"test_mode" envconfig:"test"`
 	Debug             bool
-	TestMode          bool
 
 	Logger *logger.Logger
 }
@@ -20,6 +20,6 @@ type Config struct {
 var DefaultConfig = Config{
 	QueueHistoryLimit: 10,
 	ReapAge:           24 * time.Hour * 60,
-	Debug:             true,
+	// Debug:             true,
 	// ReapAge:           10 * time.Minute,
 }

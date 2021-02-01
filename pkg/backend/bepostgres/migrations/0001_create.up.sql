@@ -48,6 +48,8 @@ CREATE TABLE jobs (
     completed_at timestamp
 );
 
+CREATE INDEX jobs_status ON jobs (status);
+
 CREATE TABLE job_claims (
     id bigserial PRIMARY KEY,
     job_id bigint not null REFERENCES jobs (id),
@@ -83,3 +85,5 @@ CREATE TABLE job_uniqueness (
     key bytea PRIMARY KEY,
     created_at timestamp not null default now()
 );
+
+CREATE INDEX job_uniqueness_key ON job_uniqueness (key);

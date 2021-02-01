@@ -142,38 +142,42 @@ func (pg *Postgres) Reset(ctx context.Context) error {
 	return nil
 }
 
-func (pg *Postgres) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
+func (pg *Postgres) GetSetJobKeys(ctx context.Context, ids, keys []string) (string, bool, error) {
 	c, err := pg.getConn(ctx)
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
 
-	q := "SELECT 't'::boolean FROM job_uniqueness WHERE key IN (?)"
+	q := "SELECT job_id FROM job_uniqueness WHERE key IN (?)"
 	args := stringsToBytea(keys)
 	q, iargs, err := sqlx.In(q, args)
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
 	rows, err := c.QueryxContext(ctx, c.Rebind(q), iargs...)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return false, err
+		return "", false, err
 	}
 	for rows.Next() {
-		return true, nil
+		id := ""
+		if err := rows.Scan(&id); err != nil {
+			return id, true, err
+		}
+		return id, true, nil
 	}
 
-	stmt, err := c.PrepareContext(ctx, "INSERT INTO job_uniqueness (key) VALUES ($1)")
+	stmt, err := c.PrepareContext(ctx, "INSERT INTO job_uniqueness (job_id, key) VALUES ($1, $2)")
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
 	defer stmt.Close()
 
-	for _, arg := range iargs {
-		if _, err := stmt.ExecContext(ctx, arg); err != nil {
-			return false, err
+	for i, arg := range iargs {
+		if _, err := stmt.ExecContext(ctx, ids[i], arg); err != nil {
+			return "", false, err
 		}
 	}
-	return false, nil
+	return "", false, nil
 }
 
 func (pg *Postgres) DeleteJobKeys(ctx context.Context, keys []string) error {

@@ -51,13 +51,13 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if queue.Unique {
-				unique, err := checkArgUniqueness(ctx, be, scm, jobArg.Args)
+				jobID, unique, err := checkArgUniqueness(ctx, be, scm, jobArg.Args)
 				if err != nil {
 					return err
 				}
 				if unique {
 					// return conflict error
-					return resource.NewUnprocessableEntityError("queue", queue.Name, "A job with matching arguments is executing")
+					return resource.NewUnprocessableEntityError("job", jobID, "A job with matching arguments is executing")
 				}
 			}
 
@@ -97,23 +97,23 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})(w, r)
 }
 
-func checkArgUniqueness(ctx context.Context, be backend.Interface, scm *schema.Schema, args []*structpb.Value) (bool, error) {
+func checkArgUniqueness(ctx context.Context, be backend.Interface, scm *schema.Schema, jobID string, args []*structpb.Value) (string, bool, error) {
 	iargs := make([]interface{}, len(args))
 	for i, arg := range args {
 		iargs[i] = arg.AsInterface()
 	}
 	key, err := uniquenessKeyFromArgs(iargs)
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
-	found, err := be.GetSetJobKeys(ctx, []string{key})
+	id, found, err := be.GetSetJobKeys(ctx, []string{key})
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
 	if found {
-		return true, nil
+		return id, true, nil
 	}
-	return false, nil
+	return "", false, nil
 }
 
 func uniquenessKeyFromArgs(args []interface{}) (string, error) {

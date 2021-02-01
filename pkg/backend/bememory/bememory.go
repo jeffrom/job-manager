@@ -216,17 +216,17 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 	return nil
 }
 
-func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
+func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (string, bool, error) {
 	for _, key := range keys {
 		_, ok := m.uniqueness[key]
 		if ok {
-			return true, nil
+			return "", true, nil
 		}
 	}
 	for _, key := range keys {
 		m.uniqueness[key] = true
 	}
-	return false, nil
+	return "", false, nil
 }
 
 func (m *Memory) DeleteJobKeys(ctx context.Context, keys []string) error {

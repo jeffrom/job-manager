@@ -468,6 +468,7 @@ func runMiddleware(ctx context.Context, t testing.TB, be backend.Interface) (con
 
 	ctxC := make(chan context.Context)
 	done := make(chan error)
+	mwDone := make(chan struct{})
 
 	if mwer, ok := be.(backend.MiddlewareProvider); ok {
 		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -481,6 +482,7 @@ func runMiddleware(ctx context.Context, t testing.TB, be backend.Interface) (con
 		go func() {
 			mockH := mwer.Middleware()(h)
 			mockH.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/", nil))
+			mwDone <- struct{}{}
 		}()
 		// mw := mwer.Middleware()
 
@@ -488,6 +490,7 @@ func runMiddleware(ctx context.Context, t testing.TB, be backend.Interface) (con
 	} else {
 		go func() {
 			<-done
+			mwDone <- struct{}{}
 		}()
 	}
 
@@ -496,6 +499,7 @@ func runMiddleware(ctx context.Context, t testing.TB, be backend.Interface) (con
 	return ctx, func(t testing.TB, err error) {
 		t.Helper()
 		done <- err
+		<-mwDone
 	}
 }
 

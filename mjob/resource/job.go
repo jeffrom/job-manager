@@ -25,6 +25,7 @@ type Job struct {
 	Results        []*JobResult  `json:"results,omitempty"`
 	EnqueuedAt     time.Time     `json:"enqueued_at,omitempty" db:"enqueued_at"`
 	StartedAt      sql.NullTime  `json:"started_at,omitempty" db:"started_at"`
+	CompletedAt    sql.NullTime  `json:"completed_at,omitempty" db:"completed_at"`
 	BackoffInitial Duration      `json:"-" db:"backoff_initial_duration"`
 	BackoffMax     Duration      `json:"-" db:"backoff_max_duration"`
 	BackoffFactor  float32       `json:"-" db:"backoff_factor"`

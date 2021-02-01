@@ -133,7 +133,7 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 		return err
 	}
 
-	q := "UPDATE jobs SET status = ?, v = v+1 WHERE id = ? RETURNING *"
+	q := "UPDATE jobs SET status = ?, v = v+1, completed_at = ? WHERE id = ? RETURNING *"
 	update, err := sqlx.PreparexContext(ctx, c, c.Rebind(q))
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 	for _, ack := range results.Acks {
 		jb := &resource.Job{}
 		status := ack.Status.String()
-		if err := update.GetContext(ctx, jb, status, ack.JobID); err != nil {
+		if err := update.GetContext(ctx, jb, status, now, ack.JobID); err != nil {
 			return err
 		}
 
@@ -219,7 +219,7 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		if forDequeue {
 			// handle case where job duration has elapsed and the reaper hasn't
 			// updated status yet
-			wheres = append(wheres, "(jobs.status IN (?) OR (jobs.status = 'running' AND ((last_attempt_started_at IS NOT NULL AND ? > last_attempt_started_at + ((queues.duration / 1000) * INTERVAL '1 microsecond')) OR (jobs.started_at IS NOT NULL AND ? > jobs.started_at + ((queues.duration / 1000) * INTERVAL '1 microsecond')))))")
+			wheres = append(wheres, "(jobs.status IN (?) OR (jobs.status = 'running' AND ((jobs.started_at IS NOT NULL AND ? > jobs.started_at + ((queues.duration / 1000) * INTERVAL '1 microsecond')) OR (jobs.started_at IS NOT NULL AND ? > jobs.started_at + ((queues.duration / 1000) * INTERVAL '1 microsecond')))))")
 			args = append(args, resource.StatusStrings(opts.Statuses...), now, now)
 		} else {
 			wheres = append(wheres, "jobs.status IN (?)")
@@ -232,15 +232,15 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 	if opts.NoUnclaimed || len(opts.Claims) > 0 {
 		joins = append(joins, "LEFT JOIN job_claims ON jobs.id = job_claims.job_id")
-		joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, started_at AS last_attempt_started_at, completed_at AS completed_at FROM job_results ORDER BY job_id, id DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
+		// joins = append(joins, "LEFT JOIN (SELECT DISTINCT ON (job_id) job_id, started_at AS last_attempt_started_at, completed_at AS completed_at FROM job_results ORDER BY job_id, id DESC) AS last_attempt ON jobs.id = last_attempt.job_id")
 	}
 	if opts.NoUnclaimed && len(opts.Claims) == 0 {
-		wheres = append(wheres, "(job_claims.job_id IS NULL OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
+		wheres = append(wheres, "(job_claims.job_id IS NULL OR (GREATEST(jobs.enqueued_at, jobs.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
 		args = append(args, now)
 	}
 	if len(opts.Claims) > 0 {
 		for name, vals := range opts.Claims {
-			wheres = append(wheres, "((job_claims.name = ? AND job_claims.value IN (?)) OR (GREATEST(jobs.enqueued_at, last_attempt.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
+			wheres = append(wheres, "((job_claims.name = ? AND job_claims.value IN (?)) OR (GREATEST(jobs.enqueued_at, jobs.completed_at) + ((queues.claim_duration / 1000) * INTERVAL '1 microsecond') <= ?))")
 			args = append(args, name, vals, now)
 		}
 	}
@@ -254,7 +254,7 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	}
 	if forDequeue {
 		wheres = append(wheres, "(jobs.attempt <= queues.retries)")
-		wheres = append(wheres, "(queues.backoff_initial_duration = 0 OR queues.backoff_factor = 0 OR last_attempt.completed_at IS NULL OR (? > last_attempt.completed_at + (LEAST(queues.backoff_max_duration, (queues.backoff_initial_duration * (jobs.attempt ^ queues.backoff_factor)) / 1000) * INTERVAL '1 microsecond')))")
+		wheres = append(wheres, "(queues.backoff_initial_duration = 0 OR queues.backoff_factor = 0 OR jobs.completed_at IS NULL OR (? > jobs.completed_at + (LEAST(queues.backoff_max_duration, (queues.backoff_initial_duration * (jobs.attempt ^ queues.backoff_factor)) / 1000) * INTERVAL '1 microsecond')))")
 		args = append(args, now)
 	}
 

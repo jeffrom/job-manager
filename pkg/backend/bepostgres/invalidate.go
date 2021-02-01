@@ -15,7 +15,7 @@ func (pg *Postgres) InvalidateJobs(ctx context.Context) error {
 	}
 
 	c := pg.db
-	sql := "UPDATE jobs SET status = 'failed', v=v+1 FROM (SELECT jobs.id, queues.retries FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE status = 'running' AND jobs.started_at + (queues.duration / 1000) * interval '1 microsecond' < ? AND jobs.attempt <= queues.retries ORDER BY jobs.id ASC LIMIT 50 FOR UPDATE OF jobs SKIP LOCKED) AS to_update WHERE jobs.id = to_update.id"
+	sql := "UPDATE jobs SET status = 'failed', v=v+1, completed_at = ? FROM (SELECT jobs.id, queues.retries FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE status = 'running' AND jobs.started_at + (queues.duration / 1000) * interval '1 microsecond' < ? AND jobs.attempt <= queues.retries ORDER BY jobs.id ASC LIMIT 50 FOR UPDATE OF jobs SKIP LOCKED) AS to_update WHERE jobs.id = to_update.id"
 	q, err := sqlx.PreparexContext(ctx, c, c.Rebind(sql))
 	if err != nil {
 		return err
@@ -23,26 +23,26 @@ func (pg *Postgres) InvalidateJobs(ctx context.Context) error {
 	defer q.Close()
 
 	now := internal.GetTimeProvider(ctx).Now().UTC()
-	if err := execWhileMatching(ctx, q, now); err != nil {
+	if err := execJobUpdateLoop(ctx, q, now); err != nil {
 		return err
 	}
 
-	sql = "UPDATE jobs SET status = 'dead', v=v+1 FROM (SELECT jobs.id, queues.retries FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE status = 'running' AND jobs.started_at + (queues.duration / 1000) * interval '1 microsecond' < ? AND jobs.attempt > queues.retries ORDER BY jobs.id ASC LIMIT 50 FOR UPDATE OF jobs SKIP LOCKED) AS to_update WHERE jobs.id = to_update.id"
+	sql = "UPDATE jobs SET status = 'dead', v=v+1, completed_at = ? FROM (SELECT jobs.id, queues.retries FROM jobs LEFT JOIN queues ON jobs.queue_id = queues.id WHERE status = 'running' AND jobs.started_at + (queues.duration / 1000) * interval '1 microsecond' < ? AND jobs.attempt > queues.retries ORDER BY jobs.id ASC LIMIT 50 FOR UPDATE OF jobs SKIP LOCKED) AS to_update WHERE jobs.id = to_update.id"
 	q, err = sqlx.PreparexContext(ctx, c, c.Rebind(sql))
 	if err != nil {
 		return err
 	}
 	defer q.Close()
 
-	if err := execWhileMatching(ctx, q, now); err != nil {
+	if err := execJobUpdateLoop(ctx, q, now); err != nil {
 		return err
 	}
 	return nil
 }
 
-func execWhileMatching(ctx context.Context, stmt *sqlx.Stmt, now time.Time) error {
+func execJobUpdateLoop(ctx context.Context, stmt *sqlx.Stmt, now time.Time) error {
 	for {
-		res, err := stmt.ExecContext(ctx, now)
+		res, err := stmt.ExecContext(ctx, now, now)
 		if err != nil {
 			return err
 		}

@@ -125,7 +125,8 @@ func NewJobFromProto(msg *Job, claims label.Claims) *resource.Job {
 		Checkins:     jobCheckinsFromProto(msg.Checkins),
 		Results:      jobResultsFromProto(msg.Results),
 		EnqueuedAt:   msg.EnqueuedAt.AsTime(),
-		Duration:     resource.Duration(msg.Duration.AsDuration()),
+		// StartedAt:    msg.StartedAt.AsTime(),
+		Duration: resource.Duration(msg.Duration.AsDuration()),
 	}
 }
 

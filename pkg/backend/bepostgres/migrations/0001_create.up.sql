@@ -44,8 +44,8 @@ CREATE TABLE jobs (
     data jsonb,
 
     enqueued_at timestamp not null default now(),
-    started_at timestamp
-    -- completed_at timestamp
+    started_at timestamp,
+    completed_at timestamp
 );
 
 CREATE TABLE job_claims (

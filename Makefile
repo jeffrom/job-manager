@@ -13,7 +13,7 @@ self_schema_target := mjob/schema/self_schema.go
 self_schema_deps := jsonschema/Self.json
 
 chart_targets := $(wildcard charts/**/README.md)
-chart_deps := $(wildcard charts/**/values.yaml)
+chart_deps := $(wildcard charts/**/values.yaml charts/**/Chart.yaml)
 
 migration_target := pkg/backend/bepostgres/migrations/data.go
 migration_deps := $(wildcard pkg/backend/bepostgres/migrations/*.sql)

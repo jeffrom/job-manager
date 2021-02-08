@@ -1,6 +1,6 @@
 # job-manager
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.10](https://img.shields.io/badge/AppVersion-0.1.10-informational?style=flat-square)
+![Version: 0.1.5](https://img.shields.io/badge/Version-0.1.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.15](https://img.shields.io/badge/AppVersion-0.1.15-informational?style=flat-square)
 
 Background job server
 
@@ -29,7 +29,7 @@ Background job server
 | nodeSelector | object | `{}` |  |
 | podAnnotations | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
-| reapAge | string | `"60d"` |  |
+| reapAge | string | `""` | age of jobs to delete (default 1440h or 60 days) |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
 | securityContext.readOnlyRootFilesystem | bool | `true` |  |

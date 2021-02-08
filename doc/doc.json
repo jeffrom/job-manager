@@ -937,6 +937,121 @@
       "services": []
     },
     {
+      "name": "api/v1/stats.proto",
+      "description": "",
+      "package": "api.v1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": false,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "StatsRequest",
+          "longName": "StatsRequest",
+          "fullName": "api.v1.StatsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "StatsResponse",
+          "longName": "StatsResponse",
+          "fullName": "api.v1.StatsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "queued",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "running",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "complete",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "dead",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "cancelled",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "invalid",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "failed",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "longest_unstarted_secs",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": []
+    },
+    {
       "name": "api/v1/job.proto",
       "description": "",
       "package": "api.v1",

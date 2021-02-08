@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"math"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/logger"
 )
 
@@ -193,6 +195,47 @@ func (pg *Postgres) DeleteJobKeys(ctx context.Context, keys []string) error {
 		}
 	}
 	return nil
+}
+
+type statsRow struct {
+	Status           string
+	Total            int64
+	LongestUnstarted *float64 `db:"longest_unstarted"`
+}
+
+func (pg *Postgres) Stats(ctx context.Context) (*resource.Stats, error) {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	q := "SELECT status, COUNT(1) AS total, EXTRACT ('epoch' FROM NOW() AT TIME ZONE 'utc' - MIN(enqueued_at) FILTER (WHERE status = 'queued')) AS longest_unstarted FROM jobs GROUP BY status"
+	var rows []*statsRow
+	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {
+		return nil, err
+	}
+
+	stats := &resource.Stats{}
+	for _, row := range rows {
+		switch row.Status {
+		case "queued":
+			stats.Queued = row.Total
+			stats.LongestUnstarted = int64(math.Round(*row.LongestUnstarted))
+		case "running":
+			stats.Running = row.Total
+		case "complete":
+			stats.Complete = row.Total
+		case "failed":
+			stats.Failed = row.Total
+		case "dead":
+			stats.Dead = row.Total
+		case "invalid":
+			stats.Invalid = row.Total
+		case "cancelled":
+			stats.Cancelled = row.Total
+		}
+	}
+	return stats, nil
 }
 
 func registerConnConfig(dsn string, logger zerolog.Logger, debug bool) (string, error) {

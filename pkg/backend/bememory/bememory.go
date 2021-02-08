@@ -262,6 +262,11 @@ func (m *Memory) ListJobs(ctx context.Context, limit int, opts *resource.JobList
 	return res, nil
 }
 
+func (m *Memory) Stats(ctx context.Context) (*resource.Stats, error) {
+
+	return nil, nil
+}
+
 func valIn(val string, vals []string) bool {
 	for _, v := range vals {
 		if val == v {

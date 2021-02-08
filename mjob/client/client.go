@@ -96,6 +96,28 @@ func (c *Client) Ping(ctx context.Context) error {
 	return nil
 }
 
+func (c *Client) Stats(ctx context.Context) (*resource.Stats, error) {
+	req, err := c.newRequestProto(ctx, "GET", "/api/v1/stats", nil)
+	if err != nil {
+		return nil, err
+	}
+	res := &apiv1.StatsResponse{}
+	if err := c.doRequest(ctx, req, res); err != nil {
+		return nil, err
+	}
+	stats := &resource.Stats{
+		Queued:           res.Queued,
+		Running:          res.Running,
+		Complete:         res.Complete,
+		Dead:             res.Dead,
+		Cancelled:        res.Cancelled,
+		Invalid:          res.Invalid,
+		Failed:           res.Failed,
+		LongestUnstarted: res.LongestUnstartedSecs,
+	}
+	return stats, nil
+}
+
 func (c *Client) newRequest(method, uri string, body io.Reader) (*http.Request, error) {
 	u := fmt.Sprintf("http://%s%s", c.addr, uri)
 	req, err := http.NewRequest(method, u, body)

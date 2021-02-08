@@ -38,6 +38,7 @@ func newRootCmd(cfg *client.Config) *rootCmd {
 		wrapCobraCommand(cfg, newConsumerCmd(cfg)),
 		wrapCobraCommand(cfg, newMigrateCmd(cfg)),
 		wrapCobraCommand(cfg, newApplyCmd(cfg)),
+		wrapCobraCommand(cfg, newStatsCmd(cfg)),
 		wrapCobraCommand(cfg, newCompletionCmd(cfg)),
 	)
 	return c

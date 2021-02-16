@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	chimw "github.com/go-chi/chi/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
@@ -54,6 +55,8 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 		r.MethodNotAllowed(handler.Func(handler.MethodNotAllowed))
 		r.NotFound(handler.Func(handler.NotFound))
 
+		r.Handle("/metrics", promhttp.Handler())
+
 		r.Route("/internal", func(r chi.Router) {
 			r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
@@ -80,6 +83,9 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 				if mwp, ok := be.(backend.MiddlewareProvider); ok {
 					r.Use(mwp.Middleware())
 				}
+
+				r.Get("/stats/{queueName}", handler.Func(handler.Stats))
+				r.Get("/stats", handler.Func(handler.Stats))
 
 				r.Route("/queues", func(r chi.Router) {
 					r.Get("/", handler.Func(handler.ListQueues))

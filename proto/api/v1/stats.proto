@@ -1,0 +1,17 @@
+syntax = "proto3";
+package api.v1;
+
+option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
+
+message StatsRequest {}
+
+message StatsResponse {
+  int64 queued = 1;
+  int64 running = 2;
+  int64 complete = 3;
+  int64 dead = 4;
+  int64 cancelled = 5;
+  int64 invalid = 6;
+  int64 failed = 7;
+  int64 longest_unstarted_secs = 8;
+}

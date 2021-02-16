@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/middleware"
@@ -45,6 +46,9 @@ func New(out io.Writer, useJSON, debug bool) *Logger {
 		l = l.Level(zerolog.DebugLevel)
 	} else {
 		l = l.Level(zerolog.InfoLevel)
+	}
+	if instanceID := os.Getenv("INSTANCE_ID"); instanceID != "" {
+		l = l.With().Str("instance", instanceID).Logger()
 	}
 	return &Logger{Logger: l}
 }

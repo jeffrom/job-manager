@@ -262,7 +262,7 @@ func (m *Memory) ListJobs(ctx context.Context, limit int, opts *resource.JobList
 	return res, nil
 }
 
-func (m *Memory) Stats(ctx context.Context) (*resource.Stats, error) {
+func (m *Memory) Stats(ctx context.Context, queue string) (*resource.Stats, error) {
 
 	return nil, nil
 }

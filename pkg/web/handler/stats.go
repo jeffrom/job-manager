@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/go-chi/chi"
+
 	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 	"github.com/jeffrom/job-manager/pkg/backend"
 )
@@ -10,7 +12,7 @@ import (
 func Stats(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := backend.FromMiddleware(ctx)
-	stats, err := be.Stats(ctx)
+	stats, err := be.Stats(ctx, chi.URLParam(r, "queueName"))
 	if err != nil {
 		return err
 	}

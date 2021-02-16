@@ -96,8 +96,12 @@ func (c *Client) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) Stats(ctx context.Context) (*resource.Stats, error) {
-	req, err := c.newRequestProto(ctx, "GET", "/api/v1/stats", nil)
+func (c *Client) Stats(ctx context.Context, queue string) (*resource.Stats, error) {
+	uri := "/api/v1/stats"
+	if queue != "" {
+		uri += "/" + queue
+	}
+	req, err := c.newRequestProto(ctx, "GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}

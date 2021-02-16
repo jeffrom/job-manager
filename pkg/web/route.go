@@ -84,6 +84,7 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 					r.Use(mwp.Middleware())
 				}
 
+				r.Get("/stats/{queueName}", handler.Func(handler.Stats))
 				r.Get("/stats", handler.Func(handler.Stats))
 
 				r.Route("/queues", func(r chi.Router) {

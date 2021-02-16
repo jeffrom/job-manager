@@ -33,7 +33,7 @@ type Interface interface {
 	GetJobByID(ctx context.Context, id string) (*resource.Job, error)
 	ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)
 
-	Stats(ctx context.Context) (*resource.Stats, error)
+	Stats(ctx context.Context, queue string) (*resource.Stats, error)
 }
 
 type MiddlewareProvider interface {

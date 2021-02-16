@@ -20,6 +20,7 @@ import (
 
 	"github.com/jeffrom/job-manager/mjob/label"
 	"github.com/jeffrom/job-manager/mjob/resource"
+	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/logger"
 )
 
@@ -203,15 +204,35 @@ type statsRow struct {
 	LongestUnstarted *float64 `db:"longest_unstarted"`
 }
 
-func (pg *Postgres) Stats(ctx context.Context) (*resource.Stats, error) {
+func (pg *Postgres) Stats(ctx context.Context, queue string) (*resource.Stats, error) {
 	c, err := pg.getConn(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	q := "SELECT status, COUNT(1) AS total, EXTRACT ('epoch' FROM NOW() AT TIME ZONE 'utc' - MIN(enqueued_at) FILTER (WHERE status = 'queued')) AS longest_unstarted FROM jobs GROUP BY status"
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+
+	var queueIds []string
+	if queue != "" {
+		if err := sqlx.SelectContext(ctx, c, &queueIds, "SELECT id FROM queues WHERE name = $1", queue); err != nil {
+			return nil, err
+		}
+	}
+
+	q := "SELECT status, COUNT(1) AS total, EXTRACT ('epoch' FROM ? - MIN(enqueued_at) FILTER (WHERE status = 'queued')) AS longest_unstarted FROM jobs"
+	args := []interface{}{now}
+	if len(queueIds) > 0 {
+		q += " WHERE queue_id IN(?)"
+		args = append(args, queueIds)
+	}
+	q += " GROUP BY status"
+	q, args, err = sqlx.In(q, args...)
+	if err != nil {
+		return nil, err
+	}
+
 	var rows []*statsRow
-	if err := sqlx.SelectContext(ctx, c, &rows, q); err != nil {
+	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
 		return nil, err
 	}
 

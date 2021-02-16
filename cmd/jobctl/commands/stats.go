@@ -17,7 +17,8 @@ type statsCmd struct {
 func newStatsCmd(cfg *client.Config) *statsCmd {
 	c := &statsCmd{
 		Command: &cobra.Command{
-			Use: "stats",
+			Use:  "stats",
+			Args: cobra.RangeArgs(0, 1),
 		},
 	}
 
@@ -26,8 +27,12 @@ func newStatsCmd(cfg *client.Config) *statsCmd {
 
 func (c *statsCmd) Cmd() *cobra.Command { return c.Command }
 func (c *statsCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
+	queue := ""
+	if len(args) > 0 {
+		queue = args[0]
+	}
 	client := clientFromContext(ctx)
-	stats, err := client.Stats(ctx)
+	stats, err := client.Stats(ctx, queue)
 	if err != nil {
 		return err
 	}

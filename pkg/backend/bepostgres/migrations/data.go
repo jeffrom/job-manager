@@ -83,7 +83,7 @@ func _0001_createUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0001_create.up.sql", size: 2279, mode: os.FileMode(436), modTime: time.Unix(1613443689, 0)}
+	info := bindataFileInfo{name: "0001_create.up.sql", size: 2279, mode: os.FileMode(436), modTime: time.Unix(1613443922, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

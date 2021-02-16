@@ -34,9 +34,13 @@ func main() {
 	}
 
 	proc := web.NewProcessor(*cfg, be)
-	srv, ln, err := createSrv(cfg, be)
-	if err != nil {
-		panic(err)
+	var srv *http.Server
+	var ln net.Listener
+	if len(os.Args) == 1 {
+		srv, ln, err = createSrv(cfg, be)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	sigs := make(chan os.Signal, 1)
@@ -45,7 +49,9 @@ func main() {
 	defer done()
 	go func() {
 		<-sigs
-		srv.Shutdown(ctx)
+		if srv != nil {
+			srv.Shutdown(ctx)
+		}
 		done()
 	}()
 

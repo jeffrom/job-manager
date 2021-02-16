@@ -17,6 +17,8 @@ CREATE TABLE queues (
     UNIQUE (name, v)
 );
 
+CREATE INDEX queues_name ON queues (name);
+
 CREATE TABLE queue_labels (
     queue varchar(253) not null,
     name varchar(63) not null,

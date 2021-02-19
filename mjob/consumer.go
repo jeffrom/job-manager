@@ -217,7 +217,7 @@ Loop:
 			}
 			// TODO we should make an effort to ack all jobs, but it is always
 			// possible for a job to run twice
-			if err := c.client.AckJobOpts(ctx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data}); err != nil {
+			if err := c.ackJob(res.JobID, *res.Status, res); err != nil {
 				return currJobs, err
 			}
 			for i, jb := range currJobs {
@@ -234,6 +234,12 @@ Loop:
 	}
 
 	return currJobs, nil
+}
+
+func (c *Consumer) ackJob(jobID string, status resource.Status, res *resource.JobResult) error {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(c.cfg.ShutdownTimeout))
+	defer cancel()
+	return c.client.AckJobOpts(ctx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data})
 }
 
 func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {

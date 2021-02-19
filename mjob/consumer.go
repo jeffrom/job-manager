@@ -3,6 +3,7 @@ package mjob
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -23,6 +24,9 @@ type Consumer struct {
 	workers []*consumerWorker
 	running int32
 	stop    chan struct{}
+
+	activeJobs []string
+	mu         sync.Mutex
 }
 
 type ConsumerProvider func(c *Consumer) *Consumer
@@ -158,6 +162,17 @@ ShutdownLoop:
 		select {
 		case <-shutdownCtx.Done():
 			n := atomic.LoadInt32(&c.running)
+			finalCtx, cancel := context.WithDeadline(context.Background(), time.Now().Add(10*time.Second))
+			defer cancel()
+			for _, jobID := range c.getActive() {
+				if err := c.client.AckJob(finalCtx, jobID, resource.StatusFailed); err != nil {
+					c.logger.Log(shutdownCtx, &LogEvent{
+						Level:   "error",
+						Error:   err,
+						Message: "ackJob failed",
+					})
+				}
+			}
 			c.logger.Log(context.Background(), &LogEvent{
 				Level:   "error",
 				Message: fmt.Sprintf("shut down with %d jobs still in progress", n),
@@ -166,11 +181,12 @@ ShutdownLoop:
 			break ShutdownLoop
 		case res := <-c.resultC:
 			n := atomic.AddInt32(&c.running, -1)
+			c.removeActive(res.JobID)
 			if err := c.client.AckJobOpts(shutdownCtx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data}); err != nil {
 				c.logger.Log(shutdownCtx, &LogEvent{
 					Level:   "error",
 					Error:   err,
-					Message: "ackJobs failed",
+					Message: "ackJob failed",
 				})
 			}
 			if n == 0 {
@@ -216,10 +232,11 @@ Loop:
 				panic("consumer: job id was empty")
 			}
 			// TODO we should make an effort to ack all jobs, but it is always
-			// possible for a job to run twice
+			// possible for a job to run twice. It runs in its own context.
 			if err := c.ackJob(res.JobID, *res.Status, res); err != nil {
 				return currJobs, err
 			}
+			c.removeActive(res.JobID)
 			for i, jb := range currJobs {
 				if jb.ID == res.JobID {
 					// remove job from processing list
@@ -247,6 +264,7 @@ func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {
 		select {
 		case wrk.in <- jb:
 			atomic.AddInt32(&c.running, 1)
+			c.addActive(jb.ID)
 			return true
 		default:
 		}
@@ -257,6 +275,44 @@ func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {
 // Stop initiates the consumer's shutdown sequence.
 func (c *Consumer) Stop() {
 	c.stop <- struct{}{}
+}
+
+func (c *Consumer) addActive(ids ...string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, id := range ids {
+		if _, ok := inStrings(id, c.activeJobs); ok {
+			continue
+		}
+		c.activeJobs = append(c.activeJobs, id)
+	}
+}
+
+func (c *Consumer) removeActive(ids ...string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, id := range ids {
+		if i, ok := inStrings(id, c.activeJobs); ok {
+			c.activeJobs = append(c.activeJobs[:i], c.activeJobs[i+1:]...)
+		}
+	}
+}
+
+func (c *Consumer) getActive() []string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	cp := make([]string, len(c.activeJobs))
+	copy(cp, c.activeJobs)
+	return cp
+}
+
+func inStrings(a string, b []string) (int, bool) {
+	for i, s := range b {
+		if a == s {
+			return i, true
+		}
+	}
+	return -1, false
 }
 
 func sleep(ctx context.Context, d time.Duration) error {

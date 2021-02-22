@@ -9,7 +9,7 @@ import "api/v1/errors.proto";
 option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
 
 message ListJobsRequest {
-  repeated string name = 1;
+  repeated string queue = 1;
   repeated string status = 2;
   repeated string selector = 3;
   repeated string claim = 4;

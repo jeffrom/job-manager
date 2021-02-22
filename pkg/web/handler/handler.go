@@ -131,7 +131,6 @@ func MarshalResponse(w http.ResponseWriter, r *http.Request, v proto.Message) er
 
 	log := logger.FromContext(r.Context())
 	log.Debug().
-		Interface("data", v).
 		Str("type", fmt.Sprintf("%T", v)).
 		Msg("response")
 	if _, err := w.Write(b); err != nil {

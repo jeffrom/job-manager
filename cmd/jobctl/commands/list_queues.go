@@ -59,7 +59,7 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *co
 	for _, q := range qs.Queues {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%s\t%s\t%s\n",
 			q.Name,
-			q.CreatedAt.Format(time.Stamp),
+			q.CreatedAt.Local().Format(time.Stamp),
 			q.Version.String(),
 			q.Retries,
 			cleanupDuration(q.Duration.String()),

@@ -201,7 +201,7 @@ type JobResult struct {
 }
 
 type JobListParams struct {
-	Names         []string         `json:"names,omitempty"`
+	Queues        []string         `json:"names,omitempty"`
 	Statuses      []*Status        `json:"statuses,omitempty"`
 	Selectors     *label.Selectors `json:"selectors,omitempty"`
 	Claims        label.Claims     `json:"claims,omitempty"`

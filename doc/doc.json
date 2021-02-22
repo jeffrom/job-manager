@@ -1072,7 +1072,7 @@
           "extensions": [],
           "fields": [
             {
-              "name": "name",
+              "name": "queue",
               "description": "",
               "label": "repeated",
               "type": "string",

@@ -10,16 +10,16 @@ import (
 
 type listCmd struct {
 	*cobra.Command
-	lqCmd *listQueuesCmd
+	ljCmd *listJobsCmd
 }
 
 func newListCmd(cfg *client.Config) *listCmd {
-	lqCmd := newListQueuesCmd(cfg)
-	cmd := lqCmd.Cmd()
+	ljCmd := newListJobsCmd(cfg)
+	cmd := ljCmd.Cmd()
 	cmd.Use = "list"
 	cmd.Aliases = []string{"ls"}
 	c := &listCmd{
-		lqCmd:   lqCmd,
+		ljCmd:   ljCmd,
 		Command: cmd,
 	}
 
@@ -31,5 +31,5 @@ func newListCmd(cfg *client.Config) *listCmd {
 
 func (c *listCmd) Cmd() *cobra.Command { return c.Command }
 func (c *listCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra.Command, args []string) error {
-	return c.lqCmd.Execute(ctx, cfg, cmd, args)
+	return c.ljCmd.Execute(ctx, cfg, cmd, args)
 }

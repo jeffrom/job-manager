@@ -33,7 +33,7 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 
 	// fmt.Println("status", params.Statuses)
 	resourceParams := &resource.JobListParams{
-		Names:       params.Name,
+		Queues:      params.Queue,
 		Statuses:    resource.StatusesFromStrings(params.Status...),
 		Selectors:   sels,
 		Claims:      claims,

@@ -146,7 +146,7 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes := mustDequeueJobs(ctx, t, be, 3, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -186,7 +186,7 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 
 	// time.Sleep(1 * time.Second)
 	resJobs := mustListJobs(ctx, t, be, 3, &resource.JobListParams{
-		Names:    []string{"cool"},
+		Queues:   []string{"cool"},
 		Statuses: []*resource.Status{resource.NewStatus(resource.StatusComplete)},
 	})
 
@@ -235,7 +235,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes := mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -257,7 +257,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -269,7 +269,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(10 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -285,7 +285,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -297,7 +297,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(40 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -319,7 +319,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -331,7 +331,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	now = now.Add(60 * time.Minute)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -341,7 +341,7 @@ func testAttempts(ctx context.Context, t *testing.T, tc *backendTestContext) {
 	}
 
 	resJobs := mustListJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if l := len(resJobs.Jobs); l != 1 {
 		t.Fatalf("expected 1 job, got %d", l)
@@ -381,7 +381,7 @@ func testDequeueWhileRunning(ctx context.Context, t *testing.T, tc *backendTestC
 	now = now.Add(1 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes := mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -394,7 +394,7 @@ func testDequeueWhileRunning(ctx context.Context, t *testing.T, tc *backendTestC
 	now = now.Add(51 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -407,7 +407,7 @@ func testDequeueWhileRunning(ctx context.Context, t *testing.T, tc *backendTestC
 	now = now.Add(10 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -421,7 +421,7 @@ func testDequeueWhileRunning(ctx context.Context, t *testing.T, tc *backendTestC
 	now = now.Add(61 * time.Second)
 	ctx = internal.SetMockTime(ctx, now)
 	deqRes = mustDequeueJobs(ctx, t, be, 1, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if deqRes == nil {
 		t.Fatal("expected dequeue result not to be nil")
@@ -552,7 +552,7 @@ func mustDequeueJobs(ctx context.Context, t testing.TB, be backend.Interface, li
 
 	t.Logf("DequeueJobsOpts(%d, %+v)", limit, readable(opts))
 	res, err := be.DequeueJobs(ctx, limit, &resource.JobListParams{
-		Names: []string{"cool"},
+		Queues: []string{"cool"},
 	})
 	if err != nil {
 		t.Logf("-> Error: %v", err)

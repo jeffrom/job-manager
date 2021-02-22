@@ -211,9 +211,9 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	var wheres []string
 	var args []interface{}
 
-	if len(opts.Names) > 0 {
+	if len(opts.Queues) > 0 {
 		wheres = append(wheres, "queues.name IN (?)")
-		args = append(args, opts.Names)
+		args = append(args, opts.Queues)
 	}
 	if len(opts.Statuses) > 0 {
 		if forDequeue {

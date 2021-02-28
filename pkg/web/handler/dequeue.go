@@ -42,7 +42,10 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// fmt.Println("params:", params.Claims, "parsed:", claims)
-	listOpts := &resource.JobListParams{Claims: claims}
+	listOpts := &resource.JobListParams{
+		Queues: params.Queues,
+		Claims: claims,
+	}
 	jobs, err := be.DequeueJobs(ctx, num, listOpts)
 	if err != nil {
 		return err

@@ -169,6 +169,21 @@ func (jobs *Jobs) IDs() []string {
 	return ids
 }
 
+func (jobs *Jobs) ArgKeys() ([]string, error) {
+	if jobs == nil {
+		return nil, nil
+	}
+	keys := make([]string, len(jobs.Jobs))
+	for i, jb := range jobs.Jobs {
+		key, err := jb.ArgKey()
+		if err != nil {
+			return nil, err
+		}
+		keys[i] = key
+	}
+	return keys, nil
+}
+
 func (jobs *Jobs) Queues() []string {
 	names := make([]string, len(jobs.Jobs))
 	for i, jb := range jobs.Jobs {

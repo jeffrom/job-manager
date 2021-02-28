@@ -84,8 +84,10 @@ CREATE TABLE job_results (
 CREATE INDEX job_results_job_id ON job_results (job_id);
 
 CREATE TABLE job_uniqueness (
+    job_id bigint not null REFERENCES jobs (id),
     key bytea PRIMARY KEY,
     created_at timestamp not null default now()
 );
 
 CREATE INDEX job_uniqueness_key ON job_uniqueness (key);
+CREATE INDEX job_uniqueness_job_id ON job_uniqueness (job_id);

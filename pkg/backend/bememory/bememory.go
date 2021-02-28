@@ -216,25 +216,25 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 	return nil
 }
 
-func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (bool, error) {
-	for _, key := range keys {
-		_, ok := m.uniqueness[key]
-		if ok {
-			return true, nil
-		}
-	}
-	for _, key := range keys {
-		m.uniqueness[key] = true
-	}
-	return false, nil
-}
+// func (m *Memory) GetSetJobKeys(ctx context.Context, keys []string) (string, bool, error) {
+// 	for _, key := range keys {
+// 		_, ok := m.uniqueness[key]
+// 		if ok {
+// 			return "", true, nil
+// 		}
+// 	}
+// 	for _, key := range keys {
+// 		m.uniqueness[key] = true
+// 	}
+// 	return "", false, nil
+// }
 
-func (m *Memory) DeleteJobKeys(ctx context.Context, keys []string) error {
-	for _, key := range keys {
-		delete(m.uniqueness, key)
-	}
-	return nil
-}
+// func (m *Memory) DeleteJobKeys(ctx context.Context, keys []string) error {
+// 	for _, key := range keys {
+// 		delete(m.uniqueness, key)
+// 	}
+// 	return nil
+// }
 
 func (m *Memory) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
 	jobData, ok := m.jobs[id]
@@ -265,6 +265,18 @@ func (m *Memory) ListJobs(ctx context.Context, limit int, opts *resource.JobList
 func (m *Memory) Stats(ctx context.Context, queue string) (*resource.Stats, error) {
 
 	return nil, nil
+}
+
+func (m *Memory) GetJobUniqueArgs(ctx context.Context, keys []string) ([]string, bool, error) {
+	return nil, false, nil
+}
+
+func (m *Memory) SetJobUniqueArgs(ctx context.Context, ids, keys []string) error {
+	return nil
+}
+
+func (m *Memory) DeleteJobUniqueArgs(ctx context.Context, ids, keys []string) error {
+	return nil
 }
 
 func valIn(val string, vals []string) bool {

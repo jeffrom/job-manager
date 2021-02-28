@@ -27,7 +27,7 @@ func handleBackendErrors(err error, resourceName, resourceID string) error {
 	cerr := &backend.VersionConflictError{}
 	switch {
 	case errors.Is(err, backend.ErrInvalidState):
-		return resource.NewUnprocessableEntityError(resourceName, resourceID, "job state does not allow this operation")
+		return resource.NewUnprocessableEntityError(resourceName, resourceID, "job state does not allow this operation", nil)
 	case errors.Is(err, backend.ErrNotFound):
 		return resource.NewNotFoundError(resourceName, resourceID, "")
 	case errors.As(err, &cerr):

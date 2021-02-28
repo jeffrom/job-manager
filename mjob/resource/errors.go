@@ -34,6 +34,7 @@ type Error struct {
 	Reason     string             `json:"reason,omitempty"`
 	Orig       error              `json:"orig,omitempty"`
 	Invalid    []*ValidationError `json:"invalid,omitempty"`
+	IDs        []string           `json:"ids,omitempty"`
 }
 
 func NewValidationError(resource, resourceID, reason string, verrs []*ValidationError) *Error {
@@ -50,7 +51,7 @@ func NewValidationError(resource, resourceID, reason string, verrs []*Validation
 
 func NewInternalServerError(err error) *Error {
 	return &Error{
-		Status:  500,
+		Status:  http.StatusInternalServerError,
 		Kind:    "internal",
 		Message: "internal server error",
 		Orig:    err,
@@ -63,7 +64,7 @@ func NewConflictError(resource, resourceID, reason string) *Error {
 		msg = resource + " " + msg
 	}
 	return &Error{
-		Status:     409,
+		Status:     http.StatusConflict,
 		Message:    msg,
 		Kind:       "conflict",
 		Resource:   resource,
@@ -72,20 +73,21 @@ func NewConflictError(resource, resourceID, reason string) *Error {
 	}
 }
 
-func NewUnprocessableEntityError(resource, resourceID, reason string) *Error {
+func NewUnprocessableEntityError(resource, resourceID, reason string, ids []string) *Error {
 	return &Error{
-		Status:     422,
+		Status:     http.StatusUnprocessableEntity,
 		Message:    "unprocessable entity",
 		Kind:       "unprocessable_entity",
 		Resource:   resource,
 		ResourceID: resourceID,
 		Reason:     reason,
+		IDs:        ids,
 	}
 }
 
 func NewNotFoundError(resource, resourceID, reason string) *Error {
 	return &Error{
-		Status:     404,
+		Status:     http.StatusNotFound,
 		Message:    "not found",
 		Kind:       "not_found",
 		Resource:   resource,

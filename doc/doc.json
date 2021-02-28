@@ -208,6 +208,16 @@
               "defaultValue": ""
             },
             {
+              "name": "ids",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
               "name": "invalid",
               "description": "",
               "label": "repeated",

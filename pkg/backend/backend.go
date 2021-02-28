@@ -27,8 +27,12 @@ type Interface interface {
 	EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error)
 	DequeueJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)
 	AckJobs(ctx context.Context, results *resource.Acks) error
-	GetSetJobKeys(ctx context.Context, keys []string) (bool, error)
-	DeleteJobKeys(ctx context.Context, keys []string) error
+
+	GetJobUniqueArgs(ctx context.Context, keys []string) ([]string, bool, error)
+	SetJobUniqueArgs(ctx context.Context, ids, keys []string) error
+	DeleteJobUniqueArgs(ctx context.Context, ids, keys []string) error
+	// GetSetJobKeys(ctx context.Context, ids, keys []string) (string, bool, error)
+	// DeleteJobKeys(ctx context.Context, keys []string) error
 
 	GetJobByID(ctx context.Context, id string) (*resource.Job, error)
 	ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)

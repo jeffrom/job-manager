@@ -52,6 +52,7 @@ func (e *protoError) Message() proto.Message {
 		ResourceId: e.rerr.ResourceID,
 		Reason:     e.rerr.Reason,
 		Invalid:    invalidErrProto(e.rerr.Invalid),
+		Ids:        e.rerr.IDs,
 	}
 }
 

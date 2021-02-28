@@ -19,7 +19,8 @@ message GenericError {
   string resource = 3;
   string resource_id = 4;
   string reason = 5;
-  repeated ValidationError invalid = 6;
+  repeated string ids = 6;
+  repeated ValidationError invalid = 7;
 }
 
 message ValidationError {

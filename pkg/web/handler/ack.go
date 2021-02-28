@@ -96,5 +96,5 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 		// 	Msg("deleting job uniqueness")
 		keys = append(keys, ukey)
 	}
-	return be.DeleteJobKeys(ctx, keys)
+	return be.DeleteJobUniqueArgs(ctx, nil, keys)
 }

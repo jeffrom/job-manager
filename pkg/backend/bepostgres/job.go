@@ -271,7 +271,11 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		q += " WHERE " + strings.Join(wheres, " AND ")
 	}
 
-	q += " ORDER BY id ASC"
+	if forDequeue {
+		q += " ORDER BY id ASC"
+	} else {
+		q += " ORDER BY id DESC"
+	}
 
 	q += fmt.Sprintf(" LIMIT %d", limit)
 	if forDequeue {

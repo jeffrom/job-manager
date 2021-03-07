@@ -41,6 +41,7 @@ func (c *Client) ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Job
 	params := &apiv1.ListJobsRequest{
 		Queue:    opts.Queues,
 		Selector: opts.Selectors,
+		Status:   statusStrings(opts.Statuses),
 	}
 	uri := "/api/v1/jobs"
 	req, err := c.newRequestProto(ctx, "GET", uri, params)
@@ -57,4 +58,12 @@ func (c *Client) ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Job
 		return nil, err
 	}
 	return &resource.Jobs{Jobs: jobs}, nil
+}
+
+func statusStrings(statuses []resource.Status) []string {
+	res := make([]string, len(statuses))
+	for i, st := range statuses {
+		res[i] = st.String()
+	}
+	return res
 }

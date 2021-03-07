@@ -84,8 +84,8 @@ test.cover: gen $(gofiles) | $(gocoverutil)
 		| sed -e 's/of statements in .*/of statements/'
 	@echo -n "total: "; go tool cover -func=cov.out | tail -n 1 | sed -e 's/\((statements)\|total:\)//g' | tr -s "[:space:]"
 
-.PHONY: test.outdated
-test.outdated: $(gomodoutdated)
+.PHONY: outdated
+outdated: $(gomodoutdated)
 	GO111MODULE=on go list -u -m -json all | go-mod-outdated -direct
 
 .PHONY: release.dryrun

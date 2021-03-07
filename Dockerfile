@@ -1,4 +1,4 @@
-FROM golang:1.15.6 as builder
+FROM golang:1.15.8 as builder
 
 RUN mkdir /build
 WORKDIR /build
@@ -15,7 +15,7 @@ ARG COMMIT=none
 ARG DATE=none
 RUN CGO_ENABLED=0 go build -o job-manager.bin -ldflags "-s -w -X github.com/jeffrom/job-manager/release.Version=${VERSION} -X github.com/jeffrom/job-manager/release.Commit=${COMMIT} -X github.com/jeffrom/job-manager/release.Date=${DATE}" ./cmd/job-manager
 
-FROM alpine:3.12.3
+FROM alpine:3.13.2
 
 COPY --from=builder /build/job-manager.bin /usr/local/bin/job-manager
 

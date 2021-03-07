@@ -179,3 +179,15 @@ func validatePagination(resourceName, resourceID string, page *apiv1.Pagination)
 	}
 	return nil
 }
+
+func validateIncludes(resourceName string, includes []string) error {
+	switch resourceName {
+	case "job":
+		for _, inc := range includes {
+			if !backend.JobIncludes[inc] {
+				return resource.NewValidationError(resourceName, "", fmt.Sprintf("invalid include %q", inc), nil)
+			}
+		}
+	}
+	return nil
+}

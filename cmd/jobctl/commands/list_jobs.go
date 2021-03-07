@@ -12,14 +12,24 @@ import (
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/mjob/label"
 	"github.com/jeffrom/job-manager/mjob/resource"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	// apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 )
+
+var allowedJobIncludes []string
+
+func init() {
+	for k := range backend.JobIncludes {
+		allowedJobIncludes = append(allowedJobIncludes, k)
+	}
+}
 
 type listJobsOpts struct {
 	selectorRaw string
 	statuses    []string
 	limit       int64
 	lastID      string
+	includes    []string
 }
 
 type listJobsCmd struct {
@@ -44,11 +54,16 @@ func newListJobsCmd(cfg *client.Config) *listJobsCmd {
 	flags.StringArrayVarP(&opts.statuses, "status", "S", nil, "filter by status")
 	flags.Int64VarP(&opts.limit, "limit", "L", 20, "per-page limit")
 	flags.StringVarP(&opts.lastID, "last-id", "l", "", "last id (from previous page)")
+	flags.StringArrayVarP(&opts.includes, "include", "i", nil, fmt.Sprintf("include additional data (%q)", allowedJobIncludes))
 
 	cmd.RegisterFlagCompletionFunc("status", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{
 			"queued", "running", "complete", "failed", "dead", "invalid", "cancelled",
 		}, cobra.ShellCompDirectiveDefault
+	})
+
+	cmd.RegisterFlagCompletionFunc("include", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return allowedJobIncludes, cobra.ShellCompDirectiveDefault
 	})
 
 	return c
@@ -70,6 +85,7 @@ func (c *listJobsCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 			Limit:  c.opts.limit,
 			LastID: c.opts.lastID,
 		},
+		Includes: c.opts.includes,
 	})
 	if err != nil {
 		return err

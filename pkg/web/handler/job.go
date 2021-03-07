@@ -27,6 +27,9 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 	if err := validatePagination("job", "", params.Page); err != nil {
 		return err
 	}
+	if err := validateIncludes("job", params.Include); err != nil {
+		return err
+	}
 
 	sels, err := label.ParseSelectorStringArray(params.Selector)
 	if err != nil {

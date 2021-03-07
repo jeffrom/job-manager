@@ -85,12 +85,15 @@ func (c *Client) SaveQueue(ctx context.Context, name string, opts SaveQueueOpts)
 type ListQueuesOpts struct {
 	Names     []string
 	Selectors []string
+	Page      *resource.Pagination
 }
 
 func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error) {
+	page := apiv1.PaginationToProto(opts.Page)
 	params := &apiv1.ListQueuesRequest{
 		Names:     opts.Names,
 		Selectors: opts.Selectors,
+		Page:      page,
 	}
 	uri := "/api/v1/queues"
 	req, err := c.newRequestProto(ctx, "GET", uri, params)

@@ -18,6 +18,8 @@ import (
 type listJobsOpts struct {
 	selectorRaw string
 	statuses    []string
+	limit       int64
+	lastID      string
 }
 
 type listJobsCmd struct {
@@ -40,6 +42,8 @@ func newListJobsCmd(cfg *client.Config) *listJobsCmd {
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.selectorRaw, "selector", "s", "", "filter by selector")
 	flags.StringArrayVarP(&opts.statuses, "status", "S", nil, "filter by status")
+	flags.Int64VarP(&opts.limit, "limit", "L", 20, "per-page limit")
+	flags.StringVarP(&opts.lastID, "last-id", "l", "", "last id (from previous page)")
 
 	cmd.RegisterFlagCompletionFunc("status", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{
@@ -62,6 +66,10 @@ func (c *listJobsCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 		Queues:    args,
 		Selectors: label.SplitSelectors(c.opts.selectorRaw),
 		Statuses:  statuses,
+		Page: &resource.Pagination{
+			Limit:  c.opts.limit,
+			LastID: c.opts.lastID,
+		},
 	})
 	if err != nil {
 		return err

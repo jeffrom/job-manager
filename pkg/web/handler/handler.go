@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"google.golang.org/protobuf/proto"
 
@@ -148,4 +150,32 @@ func logRequestError(log *logger.Logger, status int, err error) {
 	ev.Err(err)
 
 	ev.Msg("request error")
+}
+
+func readPaginationFromForm(form url.Values) (*apiv1.Pagination, error) {
+	limitS := form.Get("page[limit]")
+	var limit int64
+	if limitS != "" {
+		n, err := strconv.ParseInt(limitS, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		limit = n
+	}
+
+	lastID := form.Get("page[last_id]")
+	if limit > 0 || lastID != "" {
+		return &apiv1.Pagination{Limit: limit, LastId: lastID}, nil
+	}
+	return nil, nil
+}
+
+func validatePagination(resourceName, resourceID string, page *apiv1.Pagination) error {
+	if page == nil {
+		return nil
+	}
+	if page.Limit > 100 {
+		return resource.NewValidationError(resourceName, resourceID, "max page limit is 100", nil)
+	}
+	return nil
 }

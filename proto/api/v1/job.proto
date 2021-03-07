@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 
 import "job/v1/job.proto";
 import "api/v1/errors.proto";
+import "api/v1/pagination.proto";
 
 option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
 
@@ -16,6 +17,7 @@ message ListJobsRequest {
   bool no_unclaimed = 5;
   google.protobuf.Timestamp created_since = 6;
   google.protobuf.Timestamp created_until = 7;
+  Pagination page = 8;
 }
 
 message ListJobsResponse {

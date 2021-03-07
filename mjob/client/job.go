@@ -35,13 +35,16 @@ type ListJobsOpts struct {
 	Queues    []string
 	Selectors []string
 	Statuses  []resource.Status
+	Page      *resource.Pagination
 }
 
 func (c *Client) ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error) {
+	page := apiv1.PaginationToProto(opts.Page)
 	params := &apiv1.ListJobsRequest{
 		Queue:    opts.Queues,
 		Selector: opts.Selectors,
 		Status:   statusStrings(opts.Statuses),
+		Page:     page,
 	}
 	uri := "/api/v1/jobs"
 	req, err := c.newRequestProto(ctx, "GET", uri, params)

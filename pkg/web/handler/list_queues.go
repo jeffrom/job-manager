@@ -15,6 +15,16 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
+	if params.Page == nil {
+		page, err := readPaginationFromForm(r.Form)
+		if err != nil {
+			return err
+		}
+		params.Page = page
+	}
+	if err := validatePagination("queue", "", params.Page); err != nil {
+		return err
+	}
 
 	sels, err := label.ParseSelectorStringArray(params.Selectors)
 	if err != nil {
@@ -26,6 +36,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 	queues, err := be.ListQueues(ctx, &resource.QueueListParams{
 		Names:     params.Names,
 		Selectors: sels,
+		Page:      apiv1.PaginationToResource(params.Page),
 	})
 	if err != nil {
 		return err

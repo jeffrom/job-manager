@@ -17,6 +17,16 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 	if err := UnmarshalBody(r, &params, false); err != nil {
 		return err
 	}
+	if params.Page == nil {
+		page, err := readPaginationFromForm(r.Form)
+		if err != nil {
+			return err
+		}
+		params.Page = page
+	}
+	if err := validatePagination("job", "", params.Page); err != nil {
+		return err
+	}
 
 	sels, err := label.ParseSelectorStringArray(params.Selector)
 	if err != nil {
@@ -38,8 +48,13 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 		Selectors:   sels,
 		Claims:      claims,
 		NoUnclaimed: params.NoUnclaimed,
+		Page:        apiv1.PaginationToResource(params.Page),
 	}
-	jobs, err := be.ListJobs(ctx, 20, resourceParams)
+	limit := 20
+	if params.Page != nil && params.Page.Limit > 0 {
+		limit = int(params.Page.Limit)
+	}
+	jobs, err := be.ListJobs(ctx, limit, resourceParams)
 	if err != nil {
 		return err
 	}

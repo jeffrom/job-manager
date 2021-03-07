@@ -18,6 +18,8 @@ import (
 
 type listQueuesOpts struct {
 	selectorRaw string
+	limit       int64
+	lastID      string
 }
 
 type listQueuesCmd struct {
@@ -39,6 +41,8 @@ func newListQueuesCmd(cfg *client.Config) *listQueuesCmd {
 	cmd := c.Cmd()
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.selectorRaw, "selector", "s", "", "filter by selector")
+	flags.Int64VarP(&opts.limit, "limit", "L", 20, "per-page limit")
+	flags.StringVarP(&opts.lastID, "last-id", "l", "", "last id (from previous page)")
 
 	return c
 }
@@ -49,6 +53,10 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *co
 	qs, err := cl.ListQueues(ctx, client.ListQueuesOpts{
 		Names:     args,
 		Selectors: label.SplitSelectors(c.opts.selectorRaw),
+		Page: &resource.Pagination{
+			Limit:  c.opts.limit,
+			LastID: c.opts.lastID,
+		},
 	})
 	if err != nil {
 		return err

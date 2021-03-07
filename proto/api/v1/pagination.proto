@@ -1,0 +1,9 @@
+syntax = "proto3";
+package api.v1;
+
+option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
+
+message Pagination {
+  int64 limit = 1;
+  string last_id = 2;
+}

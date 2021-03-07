@@ -89,4 +89,5 @@ func (qs *Queues) ToMap() map[string]*Queue {
 type QueueListParams struct {
 	Names     []string         `json:"names,omitempty"`
 	Selectors *label.Selectors `json:"selectors,omitempty"`
+	Page      *Pagination      `json:"page,omitempty"`
 }

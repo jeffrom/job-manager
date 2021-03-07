@@ -4,6 +4,7 @@ package api.v1;
 import "google/protobuf/duration.proto";
 
 import "job/v1/queue.proto";
+import "api/v1/pagination.proto";
 
 option go_package = "github.com/jeffrom/job-manager/mjob/api/v1";
 
@@ -36,6 +37,7 @@ message SaveQueueResponse {
 message ListQueuesRequest {
   repeated string names = 1;
   repeated string selectors = 2;
+  Pagination page = 3;
 }
 
 message ListQueuesResponse {

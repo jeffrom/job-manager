@@ -35,7 +35,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
 		now := timestamppb.New(internal.GetTimeProvider(ctx).Now())
 		for i, jobArg := range params.Jobs {
-			queue, err := be.GetQueue(ctx, jobArg.Job)
+			queue, err := be.GetQueue(ctx, jobArg.Job, nil)
 			if err != nil {
 				return handleBackendErrors(err, "queue", jobArg.Job)
 			}

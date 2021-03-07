@@ -23,11 +23,11 @@ func Ack(w http.ResponseWriter, r *http.Request) error {
 	results := &jobv1.Acks{Acks: make([]*jobv1.Ack, len(params.Acks))}
 	for i, ackParam := range params.Acks {
 		id := ackParam.Id
-		jobData, err := be.GetJobByID(ctx, id)
+		jobData, err := be.GetJobByID(ctx, id, nil)
 		if err != nil {
 			return err
 		}
-		queue, err := be.GetQueue(ctx, jobData.Name)
+		queue, err := be.GetQueue(ctx, jobData.Name, nil)
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,7 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 			continue
 		}
 
-		jobData, err := be.GetJobByID(ctx, ack.JobID)
+		jobData, err := be.GetJobByID(ctx, ack.JobID, nil)
 		if err != nil {
 			return err
 		}

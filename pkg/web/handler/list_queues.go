@@ -37,6 +37,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) error {
 		Names:     params.Names,
 		Selectors: sels,
 		Page:      apiv1.PaginationToResource(params.Page),
+		Includes:  params.Include,
 	})
 	if err != nil {
 		return err

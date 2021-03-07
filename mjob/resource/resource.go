@@ -2,3 +2,7 @@
 // typically interact with. job-manager as well as backends should use these
 // types, as opposed to protobufs or backend representations.
 package resource
+
+type GetByIDOpts struct {
+	Includes []string `json:"include,omitempty"`
+}

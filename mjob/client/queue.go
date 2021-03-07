@@ -86,6 +86,7 @@ type ListQueuesOpts struct {
 	Names     []string
 	Selectors []string
 	Page      *resource.Pagination
+	Includes  []string
 }
 
 func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error) {
@@ -94,6 +95,7 @@ func (c *Client) ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource
 		Names:     opts.Names,
 		Selectors: opts.Selectors,
 		Page:      page,
+		Include:   opts.Includes,
 	}
 	uri := "/api/v1/queues"
 	req, err := c.newRequestProto(ctx, "GET", uri, params)

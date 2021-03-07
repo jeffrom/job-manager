@@ -20,7 +20,7 @@ type Interface interface {
 	// Reset resets the backend. For testing.
 	Reset(ctx context.Context) error
 
-	GetQueue(ctx context.Context, job string) (*resource.Queue, error)
+	GetQueue(ctx context.Context, job string, opts *resource.GetByIDOpts) (*resource.Queue, error)
 	SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error)
 	ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error)
 
@@ -34,7 +34,7 @@ type Interface interface {
 	// GetSetJobKeys(ctx context.Context, ids, keys []string) (string, bool, error)
 	// DeleteJobKeys(ctx context.Context, keys []string) error
 
-	GetJobByID(ctx context.Context, id string) (*resource.Job, error)
+	GetJobByID(ctx context.Context, id string, opts *resource.GetByIDOpts) (*resource.Job, error)
 	ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)
 
 	Stats(ctx context.Context, queue string) (*resource.Stats, error)

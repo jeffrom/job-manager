@@ -18,6 +18,7 @@ message ListJobsRequest {
   google.protobuf.Timestamp created_since = 6;
   google.protobuf.Timestamp created_until = 7;
   Pagination page = 8;
+  repeated string include = 9;
 }
 
 message ListJobsResponse {

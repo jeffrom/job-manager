@@ -167,7 +167,10 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 	return nil
 }
 
-func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
+func (pg *Postgres) GetJobByID(ctx context.Context, id string, opts *resource.GetByIDOpts) (*resource.Job, error) {
+	if opts == nil {
+		opts = &resource.GetByIDOpts{}
+	}
 	c, err := pg.getConn(ctx)
 	if err != nil {
 		return nil, err
@@ -179,7 +182,7 @@ func (pg *Postgres) GetJobByID(ctx context.Context, id string) (*resource.Job, e
 		return nil, err
 	}
 
-	if err := annotateJobs(ctx, c, []*resource.Job{jb}); err != nil {
+	if err := annotateJobs(ctx, c, opts.Includes, []*resource.Job{jb}); err != nil {
 		return nil, err
 	}
 	// fmt.Printf("GetJobByID: Args: %q\n", jb.ArgsRaw)
@@ -308,7 +311,7 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	// XXX if we're using labels have to query queue labels here to handle the
 	// !label selector :'(
 
-	if err := annotateJobs(ctx, c, rows); err != nil {
+	if err := annotateJobs(ctx, c, opts.Includes, rows); err != nil {
 		return nil, err
 	}
 
@@ -327,12 +330,15 @@ func setJobFields(jobs []*resource.Job) error {
 	return nil
 }
 
-func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
+func annotateJobs(ctx context.Context, c sqlxer, includes []string, jobs []*resource.Job) error {
 	if len(jobs) == 0 {
 		return nil
 	}
 	if err := setJobFields(jobs); err != nil {
 		return err
+	}
+	if len(includes) == 0 {
+		return nil
 	}
 
 	ids := make([]string, len(jobs))
@@ -341,33 +347,38 @@ func annotateJobs(ctx context.Context, c sqlxer, jobs []*resource.Job) error {
 		ids[i] = jb.ID
 		jobmap[jb.ID] = jb
 	}
+	incMap := makeIncludeMap(includes)
 
-	q, args, err := sqlx.In("SELECT * FROM job_checkins WHERE job_id in (?)", ids)
-	if err != nil {
-		return err
-	}
+	if incMap["checkin"] {
+		q, args, err := sqlx.In("SELECT * FROM job_checkins WHERE job_id in (?)", ids)
+		if err != nil {
+			return err
+		}
 
-	var checkins []*resource.JobCheckin
-	if err := sqlx.SelectContext(ctx, c, &checkins, c.Rebind(q), args...); err != nil {
-		return err
-	}
-	for _, row := range checkins {
-		jb := jobmap[row.JobID]
-		jb.Checkins = append(jb.Checkins, row)
-	}
-
-	q, args, err = sqlx.In("SELECT * FROM job_results WHERE job_id in (?)", ids)
-	if err != nil {
-		return err
+		var checkins []*resource.JobCheckin
+		if err := sqlx.SelectContext(ctx, c, &checkins, c.Rebind(q), args...); err != nil {
+			return err
+		}
+		for _, row := range checkins {
+			jb := jobmap[row.JobID]
+			jb.Checkins = append(jb.Checkins, row)
+		}
 	}
 
-	var results []*resource.JobResult
-	if err := sqlx.SelectContext(ctx, c, &results, c.Rebind(q), args...); err != nil {
-		return err
-	}
-	for _, row := range results {
-		jb := jobmap[row.JobID]
-		jb.Results = append(jb.Results, row)
+	if incMap["result"] {
+		q, args, err := sqlx.In("SELECT * FROM job_results WHERE job_id in (?)", ids)
+		if err != nil {
+			return err
+		}
+
+		var results []*resource.JobResult
+		if err := sqlx.SelectContext(ctx, c, &results, c.Rebind(q), args...); err != nil {
+			return err
+		}
+		for _, row := range results {
+			jb := jobmap[row.JobID]
+			jb.Results = append(jb.Results, row)
+		}
 	}
 	return nil
 }

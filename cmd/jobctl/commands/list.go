@@ -17,7 +17,7 @@ func newListCmd(cfg *client.Config) *listCmd {
 	ljCmd := newListJobsCmd(cfg)
 	cmd := ljCmd.Cmd()
 	cmd.Use = "list"
-	cmd.Aliases = []string{"ls"}
+	cmd.Aliases = []string{"ls", "get"}
 	c := &listCmd{
 		ljCmd:   ljCmd,
 		Command: cmd,

@@ -19,7 +19,7 @@ func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
 	be := backend.FromMiddleware(ctx)
 	queueID := chi.URLParam(r, "queueID")
 
-	queue, err := be.GetQueue(ctx, queueID)
+	queue, err := be.GetQueue(ctx, queueID, nil)
 	if err != nil {
 		return handleBackendErrors(err, "queue", queueID)
 	}
@@ -33,12 +33,12 @@ func GetQueueByJobID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := backend.FromMiddleware(ctx)
 	jobID := chi.URLParam(r, "jobID")
-	jobData, err := be.GetJobByID(ctx, jobID)
+	jobData, err := be.GetJobByID(ctx, jobID, nil)
 	if err != nil {
 		return handleBackendErrors(err, "job", jobID)
 	}
 
-	queue, err := be.GetQueue(ctx, jobData.Name)
+	queue, err := be.GetQueue(ctx, jobData.Name, nil)
 	if err != nil {
 		return handleBackendErrors(err, "queue", jobData.Name)
 	}

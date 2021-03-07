@@ -36,6 +36,7 @@ type ListJobsOpts struct {
 	Selectors []string
 	Statuses  []resource.Status
 	Page      *resource.Pagination
+	Includes  []string
 }
 
 func (c *Client) ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error) {
@@ -45,6 +46,7 @@ func (c *Client) ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Job
 		Selector: opts.Selectors,
 		Status:   statusStrings(opts.Statuses),
 		Page:     page,
+		Include:  opts.Includes,
 	}
 	uri := "/api/v1/jobs"
 	req, err := c.newRequestProto(ctx, "GET", uri, params)

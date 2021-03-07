@@ -14,7 +14,7 @@ import (
 	"github.com/jeffrom/job-manager/pkg/internal"
 )
 
-func (pg *Postgres) GetQueue(ctx context.Context, name string) (*resource.Queue, error) {
+func (pg *Postgres) GetQueue(ctx context.Context, name string, opts *resource.GetByIDOpts) (*resource.Queue, error) {
 	c, err := pg.getConn(ctx)
 	if err != nil {
 		return nil, err

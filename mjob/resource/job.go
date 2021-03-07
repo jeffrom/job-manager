@@ -226,4 +226,5 @@ type JobListParams struct {
 	// NoUnclaimed will exclude jobs that have outstanding claims.
 	NoUnclaimed bool        `json:"no_unclaimed,omitempty"`
 	Page        *Pagination `json:"page,omitempty"`
+	Includes    []string    `json:"include,omitempty"`
 }

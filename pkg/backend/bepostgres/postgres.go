@@ -287,3 +287,11 @@ func sqlSelectors(sel *label.Selectors, joins, wheres []string, args []interface
 
 	return joins, wheres, args
 }
+
+func makeIncludeMap(includes []string) map[string]bool {
+	m := make(map[string]bool)
+	for _, inc := range includes {
+		m[inc] = true
+	}
+	return m
+}

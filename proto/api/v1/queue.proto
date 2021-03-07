@@ -38,6 +38,7 @@ message ListQueuesRequest {
   repeated string names = 1;
   repeated string selectors = 2;
   Pagination page = 3;
+  repeated string include = 4;
 }
 
 message ListQueuesResponse {

@@ -35,7 +35,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	for _, qName := range params.Queues {
-		_, err = be.GetQueue(ctx, qName)
+		_, err = be.GetQueue(ctx, qName, nil)
 		if err != nil {
 			return err
 		}

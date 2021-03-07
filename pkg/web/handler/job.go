@@ -49,6 +49,7 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 		Claims:      claims,
 		NoUnclaimed: params.NoUnclaimed,
 		Page:        apiv1.PaginationToResource(params.Page),
+		Includes:    params.Include,
 	}
 	limit := 20
 	if params.Page != nil && params.Page.Limit > 0 {
@@ -73,7 +74,7 @@ func GetJobByID(w http.ResponseWriter, r *http.Request) error {
 	be := backend.FromMiddleware(ctx)
 	jobID := chi.URLParam(r, "jobID")
 
-	job, err := be.GetJobByID(ctx, jobID)
+	job, err := be.GetJobByID(ctx, jobID, nil)
 	if err != nil {
 		return err
 	}

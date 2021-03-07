@@ -43,7 +43,7 @@ func (m *Memory) Reset(ctx context.Context) error {
 	return nil
 }
 
-func (m *Memory) GetQueue(ctx context.Context, name string) (*resource.Queue, error) {
+func (m *Memory) GetQueue(ctx context.Context, name string, opts *resource.GetByIDOpts) (*resource.Queue, error) {
 	if cfg, ok := m.queues[name]; ok {
 		return cfg, nil
 	}
@@ -111,7 +111,7 @@ func (m *Memory) filterQueue(queue *resource.Queue, names []string, sels *label.
 func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*resource.Jobs, error) {
 	now := internal.GetTimeProvider(ctx).Now().UTC()
 	for _, jobArg := range jobArgs.Jobs {
-		queue, err := m.GetQueue(ctx, jobArg.Name)
+		queue, err := m.GetQueue(ctx, jobArg.Name, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +145,7 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 	// filter out jobs with an unmet claim window or have failed too recently
 	var filtered []*resource.Job
 	for _, jb := range jobs.Jobs {
-		queue, err := m.GetQueue(ctx, jb.Name)
+		queue, err := m.GetQueue(ctx, jb.Name, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 // 	return nil
 // }
 
-func (m *Memory) GetJobByID(ctx context.Context, id string) (*resource.Job, error) {
+func (m *Memory) GetJobByID(ctx context.Context, id string, opts *resource.GetByIDOpts) (*resource.Job, error) {
 	jobData, ok := m.jobs[id]
 	if !ok {
 		return nil, backend.ErrNotFound

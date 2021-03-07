@@ -153,6 +153,16 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 			return err
 		}
 
+		// for cancelled or invalid, we dont presume the job has already started.
+		// TODO we should probably be smarter about seeing if the job has
+		// started or not and fix the update query accordingly, or may be
+		// smarter to allow job_results.started_at to be null, which would
+		// indicate that the job was never started, but we still wanted to
+		// attach some data to it.
+		if *ack.Status == resource.StatusCancelled || *ack.Status == resource.StatusInvalid {
+			continue
+		}
+
 		var data []byte
 		if ack.Data != nil {
 			data, err = json.Marshal(ack.Data)

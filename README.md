@@ -33,7 +33,10 @@ Migrations are implemented using [golang-migrate](https://github.com/golang-migr
 ## features
 
 * cli controller
-* job server and consumers can be scaled horizontally
+* straightforward Rest API (protobuf support)
+* job server is stateless / scales horizontally
+* implement your own backend, comes with postgresql
+* in-memory backend for development & testing purposes (not really working right now)
 * claim windows: only dequeue to consumers with matching claims for a configurable duration
 * check ins
 * store result data
@@ -41,7 +44,7 @@ Migrations are implemented using [golang-migrate](https://github.com/golang-migr
 * versioned queue configuration
 * easily update queue configurations via cicd with `jobctl apply`
 * json schema validation for job arguments, data, results
-* exponential backoff
+* the usual job queue features: retries, exponential backoff, durability
 * graceful shutdown
 * not very fast, and probably will never be as fast as the average job system
 

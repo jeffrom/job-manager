@@ -188,6 +188,61 @@ func (x *ListJobsResponse) GetErrors() []*ErrorResponse {
 	return nil
 }
 
+type GetJobRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id      string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Include []string `protobuf:"bytes,2,rep,name=include,proto3" json:"include,omitempty"`
+}
+
+func (x *GetJobRequest) Reset() {
+	*x = GetJobRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_job_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobRequest) ProtoMessage() {}
+
+func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_job_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJobRequest.ProtoReflect.Descriptor instead.
+func (*GetJobRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_job_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetJobRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetJobRequest) GetInclude() []string {
+	if x != nil {
+		return x.Include
+	}
+	return nil
+}
+
 var File_api_v1_job_proto protoreflect.FileDescriptor
 
 var file_api_v1_job_proto_rawDesc = []byte{
@@ -226,11 +281,14 @@ var file_api_v1_job_proto_rawDesc = []byte{
 	0x76, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x12, 0x2d, 0x0a,
 	0x06, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e,
 	0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x52, 0x06, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x73, 0x42, 0x2c, 0x5a, 0x2a,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6a, 0x65, 0x66, 0x66, 0x72,
-	0x6f, 0x6d, 0x2f, 0x6a, 0x6f, 0x62, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x2f, 0x6d,
-	0x6a, 0x6f, 0x62, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x6f, 0x6e, 0x73, 0x65, 0x52, 0x06, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x73, 0x22, 0x39, 0x0a, 0x0d,
+	0x47, 0x65, 0x74, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a,
+	0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a,
+	0x07, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07,
+	0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6a, 0x65, 0x66, 0x66, 0x72, 0x6f, 0x6d, 0x2f, 0x6a, 0x6f,
+	0x62, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x2f, 0x6d, 0x6a, 0x6f, 0x62, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -245,21 +303,22 @@ func file_api_v1_job_proto_rawDescGZIP() []byte {
 	return file_api_v1_job_proto_rawDescData
 }
 
-var file_api_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_v1_job_proto_goTypes = []interface{}{
 	(*ListJobsRequest)(nil),     // 0: api.v1.ListJobsRequest
 	(*ListJobsResponse)(nil),    // 1: api.v1.ListJobsResponse
-	(*timestamp.Timestamp)(nil), // 2: google.protobuf.Timestamp
-	(*Pagination)(nil),          // 3: api.v1.Pagination
-	(*v1.Job)(nil),              // 4: job.v1.Job
-	(*ErrorResponse)(nil),       // 5: api.v1.ErrorResponse
+	(*GetJobRequest)(nil),       // 2: api.v1.GetJobRequest
+	(*timestamp.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*Pagination)(nil),          // 4: api.v1.Pagination
+	(*v1.Job)(nil),              // 5: job.v1.Job
+	(*ErrorResponse)(nil),       // 6: api.v1.ErrorResponse
 }
 var file_api_v1_job_proto_depIdxs = []int32{
-	2, // 0: api.v1.ListJobsRequest.created_since:type_name -> google.protobuf.Timestamp
-	2, // 1: api.v1.ListJobsRequest.created_until:type_name -> google.protobuf.Timestamp
-	3, // 2: api.v1.ListJobsRequest.page:type_name -> api.v1.Pagination
-	4, // 3: api.v1.ListJobsResponse.items:type_name -> job.v1.Job
-	5, // 4: api.v1.ListJobsResponse.errors:type_name -> api.v1.ErrorResponse
+	3, // 0: api.v1.ListJobsRequest.created_since:type_name -> google.protobuf.Timestamp
+	3, // 1: api.v1.ListJobsRequest.created_until:type_name -> google.protobuf.Timestamp
+	4, // 2: api.v1.ListJobsRequest.page:type_name -> api.v1.Pagination
+	5, // 3: api.v1.ListJobsResponse.items:type_name -> job.v1.Job
+	6, // 4: api.v1.ListJobsResponse.errors:type_name -> api.v1.ErrorResponse
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -299,6 +358,18 @@ func file_api_v1_job_proto_init() {
 				return nil
 			}
 		}
+		file_api_v1_job_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetJobRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -306,7 +377,7 @@ func file_api_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_v1_job_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

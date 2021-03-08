@@ -13,7 +13,7 @@ import (
 	"github.com/jeffrom/job-manager/pkg/internal"
 )
 
-// clean up old jobs, queue versions
+// Reap cleans up old jobs and queue versions.
 func (pg *Postgres) Reap(ctx context.Context, cfg *backend.ReaperConfig) error {
 	if err := pg.ensureConn(ctx); err != nil {
 		return err

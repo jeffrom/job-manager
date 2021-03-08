@@ -37,6 +37,8 @@ type Postgres struct {
 
 type ProviderFunc func(p *Postgres) *Postgres
 
+// New returns a new instance of a postgresql backend.
+//
 // example dsn:
 // user=jack password=secret host=pg.example.com port=5432 dbname=mydb sslmode=verify-ca
 func New(providers ...ProviderFunc) *Postgres {

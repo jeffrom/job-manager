@@ -118,7 +118,7 @@ func (tc *sanityTestCase) ackJobOpts(ctx context.Context, t testing.TB, id strin
 
 func (tc *sanityTestCase) getJob(ctx context.Context, t testing.TB, id string) *resource.Job {
 	t.Helper()
-	jobData, err := tc.ctx.client.GetJob(ctx, id)
+	jobData, err := tc.ctx.client.GetJob(ctx, id, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

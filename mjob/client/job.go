@@ -10,9 +10,17 @@ import (
 	jobv1 "github.com/jeffrom/job-manager/mjob/resource/job/v1"
 )
 
-func (c *Client) GetJob(ctx context.Context, id string) (*resource.Job, error) {
+type GetJobOpts struct {
+	Includes []string
+}
+
+func (c *Client) GetJob(ctx context.Context, id string, opts *GetJobOpts) (*resource.Job, error) {
+	if opts == nil {
+		opts = &GetJobOpts{}
+	}
+	params := &apiv1.GetJobRequest{Include: opts.Includes}
 	uri := fmt.Sprintf("/api/v1/jobs/%s", id)
-	req, err := c.newRequestProto(ctx, "GET", uri, nil)
+	req, err := c.newRequestProto(ctx, "GET", uri, params)
 	if err != nil {
 		return nil, err
 	}

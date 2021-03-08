@@ -1138,6 +1138,37 @@
       "extensions": [],
       "messages": [
         {
+          "name": "GetJobRequest",
+          "longName": "GetJobRequest",
+          "fullName": "api.v1.GetJobRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            },
+            {
+              "name": "include",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "ListJobsRequest",
           "longName": "ListJobsRequest",
           "fullName": "api.v1.ListJobsRequest",

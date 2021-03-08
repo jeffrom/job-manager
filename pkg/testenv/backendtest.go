@@ -633,9 +633,8 @@ func checkQueue(t testing.TB, q *resource.Queue) bool {
 
 	if v := q.Version; v == nil {
 		t.Error("queue version was nil")
-	} else if v.Raw() == 1 {
-
-	}
+	} // else if v.Raw() == 1 {
+	// }
 	return !t.Failed()
 }
 
@@ -644,6 +643,7 @@ func checkJob(t testing.TB, jb *resource.Job) bool {
 
 	if jb == nil {
 		t.Fatal("expected job not to be nil")
+		return false
 	}
 	if jb.ID == "" {
 		t.Error("expected job id to be set")
@@ -693,7 +693,7 @@ var jsonRE = regexp.MustCompile(`"(\w+)":`)
 func readable(v interface{}) string {
 	b, err := json.Marshal(v)
 	if err != nil {
-
+		panic(err)
 	}
 	s := string(b)
 	if len(s) == 0 {

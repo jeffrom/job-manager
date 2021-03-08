@@ -225,9 +225,9 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 			if _, err := c.ExecContext(ctx, c.Rebind(lq), labelDelArgs...); err != nil {
 				return nil, err
 			}
-		} else if names != nil {
-			// TODO del all labels
-		}
+		} // else if names != nil {
+		// TODO del all labels
+		// }
 
 		resq.Labels = queue.Labels
 

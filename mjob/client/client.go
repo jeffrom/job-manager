@@ -37,7 +37,7 @@ type Interface interface {
 	// SaveQueues(ctx context.Context, queue *resource.Queues) error
 	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
 	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
-	GetJob(ctx context.Context, id string) (*resource.Job, error)
+	GetJob(ctx context.Context, id string, opts *GetJobOpts) (*resource.Job, error)
 	// ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error)
 }
 

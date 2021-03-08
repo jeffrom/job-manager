@@ -67,7 +67,7 @@ test: gen $(gofiles) | $(staticcheck) $(buf)
 lint: lint.go lint.proto lint.jsonschema
 
 lint.go: gen | $(staticcheck)
-	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring)
+	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring | grep -v 'job-manager/pkg/backend/bepostgres/migrations')
 
 .PHONY: lint.proto
 lint.proto: $(buf)

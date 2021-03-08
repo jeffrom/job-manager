@@ -134,25 +134,3 @@ func createSrv(cfg *middleware.Config, be backend.Interface) (*http.Server, net.
 
 	return srv, ln, nil
 }
-
-func run(cfg *middleware.Config, be backend.Interface) error {
-	h, err := web.NewControllerRouter(*cfg, be)
-	if err != nil {
-		return err
-	}
-
-	host := ":1874"
-	if cfg.Host != "" {
-		host = cfg.Host
-	}
-	ln, err := net.Listen("tcp", host)
-	if err != nil {
-		return err
-	}
-
-	if err := http.Serve(ln, h); err != nil {
-		return err
-	}
-
-	return nil
-}

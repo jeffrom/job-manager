@@ -73,11 +73,21 @@ func ListJobs(w http.ResponseWriter, r *http.Request) error {
 }
 
 func GetJobByID(w http.ResponseWriter, r *http.Request) error {
+	var params apiv1.GetJobRequest
+	if err := UnmarshalBody(r, &params, false); err != nil {
+		return err
+	}
+	if err := validateIncludes("job", params.Include); err != nil {
+		return err
+	}
+
 	ctx := r.Context()
 	be := backend.FromMiddleware(ctx)
 	jobID := chi.URLParam(r, "jobID")
 
-	job, err := be.GetJobByID(ctx, jobID, nil)
+	job, err := be.GetJobByID(ctx, jobID, &resource.GetByIDOpts{
+		Includes: params.Include,
+	})
 	if err != nil {
 		return err
 	}

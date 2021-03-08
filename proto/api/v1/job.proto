@@ -25,3 +25,8 @@ message ListJobsResponse {
   repeated job.v1.Job items = 1;
   repeated ErrorResponse errors = 2;
 }
+
+message GetJobRequest {
+  string id = 1;
+  repeated string include = 2;
+}

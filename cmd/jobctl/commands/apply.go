@@ -10,7 +10,7 @@ import (
 )
 
 type applyOpts struct {
-	path string
+	// path string
 }
 
 type applyCmd struct {

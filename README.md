@@ -67,3 +67,10 @@ Run tests and static analysis:
 $ make test
 $ make lint
 ```
+
+Point jobctl at the local server dev proxy:
+
+```
+$ export HOST=:4000
+$ jobctl stats
+```

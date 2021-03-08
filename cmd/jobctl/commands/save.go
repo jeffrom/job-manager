@@ -17,6 +17,7 @@ func newSaveCmd(cfg *client.Config) *saveCmd {
 	savec := newSaveQueueCmd(cfg)
 	cmd := savec.Cmd()
 	cmd.Use = "save"
+	cmd.Aliases = []string{"create"}
 	cmd.Args = cobra.MaximumNArgs(1)
 	c := &saveCmd{
 		saveQueueCmd: savec,

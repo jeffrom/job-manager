@@ -165,4 +165,3 @@ $(spectral):
 $(protoc):
 	@echo "Please install protoc"
 	@exit 1
-

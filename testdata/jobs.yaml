@@ -1,12 +1,16 @@
 name: cool
 retries: 4
 duration: 5s
+labels:
+  sup: hi
 
 ---
 name: nice
 unique: true
 retries: 4
 duration: 10s
+labels:
+  sup: what
 
 ---
 name: darn
@@ -17,3 +21,6 @@ claim_duration: 10s
 backoff_factor: 2.0
 backoff_initial: 2s
 backoff_max: 1m
+labels:
+  sup: what
+  owner: idk

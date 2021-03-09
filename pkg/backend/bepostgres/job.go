@@ -133,8 +133,8 @@ func (pg *Postgres) AckJobs(ctx context.Context, results *resource.Acks) error {
 		return err
 	}
 
-	q := "UPDATE jobs SET status = ?, v = v+1, completed_at = ? WHERE id = ? RETURNING *"
-	update, err := sqlx.PreparexContext(ctx, c, c.Rebind(q))
+	updateQ := "UPDATE jobs SET status = ?, v = v+1, completed_at = ? WHERE id = ? RETURNING *"
+	update, err := sqlx.PreparexContext(ctx, c, c.Rebind(updateQ))
 	if err != nil {
 		return err
 	}

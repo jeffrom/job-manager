@@ -1,9 +1,9 @@
 package resource
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
+	"reflect"
 	"time"
 
 	"github.com/jeffrom/job-manager/mjob/label"
@@ -55,7 +55,7 @@ func (q *Queue) EqualAttrs(other *Queue) bool {
 		q.Labels.Equals(other.Labels) &&
 		// (q.DeletedAt == nil || q.DeletedAt.Valid == false) == (other.DeletedAt == nil || other.DeletedAt.Valid == false) &&
 		q.DeletedAt.Valid == other.DeletedAt.Valid &&
-		bytes.Equal(q.SchemaRaw, other.SchemaRaw)
+		jsonEquals(q.SchemaRaw, other.SchemaRaw)
 }
 
 func (q *Queue) Equal(other *Queue) bool {
@@ -71,6 +71,11 @@ func (q *Queue) Copy() *Queue {
 	if q.Version != nil {
 		*cp.Version = *q.Version
 	}
+
+	// TODO copy schema bytes?
+	// if len(q.SchemaRaw) > 0 {
+	// 	copy(cp.SchemaRaw, q.SchemaRaw)
+	// }
 	return cp
 }
 
@@ -91,4 +96,19 @@ type QueueListParams struct {
 	Selectors *label.Selectors `json:"selectors,omitempty"`
 	Page      *Pagination      `json:"page,omitempty"`
 	Includes  []string         `json:"include,omitempty"`
+}
+
+func jsonEquals(a, b []byte) bool {
+	if len(a) == 0 && len(b) == 0 {
+		return true
+	}
+	var ai interface{}
+	var bi interface{}
+	aerr := json.Unmarshal(a, &ai)
+	berr := json.Unmarshal(b, &bi)
+	if aerr != berr {
+		return false
+	}
+
+	return reflect.DeepEqual(ai, bi)
 }

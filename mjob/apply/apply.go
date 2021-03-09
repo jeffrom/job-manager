@@ -4,6 +4,7 @@ package apply
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/mjob/resource"
+	"github.com/jeffrom/job-manager/mjob/schema"
 )
 
 var docSep = []byte("\n---\n")
@@ -26,6 +28,9 @@ func Path(ctx context.Context, c client.Interface, p string) error {
 	for _, part := range docs {
 		q := &resource.Queue{}
 		if err := yaml.Unmarshal(part, q); err != nil {
+			return err
+		}
+		if err := setSchema(ctx, part, q); err != nil {
 			return err
 		}
 		res, err := applyRequest(ctx, c, q)
@@ -65,4 +70,25 @@ func toSaveOpts(q *resource.Queue, v string) client.SaveQueueOpts {
 		BackoffMax:      time.Duration(q.BackoffMax),
 		BackoffFactor:   q.BackoffFactor,
 	}
+}
+
+func setSchema(ctx context.Context, part []byte, q *resource.Queue) error {
+	d := struct {
+		Schema *schema.Schema `json:"schema"`
+	}{}
+	if err := yaml.Unmarshal(part, &d); err != nil {
+		return err
+	}
+	if d.Schema == nil {
+		return nil
+	}
+	b, err := json.Marshal(d.Schema)
+	if err != nil {
+		return err
+	}
+	if err := schema.ValidateSchema(ctx, b); err != nil {
+		return err
+	}
+	q.SchemaRaw = b
+	return nil
 }

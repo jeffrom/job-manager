@@ -3,12 +3,12 @@ package commands
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/jeffrom/job-manager/mjob/client"
 	"github.com/jeffrom/job-manager/mjob/label"
+	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/config"
 )
 
@@ -61,7 +61,10 @@ func (c *enqueueCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra
 		}
 	}
 	cl := clientFromContext(ctx)
-	iargs := argsToInterface(args[1:])
+	iargs, err := resource.ParseCLIArgs(args[1:])
+	if err != nil {
+		return err
+	}
 	opts := client.EnqueueOpts{
 		Claims: claims,
 	}
@@ -74,12 +77,12 @@ func (c *enqueueCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra
 }
 
 func handleCompletion(comps []string, err error) ([]string, cobra.ShellCompDirective) {
-	f, _ := os.Create("hi.txt")
-	defer f.Close()
-	fmt.Fprintf(f, "comps: %+v, err: %v\n", comps, err)
+	// f, _ := os.Create("hi.txt")
+	// defer f.Close()
+	// fmt.Fprintf(f, "comps: %+v, err: %v\n", comps, err)
 	if err != nil {
-		// TODO maybe a better way to print the error
-		fmt.Fprintf(os.Stderr, "completion error: %v\n", err)
+		// TODO better way to print errors, debug info, need to dump to txt file
+		// fmt.Fprintf(os.Stderr, "completion error: %v\n", err)
 		return comps, cobra.ShellCompDirectiveError
 	}
 	return comps, cobra.ShellCompDirectiveNoFileComp
@@ -103,12 +106,4 @@ func completeQueueList(ctx context.Context, toComplete string) ([]string, error)
 		names[i] = q.Name
 	}
 	return names, nil
-}
-
-func argsToInterface(args []string) []interface{} {
-	ifaces := make([]interface{}, len(args))
-	for i, arg := range args {
-		ifaces[i] = arg
-	}
-	return ifaces
 }

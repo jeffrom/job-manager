@@ -10,7 +10,7 @@ import (
 )
 
 type Queue struct {
-	ID              int64        `json:"-"`
+	ID              string       `json:"-"`
 	Name            string       `json:"name"`
 	Version         *Version     `json:"version" db:"v"`
 	Retries         int          `json:"retries,omitempty"`

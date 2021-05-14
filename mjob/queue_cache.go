@@ -56,7 +56,7 @@ func NewQueueCache(c client.Interface) *QueueCache {
 func (qc *QueueCache) Get(ctx context.Context, job *resource.Job) (*resource.Queue, error) {
 	name := job.Name
 	ver := job.QueueVersion.Strict()
-	id := strconv.FormatInt(job.QueueID, 10)
+	id := job.QueueID
 	qc.cacheMu.Lock()
 	defer qc.cacheMu.Unlock()
 

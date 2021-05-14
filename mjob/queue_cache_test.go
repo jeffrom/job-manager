@@ -31,7 +31,7 @@ func TestQueueCache(t *testing.T) {
 	mc := &mockClient{}
 	qc := NewQueueCache(mc)
 	mc.setQueue(&resource.Queue{
-		ID:      1,
+		ID:      "1",
 		Name:    "sup",
 		Version: resource.NewVersion(1),
 	})
@@ -39,7 +39,7 @@ func TestQueueCache(t *testing.T) {
 	ctx := context.Background()
 	q, err := qc.Get(ctx, &resource.Job{
 		ID:           "1",
-		QueueID:      1,
+		QueueID:      "1",
 		Version:      resource.NewVersion(1),
 		QueueVersion: resource.NewVersion(1),
 	})
@@ -49,7 +49,7 @@ func TestQueueCache(t *testing.T) {
 	if q == nil {
 		t.Fatal("expected to get a queue")
 	}
-	if q.ID != 1 {
+	if q.ID != "1" {
 		t.Fatal("expected queue id 1")
 	}
 	if !mc.called {
@@ -59,7 +59,7 @@ func TestQueueCache(t *testing.T) {
 	mc.resetCalled()
 	q, err = qc.Get(ctx, &resource.Job{
 		ID:           "1",
-		QueueID:      1,
+		QueueID:      "1",
 		Version:      resource.NewVersion(1),
 		QueueVersion: resource.NewVersion(1),
 	})
@@ -69,7 +69,7 @@ func TestQueueCache(t *testing.T) {
 	if q == nil {
 		t.Fatal("expected to get a queue")
 	}
-	if q.ID != 1 {
+	if q.ID != "1" {
 		t.Fatal("expected queue id 1")
 	}
 	if mc.called {
@@ -80,7 +80,7 @@ func TestQueueCache(t *testing.T) {
 	qc.Reset()
 	q, err = qc.Get(ctx, &resource.Job{
 		ID:           "1",
-		QueueID:      1,
+		QueueID:      "1",
 		Version:      resource.NewVersion(1),
 		QueueVersion: resource.NewVersion(1),
 	})
@@ -90,7 +90,7 @@ func TestQueueCache(t *testing.T) {
 	if q == nil {
 		t.Fatal("expected to get a queue")
 	}
-	if q.ID != 1 {
+	if q.ID != "1" {
 		t.Fatal("expected queue id 1")
 	}
 	if !mc.called {

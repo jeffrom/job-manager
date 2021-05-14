@@ -88,6 +88,11 @@ func (l *Logger) Middleware(next http.Handler) http.Handler {
 			if query != "" {
 				reqLog.Str("query", query)
 			}
+
+			if ua := r.Header.Get("User-agent"); ua != "" {
+				reqLog.Str("user_agent", ua)
+			}
+
 			// if len(queries) > 0 {
 			// 	reqLog.Strs("queries", queries)
 			// }

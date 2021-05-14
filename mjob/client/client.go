@@ -38,7 +38,7 @@ type Interface interface {
 	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
 	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
 	GetJob(ctx context.Context, id string, opts *GetJobOpts) (*resource.Job, error)
-	// ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error)
+	ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error)
 }
 
 type providerFunc func(c *Client) *Client

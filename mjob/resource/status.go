@@ -2,6 +2,7 @@ package resource
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"strconv"
 )
 
@@ -87,6 +88,20 @@ func (s *Status) Scan(value interface{}) error {
 
 func (s *Status) Value() (driver.Value, error) {
 	return s.String(), nil
+}
+
+func (s Status) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
+}
+
+func (s *Status) UnmarshalJSON(data []byte) error {
+	var statusStr string
+	if err := json.Unmarshal(data, statusStr); err != nil {
+		return err
+	}
+	st := StatusFromString(statusStr)
+	*s = *st
+	return nil
 }
 
 func StatusIsDone(status *Status) bool {

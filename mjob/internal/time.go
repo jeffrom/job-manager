@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var MockTimeKey = "mocktime"
+var MockTimeKey ContextKey = "mocktime"
 
 func GetMockTime(ctx context.Context) *time.Time {
 	t := ctx.Value(MockTimeKey)

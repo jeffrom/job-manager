@@ -40,7 +40,7 @@ func (s *Selectors) Len() int {
 	return len(s.Names) + len(s.NotNames) + len(s.In) + len(s.NotIn)
 }
 
-// Key returns a string that can be used as a cache key for the selector
+// CacheKey returns a string that can be used as a cache key for the selector
 // values.
 func (s *Selectors) CacheKey() string {
 	var b strings.Builder

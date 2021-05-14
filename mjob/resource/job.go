@@ -10,7 +10,9 @@ import (
 )
 
 type Job struct {
-	ID             string        `json:"id"`
+	ID string `json:"id"`
+	// QueueID is the id of the queue that manages this job.
+	// TODO should be a string
 	QueueID        int64         `json:"-" db:"queue_id"`
 	Version        *Version      `json:"version" db:"v"`
 	Name           string        `json:"name"`

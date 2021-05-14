@@ -1,4 +1,3 @@
-SHELL := /bin/sh
 TMPDIR := $(if $(TMPDIR),$(TMPDIR),"/tmp/")
 GOPATH := $(shell go env GOPATH)
 
@@ -62,12 +61,14 @@ clean:
 .PHONY: test
 test: gen $(gofiles) | $(staticcheck) $(buf)
 	GO111MODULE=on go test -short ./...
+	cd mjob && GO111MODULE=on go test -short ./...
 
 .PHONY: lint
 lint: lint.go lint.proto lint.jsonschema
 
 lint.go: gen | $(staticcheck)
-	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring | grep -v 'job-manager/pkg/backend/bepostgres/migrations')
+	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v 'job-manager/pkg/backend/bepostgres/migrations')
+	cd mjob && GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring)
 
 .PHONY: lint.proto
 lint.proto: $(buf)
@@ -78,11 +79,16 @@ lint.jsonschema: $(spectral)
 	$(spectral) lint jsonschema/*
 
 .PHONY: test.cover
+test.cover: SHELL:=/bin/bash
 test.cover: gen $(gofiles) | $(gocoverutil)
 	$(gocoverutil) -coverprofile=cov.out test -covermode=count ./... \
 		2> >(grep -v "no packages being tested depend on matches for pattern" 1>&2) \
 		| sed -e 's/of statements in .*/of statements/'
 	@echo -n "total: "; go tool cover -func=cov.out | tail -n 1 | sed -e 's/\((statements)\|total:\)//g' | tr -s "[:space:]"
+	cd mjob && $(gocoverutil) -coverprofile=cov.out test -covermode=count ./... \
+		2> >(grep -v "no packages being tested depend on matches for pattern" 1>&2) \
+		| sed -e 's/of statements in .*/of statements/'
+	@echo -n "total: "; go tool cover -func=mjob/cov.out | tail -n 1 | sed -e 's/\((statements)\|total:\)//g' | tr -s "[:space:]"
 
 .PHONY: outdated
 outdated: $(gomodoutdated)

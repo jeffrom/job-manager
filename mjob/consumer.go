@@ -44,10 +44,11 @@ func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerPr
 		c = provider(c)
 	}
 
-	if c.cfg.Concurrency == 0 {
-		panic("concurrency config was 0")
+	size := c.cfg.Concurrency
+	if size == 0 {
+		size = 1
 	}
-	c.resultC = make(chan *resource.JobResult, c.cfg.Concurrency)
+	c.resultC = make(chan *resource.JobResult, size)
 	return c
 }
 
@@ -76,6 +77,9 @@ func ConsumerWithQueue(queue string) ConsumerProvider {
 // running jobs will continue until completion.
 func (c *Consumer) Run(ctx context.Context) error {
 	n := c.cfg.Concurrency
+	if n == 0 {
+		n = 1
+	}
 	workers := make([]*consumerWorker, n)
 	for i := 0; i < n; i++ {
 		ch := make(chan *resource.Job)
@@ -85,7 +89,11 @@ func (c *Consumer) Run(ctx context.Context) error {
 	}
 	c.workers = workers
 
-	curr := make([]*resource.Job, 0, c.cfg.Concurrency)
+	size := c.cfg.Concurrency
+	if size == 0 {
+		size = 1
+	}
+	curr := make([]*resource.Job, 0, size)
 Loop:
 	for {
 		select {
@@ -100,7 +108,7 @@ Loop:
 		}
 
 		// fmt.Println("counts", c.cfg.Concurrency, c.cfg.Backpressure, c.running, len(curr))
-		n := (c.cfg.Concurrency) - (int(atomic.LoadInt32(&c.running)) + len(curr))
+		n := (maxInt(c.cfg.Concurrency, 1)) - (int(atomic.LoadInt32(&c.running)) + len(curr))
 		// fmt.Println("will get", n, "jobs")
 		jobs := &resource.Jobs{}
 		if n > 0 {
@@ -324,4 +332,11 @@ func sleep(ctx context.Context, d time.Duration) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

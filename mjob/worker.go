@@ -2,7 +2,6 @@ package mjob
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"runtime/debug"
 	"time"
@@ -55,7 +54,7 @@ func (w *consumerWorker) runOneJob(ctx context.Context, jb *resource.Job) (res *
 			if rerr, ok := r.(error); ok {
 				err = rerr
 			} else {
-				err = errors.New(fmt.Sprintf("consumer error: %+v", r))
+				err = fmt.Errorf("consumer error: %+v", r)
 			}
 			w.logger.Log(ctx, &LogEvent{
 				Level:   "error",

@@ -3,9 +3,9 @@ package mjob
 import "github.com/jeffrom/job-manager/mjob/client"
 
 type Producer struct {
-	client client.Interface
+	c client.Interface
 }
 
-func NewProducer() *Producer {
-	return &Producer{}
+func NewProducer(c client.Interface) *Producer {
+	return &Producer{c: c}
 }

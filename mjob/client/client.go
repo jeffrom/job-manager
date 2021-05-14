@@ -32,13 +32,13 @@ type Interface interface {
 	AckJobOpts(ctx context.Context, id string, status resource.Status, opts AckJobOpts) error
 	// AckJobs(ctx context.Context, results *resource.Results) error
 
-	// admin rpcs
+	ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error)
+	GetJob(ctx context.Context, id string, opts *GetJobOpts) (*resource.Job, error)
+
 	SaveQueue(ctx context.Context, name string, opts SaveQueueOpts) (*resource.Queue, error)
 	// SaveQueues(ctx context.Context, queue *resource.Queues) error
 	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
 	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
-	GetJob(ctx context.Context, id string, opts *GetJobOpts) (*resource.Job, error)
-	ListJobs(ctx context.Context, opts ListJobsOpts) (*resource.Jobs, error)
 }
 
 type providerFunc func(c *Client) *Client
@@ -153,9 +153,9 @@ func (c *Client) newRequestProto(ctx context.Context, method, uri string, msg pr
 	}
 	// fmt.Printf("uri: %q\n", uri)
 	req, err := c.newRequest(method, uri, r)
-	if method == "GET" {
-		// req.Header.Set("content-type", "application/x-www-form-urlencoded")
-	}
+	// if method == "GET" {
+	// 	req.Header.Set("content-type", "application/x-www-form-urlencoded")
+	// }
 	// b, _ := httputil.DumpRequest(req, false)
 	// fmt.Println(string(b))
 	if mockNow := internal.GetMockTime(ctx); mockNow != nil {

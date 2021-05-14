@@ -3,11 +3,8 @@ package client
 import (
 	"errors"
 
-	"github.com/qri-io/jsonschema"
-
 	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 	"github.com/jeffrom/job-manager/mjob/resource"
-	"github.com/jeffrom/job-manager/mjob/schema"
 )
 
 type APIError struct {
@@ -91,14 +88,14 @@ func newResourceValidationErrorsProto(resp []*apiv1.ValidationError) []*resource
 	return ve
 }
 
-func newSchemaValidationErrorProto(resp *apiv1.ValidationErrorResponse) *schema.ValidationError {
-	ve := &schema.ValidationError{}
-	for _, verr := range resp.Errs {
-		ve.Errors = append(ve.Errors, jsonschema.KeyError{
-			PropertyPath: verr.Path,
-			InvalidValue: verr.Value.AsInterface(),
-			Message:      verr.Message,
-		})
-	}
-	return ve
-}
+// func newSchemaValidationErrorProto(resp *apiv1.ValidationErrorResponse) *schema.ValidationError {
+// 	ve := &schema.ValidationError{}
+// 	for _, verr := range resp.Errs {
+// 		ve.Errors = append(ve.Errors, jsonschema.KeyError{
+// 			PropertyPath: verr.Path,
+// 			InvalidValue: verr.Value.AsInterface(),
+// 			Message:      verr.Message,
+// 		})
+// 	}
+// 	return ve
+// }

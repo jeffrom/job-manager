@@ -60,7 +60,10 @@ func wrapCmdRun(cfgFlags *client.Config, fn wrappedCobraRun) func(cmd *cobra.Com
 		cfg := icfg.(*client.Config)
 
 		ctx := cmd.Context()
-		c := client.New(cfg.Host, client.WithConfig(cfg))
+		c := client.New(cfg.Host,
+			client.WithConfig(cfg),
+			client.WithHTTPClient(httpClient),
+		)
 		ctx = context.WithValue(ctx, ctxClientKey, c)
 		return fn(ctx, cfg, cmd, args)
 	}

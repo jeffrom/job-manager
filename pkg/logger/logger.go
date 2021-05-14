@@ -93,6 +93,10 @@ func (l *Logger) Middleware(next http.Handler) http.Handler {
 				reqLog.Str("user_agent", ua)
 			}
 
+			if ct := r.Header.Get("Content-type"); ct != "" {
+				reqLog.Str("content_type", ct)
+			}
+
 			// if len(queries) > 0 {
 			// 	reqLog.Strs("queries", queries)
 			// }

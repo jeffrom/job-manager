@@ -96,7 +96,7 @@ func (s Status) MarshalJSON() ([]byte, error) {
 
 func (s *Status) UnmarshalJSON(data []byte) error {
 	var statusStr string
-	if err := json.Unmarshal(data, statusStr); err != nil {
+	if err := json.Unmarshal(data, &statusStr); err != nil {
 		return err
 	}
 	st := StatusFromString(statusStr)

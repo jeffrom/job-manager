@@ -34,7 +34,7 @@ func NewQueueFromProto(msg *Queue) *resource.Queue {
 		BackoffFactor:   msg.BackoffFactor,
 		CreatedAt:       msg.CreatedAt.AsTime(),
 		UpdatedAt:       msg.UpdatedAt.AsTime(),
-		DeletedAt:       deletedAt,
+		DeletedAt:       resource.NullTime{NullTime: deletedAt},
 	}
 }
 

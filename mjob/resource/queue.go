@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"database/sql"
 	"encoding/json"
 	"reflect"
 	"time"
@@ -24,8 +23,8 @@ type Queue struct {
 	BackoffMax      Duration     `json:"backoff_max" db:"backoff_max_duration"`
 	BackoffFactor   float32      `json:"backoff_factor" db:"backoff_factor"`
 	CreatedAt       time.Time    `json:"created_at" db:"created_at"`
-	UpdatedAt       time.Time    `json:"updated_at,omitempty" db:"updated_at"`
-	DeletedAt       sql.NullTime `json:"deleted_at,omitempty" db:"deleted_at"`
+	UpdatedAt       time.Time    `json:"-" db:"updated_at"`
+	DeletedAt       NullTime     `json:"deleted_at,omitempty" db:"deleted_at"`
 }
 
 func (q *Queue) String() string {

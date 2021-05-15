@@ -19,6 +19,11 @@ type LogEvent struct {
 	Error   error       `json:"error,omitempty"`
 }
 
+type NilLogger struct{}
+
+func (l *NilLogger) Log(ctx context.Context, e *LogEvent) {
+}
+
 type DefaultLogger struct{}
 
 func (l *DefaultLogger) Log(ctx context.Context, e *LogEvent) {

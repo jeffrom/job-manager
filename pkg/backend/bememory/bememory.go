@@ -5,6 +5,7 @@ package bememory
 import (
 	"context"
 	"math"
+	"sync"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -18,7 +19,7 @@ import (
 // Memory is an in-memory backend intended to be a reference implementation
 // used for testing. It is not safe to use in production.
 type Memory struct {
-	// mu         sync.Mutex
+	mu         sync.Mutex
 	queues     map[string]*resource.Queue
 	jobs       map[string]*resource.Job
 	uniqueness map[string]bool
@@ -123,7 +124,10 @@ func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*reso
 		jobArg.Version.Inc()
 		jobArg.QueueVersion = queue.Version
 		jobArg.Status = resource.NewStatus(resource.StatusQueued)
+
+		m.mu.Lock()
 		m.jobs[jobArg.ID] = jobArg
+		m.mu.Unlock()
 	}
 	return jobArgs, nil
 }
@@ -189,6 +193,8 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 
 func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 	now := internal.GetTimeProvider(ctx).Now().UTC()
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	for _, ack := range acks.Acks {
 		jobData, ok := m.jobs[ack.JobID]
 		if !ok {
@@ -237,6 +243,8 @@ func (m *Memory) AckJobs(ctx context.Context, acks *resource.Acks) error {
 // }
 
 func (m *Memory) GetJobByID(ctx context.Context, id string, opts *resource.GetByIDOpts) (*resource.Job, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	jobData, ok := m.jobs[id]
 	if !ok {
 		return nil, backend.ErrNotFound
@@ -249,12 +257,14 @@ func (m *Memory) ListJobs(ctx context.Context, limit int, opts *resource.JobList
 		opts = &resource.JobListParams{}
 	}
 	res := &resource.Jobs{}
+	m.mu.Lock()
 	for _, jobData := range m.jobs {
 		if statuses := opts.Statuses; len(statuses) > 0 && !jobData.HasStatus(statuses...) {
 			continue
 		}
 		res.Jobs = append(res.Jobs, jobData)
 	}
+	m.mu.Unlock()
 
 	if len(res.Jobs) > limit {
 		res.Jobs = res.Jobs[:limit]

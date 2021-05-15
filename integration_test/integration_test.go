@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"testing"
@@ -17,7 +19,17 @@ import (
 )
 
 func BenchmarkMemory(b *testing.B) {
-	// b.SetParallelism(4)
+	// b.SetParallelism(1)
+	n := 1
+	if env := os.Getenv("N"); env != "" {
+		envN, err := strconv.ParseInt(env, 10, 64)
+		if err != nil {
+			b.Fatal(err)
+		}
+		n = int(envN)
+	}
+	cpus := runtime.NumCPU()
+	b.Logf("consumer concurrency ($N): %d * %d cpus", n, cpus)
 	cfg := middleware.NewConfig()
 	be := bememory.New()
 	srv := testenv.NewTestControllerServer(b, cfg, be)
@@ -26,7 +38,7 @@ func BenchmarkMemory(b *testing.B) {
 
 	ctx := context.Background()
 	c := testenv.NewTestClient(b, srv)
-	_, err := c.SaveQueue(ctx, "benchmem", client.SaveQueueOpts{})
+	_, err := c.SaveQueue(ctx, "benchmem", client.SaveQueueOpts{MaxRetries: 0})
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -37,7 +49,10 @@ func BenchmarkMemory(b *testing.B) {
 	}
 
 	br := newBenchRunner()
-	cons := mjob.NewConsumer(c, br, mjob.ConsumerWithLogger(&mjob.NilLogger{}))
+	cons := mjob.NewConsumer(c, br,
+		mjob.ConsumerWithConfig(mjob.ConsumerConfig{Concurrency: cpus * n}),
+		mjob.ConsumerWithLogger(&mjob.NilLogger{}),
+	)
 	defer cons.Stop()
 	consErrC := make(chan error)
 	go func() {
@@ -48,6 +63,8 @@ func BenchmarkMemory(b *testing.B) {
 	}()
 
 	b.ResetTimer()
+	// enqueue a job and wait for it to complete, using a channel for
+	// communication between the consumer and the benchmark goroutine
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			chanID := strconv.FormatInt(rand.Int63(), 10)
@@ -61,7 +78,9 @@ func BenchmarkMemory(b *testing.B) {
 			}
 		}
 	})
+	b.StopTimer()
 
+	cons.Stop()
 	select {
 	case err := <-consErrC:
 		if err != nil {

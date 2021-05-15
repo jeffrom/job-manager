@@ -17,6 +17,7 @@ import (
 )
 
 func BenchmarkMemory(b *testing.B) {
+	// b.SetParallelism(4)
 	cfg := middleware.NewConfig()
 	be := bememory.New()
 	srv := testenv.NewTestControllerServer(b, cfg, be)

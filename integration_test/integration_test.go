@@ -39,10 +39,12 @@ func BenchmarkMemory(b *testing.B) {
 	br := newBenchRunner()
 	cons := mjob.NewConsumer(c, br, mjob.ConsumerWithLogger(&mjob.NilLogger{}))
 	defer cons.Stop()
+	consErrC := make(chan error)
 	go func() {
 		if err := cons.Run(ctx); err != nil {
-			b.Fatal(err)
+			consErrC <- err
 		}
+		consErrC <- nil
 	}()
 
 	b.ResetTimer()
@@ -59,6 +61,14 @@ func BenchmarkMemory(b *testing.B) {
 			}
 		}
 	})
+
+	select {
+	case err := <-consErrC:
+		if err != nil {
+			b.Fatal(err)
+		}
+	default:
+	}
 }
 
 type benchRunner struct {

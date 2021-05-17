@@ -29,6 +29,7 @@ func (c *Client) GetJob(ctx context.Context, id string, opts *GetJobOpts) (*reso
 	if err := c.doRequest(ctx, req, jobData); err != nil {
 		return nil, err
 	}
+
 	var claims label.Claims
 	if jobData.Data != nil && len(jobData.Data.Claims) > 0 {
 		claims, err = label.ParseClaims(jobData.Data.Claims)
@@ -36,7 +37,8 @@ func (c *Client) GetJob(ctx context.Context, id string, opts *GetJobOpts) (*reso
 			return nil, err
 		}
 	}
-	return jobv1.NewJobFromProto(jobData, claims), nil
+	job := jobv1.NewJobFromProto(jobData, claims)
+	return job, nil
 }
 
 type ListJobsOpts struct {

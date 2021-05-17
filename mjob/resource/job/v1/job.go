@@ -113,6 +113,7 @@ func NewJobFromProto(msg *Job, claims label.Claims) *resource.Job {
 		}
 	}
 
+	// startedAt := resource.NullTime{NullTime: sql.NullTime{}}
 	return &resource.Job{
 		ID:           msg.Id,
 		Version:      resource.NewVersion(msg.V),

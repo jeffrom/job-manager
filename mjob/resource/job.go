@@ -24,8 +24,8 @@ type Job struct {
 	Checkins       []*JobCheckin `json:"checkins,omitempty"`
 	Results        []*JobResult  `json:"results,omitempty"`
 	EnqueuedAt     time.Time     `json:"enqueued_at,omitempty" db:"enqueued_at"`
-	StartedAt      NullTime      `json:"started_at,omitempty" db:"started_at"`
-	CompletedAt    NullTime      `json:"completed_at,omitempty" db:"completed_at"`
+	StartedAt      NullTime      `json:"-" db:"started_at"`
+	CompletedAt    NullTime      `json:"-" db:"completed_at"`
 	BackoffInitial Duration      `json:"-" db:"backoff_initial_duration"`
 	BackoffMax     Duration      `json:"-" db:"backoff_max_duration"`
 	BackoffFactor  float32       `json:"-" db:"backoff_factor"`

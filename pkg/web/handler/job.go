@@ -95,5 +95,6 @@ func GetJobByID(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	// fmt.Printf("uhhh %+v\n", respJob)
 	return MarshalResponse(w, r, respJob)
 }

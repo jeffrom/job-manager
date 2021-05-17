@@ -107,7 +107,7 @@ test.cover: gen $(gofiles) | $(gocoverutil)
 
 .PHONY: outdated
 outdated: $(gomodoutdated)
-	GO111MODULE=on go list -u -m -json all | go-mod-outdated -direct
+	GO111MODULE=on go list -u -m -json all | go-mod-outdated -direct && cd mjob && GO111MODULE=on go list -u -m -json all | go-mod-outdated -direct
 
 .PHONY: release.dryrun
 release.dryrun:

@@ -1,4 +1,5 @@
-package mjob
+// Package consumer implements a job executor.
+package consumer
 
 import (
 	"context"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jeffrom/job-manager/mjob/client"
+	"github.com/jeffrom/job-manager/mjob/logger"
 	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
@@ -16,12 +18,12 @@ type Runner interface {
 }
 
 type Consumer struct {
-	cfg     ConsumerConfig
-	logger  Logger
+	cfg     Config
+	log     logger.Logger
 	client  client.Interface
 	runner  Runner
 	resultC chan *resource.JobResult
-	workers []*consumerWorker
+	workers []*worker
 	running int32
 	stop    chan struct{}
 
@@ -29,14 +31,14 @@ type Consumer struct {
 	mu         sync.Mutex
 }
 
-type ConsumerProvider func(c *Consumer) *Consumer
+type Provider func(c *Consumer) *Consumer
 
-func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerProvider) *Consumer {
+func New(client client.Interface, runner Runner, providers ...Provider) *Consumer {
 	c := &Consumer{
 		client: client,
 		runner: runner,
-		cfg:    defaultConsumerConfig,
-		logger: &DefaultLogger{},
+		cfg:    defaultConfig,
+		log:    &logger.Default{},
 		stop:   make(chan struct{}, 1),
 	}
 
@@ -52,21 +54,21 @@ func NewConsumer(client client.Interface, runner Runner, providers ...ConsumerPr
 	return c
 }
 
-func ConsumerWithConfig(cfg ConsumerConfig) ConsumerProvider {
+func WithConfig(cfg Config) Provider {
 	return func(c *Consumer) *Consumer {
 		c.cfg = cfg
 		return c
 	}
 }
 
-func ConsumerWithLogger(logger Logger) ConsumerProvider {
+func WithLogger(logger logger.Logger) Provider {
 	return func(c *Consumer) *Consumer {
-		c.logger = logger
+		c.log = logger
 		return c
 	}
 }
 
-func ConsumerWithQueue(queue string) ConsumerProvider {
+func WithQueue(queue string) Provider {
 	return func(c *Consumer) *Consumer {
 		c.cfg.DequeueOpts.Queues = append(c.cfg.DequeueOpts.Queues, queue)
 		return c
@@ -80,10 +82,10 @@ func (c *Consumer) Run(ctx context.Context) error {
 	if n == 0 {
 		n = 1
 	}
-	workers := make([]*consumerWorker, n)
+	workers := make([]*worker, n)
 	for i := 0; i < n; i++ {
 		ch := make(chan *resource.Job)
-		wrk := newWorker(c.cfg, c.logger, c.runner, ch, c.resultC)
+		wrk := newWorker(c.cfg, c.log, c.runner, ch, c.resultC)
 		workers[i] = wrk
 		go wrk.start(ctx)
 	}
@@ -116,7 +118,7 @@ Loop:
 			jobs, err = c.client.DequeueJobsOpts(ctx, n, c.cfg.DequeueOpts)
 			if err != nil {
 				// TODO backoff
-				c.logger.Log(ctx, &LogEvent{
+				c.log.Log(ctx, &logger.Event{
 					Level:   "error",
 					Error:   err,
 					Message: "dequeue failed",
@@ -134,7 +136,7 @@ Loop:
 		if err != nil {
 			// TODO handle this? should processJobs ever error? only if a
 			// worker doesn't finish in time.
-			c.logger.Log(ctx, &LogEvent{
+			c.log.Log(ctx, &logger.Event{
 				Level:   "error",
 				Error:   err,
 				Message: "processJobs failed",
@@ -149,14 +151,14 @@ Loop:
 
 	currRunning := atomic.LoadInt32(&c.running)
 	if currRunning == 0 {
-		c.logger.Log(ctx, &LogEvent{
+		c.log.Log(ctx, &logger.Event{
 			Level:   "info",
 			Message: "skipping shutdown sequence as there are 0 jobs running",
 		})
 		return nil
 	}
 
-	c.logger.Log(ctx, &LogEvent{
+	c.log.Log(ctx, &logger.Event{
 		Level:   "info",
 		Message: "shutdown sequence beginning",
 		Data:    map[string]int32{"running": currRunning},
@@ -174,14 +176,14 @@ ShutdownLoop:
 			defer cancel()
 			for _, jobID := range c.getActive() {
 				if err := c.client.AckJob(finalCtx, jobID, resource.StatusFailed); err != nil {
-					c.logger.Log(shutdownCtx, &LogEvent{
+					c.log.Log(shutdownCtx, &logger.Event{
 						Level:   "error",
 						Error:   err,
 						Message: "ackJob failed",
 					})
 				}
 			}
-			c.logger.Log(context.Background(), &LogEvent{
+			c.log.Log(context.Background(), &logger.Event{
 				Level:   "error",
 				Message: fmt.Sprintf("shut down with %d jobs still in progress", n),
 				Data:    map[string]int32{"running": n},
@@ -191,7 +193,7 @@ ShutdownLoop:
 			n := atomic.AddInt32(&c.running, -1)
 			c.removeActive(res.JobID)
 			if err := c.client.AckJobOpts(shutdownCtx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data}); err != nil {
-				c.logger.Log(shutdownCtx, &LogEvent{
+				c.log.Log(shutdownCtx, &logger.Event{
 					Level:   "error",
 					Error:   err,
 					Message: "ackJob failed",
@@ -205,7 +207,7 @@ ShutdownLoop:
 	for _, wrk := range c.workers {
 		close(wrk.in)
 	}
-	c.logger.Log(shutdownCtx, &LogEvent{
+	c.log.Log(shutdownCtx, &logger.Event{
 		Level:   "info",
 		Message: "shutdown sequence complete",
 	})

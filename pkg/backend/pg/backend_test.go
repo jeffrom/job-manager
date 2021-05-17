@@ -1,4 +1,4 @@
-package bepostgres
+package pg
 
 import (
 	"context"
@@ -82,7 +82,7 @@ func runMigrations(ctx context.Context, t testing.TB, conn *sql.DB, database str
 		t.Fatal(err)
 	}
 
-	p := filepath.Join(root, "pkg/backend/bepostgres/migrations")
+	p := filepath.Join(root, "pkg/backend/pg/migrations")
 	m, err := migrate.NewWithDatabaseInstance("file://"+p, "postgres", driver)
 	if err != nil {
 		t.Fatal(err)

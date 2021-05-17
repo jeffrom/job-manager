@@ -14,8 +14,8 @@ self_schema_deps := jsonschema/Self.json
 chart_targets := $(wildcard charts/**/README.md)
 chart_deps := $(wildcard charts/**/values.yaml charts/**/Chart.yaml)
 
-migration_target := pkg/backend/bepostgres/migrations/data.go
-migration_deps := $(wildcard pkg/backend/bepostgres/migrations/*.sql)
+migration_target := pkg/backend/pg/migrations/data.go
+migration_deps := $(wildcard pkg/backend/pg/migrations/*.sql)
 
 buf := $(shell which buf)
 protoc := $(shell which protoc)
@@ -82,7 +82,7 @@ bench.race: gen $(gofiles) | $(staticcheck) $(buf)
 lint: lint.go lint.proto lint.jsonschema
 
 lint.go: gen | $(staticcheck)
-	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v 'job-manager/pkg/backend/bepostgres/migrations')
+	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v 'job-manager/pkg/backend/pg/migrations')
 	cd mjob && GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring)
 
 .PHONY: lint.proto
@@ -138,7 +138,7 @@ $(chart_targets): $(chart_deps) | $(helmdocs)
 gen.migrations: $(migration_target)
 
 $(migration_target): $(migration_deps) | $(gobindata)
-	go-bindata -pkg migrations -ignore '\.go$$' -prefix pkg/backend/bepostgres/migrations/ -o pkg/backend/bepostgres/migrations/data.go pkg/backend/bepostgres/migrations
+	go-bindata -pkg migrations -ignore '\.go$$' -prefix pkg/backend/pg/migrations/ -o pkg/backend/pg/migrations/data.go pkg/backend/pg/migrations
 
 .PHONY: dev
 dev:

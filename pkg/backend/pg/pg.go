@@ -1,5 +1,5 @@
-// Package bepostgres implements backend.Interface using Postgres.
-package bepostgres
+// Package pg implements backend.Interface using Postgres.
+package pg
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package bepostgres
+package pg
 
 import (
 	"bytes"

@@ -12,7 +12,7 @@ import (
 	"github.com/jeffrom/job-manager/mjob/label"
 	"github.com/jeffrom/job-manager/mjob/resource"
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/backend/bememory"
+	bememory "github.com/jeffrom/job-manager/pkg/backend/mem"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )

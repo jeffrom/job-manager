@@ -1,4 +1,4 @@
-package bememory
+package mem
 
 import (
 	"testing"

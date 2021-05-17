@@ -1,6 +1,6 @@
-// Package bememory is a minimal reference implementation of backend.Interface
+// Package mem is a minimal reference implementation of backend.Interface
 // suitable for use in tests.
-package bememory
+package mem
 
 import (
 	"context"

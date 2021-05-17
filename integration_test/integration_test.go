@@ -10,10 +10,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jeffrom/job-manager/mjob"
 	"github.com/jeffrom/job-manager/mjob/client"
+	"github.com/jeffrom/job-manager/mjob/consumer"
+	"github.com/jeffrom/job-manager/mjob/logger"
 	"github.com/jeffrom/job-manager/mjob/resource"
-	"github.com/jeffrom/job-manager/pkg/backend/bememory"
+	bememory "github.com/jeffrom/job-manager/pkg/backend/mem"
 	"github.com/jeffrom/job-manager/pkg/testenv"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
 )
@@ -49,9 +50,9 @@ func BenchmarkMemory(b *testing.B) {
 	}
 
 	br := newBenchRunner()
-	cons := mjob.NewConsumer(c, br,
-		mjob.ConsumerWithConfig(mjob.ConsumerConfig{Concurrency: cpus * n}),
-		mjob.ConsumerWithLogger(&mjob.NilLogger{}),
+	cons := consumer.New(c, br,
+		consumer.WithConfig(consumer.Config{Concurrency: cpus * n}),
+		consumer.WithLogger(logger.Nil),
 	)
 	defer cons.Stop()
 	consErrC := make(chan error)

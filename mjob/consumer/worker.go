@@ -1,4 +1,4 @@
-package mjob
+package consumer
 
 import (
 	"context"
@@ -6,28 +6,29 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/jeffrom/job-manager/mjob/logger"
 	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
-type consumerWorker struct {
-	cfg    ConsumerConfig
-	logger Logger
+type worker struct {
+	cfg    Config
+	log    logger.Logger
 	in     chan *resource.Job
 	out    chan *resource.JobResult
 	runner Runner
 }
 
-func newWorker(cfg ConsumerConfig, logger Logger, runner Runner, in chan *resource.Job, out chan *resource.JobResult) *consumerWorker {
-	return &consumerWorker{
+func newWorker(cfg Config, log logger.Logger, runner Runner, in chan *resource.Job, out chan *resource.JobResult) *worker {
+	return &worker{
 		cfg:    cfg,
-		logger: logger,
+		log:    log,
 		in:     in,
 		out:    out,
 		runner: runner,
 	}
 }
 
-func (w *consumerWorker) start(ctx context.Context) {
+func (w *worker) start(ctx context.Context) {
 	// ctx, cancel := context.
 	for {
 		select {
@@ -40,15 +41,15 @@ func (w *consumerWorker) start(ctx context.Context) {
 			res, err := w.runOneJob(ctx, jb)
 			w.respond(jb, res, err)
 			if err != nil {
-				w.logger.Log(ctx, &LogEvent{Level: "error", Message: "Job failed: " + err.Error(), JobID: jb.ID, Data: res, Error: err})
+				w.log.Log(ctx, &logger.Event{Level: "error", Message: "Job failed: " + err.Error(), JobID: jb.ID, Data: res, Error: err})
 			} else {
-				w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Job complete", JobID: jb.ID, Data: res})
+				w.log.Log(ctx, &logger.Event{Level: "info", Message: "Job complete", JobID: jb.ID, Data: res})
 			}
 		}
 	}
 }
 
-func (w *consumerWorker) runOneJob(ctx context.Context, jb *resource.Job) (res *resource.JobResult, err error) {
+func (w *worker) runOneJob(ctx context.Context, jb *resource.Job) (res *resource.JobResult, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if rerr, ok := r.(error); ok {
@@ -56,7 +57,7 @@ func (w *consumerWorker) runOneJob(ctx context.Context, jb *resource.Job) (res *
 			} else {
 				err = fmt.Errorf("consumer error: %+v", r)
 			}
-			w.logger.Log(ctx, &LogEvent{
+			w.log.Log(ctx, &logger.Event{
 				Level:   "error",
 				Message: fmt.Sprintf("panic: %+v\n%s", r, debug.Stack()),
 			})
@@ -68,12 +69,12 @@ func (w *consumerWorker) runOneJob(ctx context.Context, jb *resource.Job) (res *
 		ctx, done = context.WithDeadline(context.Background(), time.Now().Add(time.Duration(jb.Duration)))
 		defer done()
 	}
-	w.logger.Log(ctx, &LogEvent{Level: "info", Message: "Starting job", JobID: jb.ID, Data: jb})
+	w.log.Log(ctx, &logger.Event{Level: "info", Message: "Starting job", JobID: jb.ID, Data: jb})
 	res, err = w.runner.Run(ctx, jb)
 	return res, err
 }
 
-func (w *consumerWorker) respond(jb *resource.Job, res *resource.JobResult, err error) {
+func (w *worker) respond(jb *resource.Job, res *resource.JobResult, err error) {
 	if res == nil {
 		res = &resource.JobResult{}
 	}

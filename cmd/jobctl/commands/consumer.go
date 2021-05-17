@@ -14,8 +14,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jeffrom/job-manager/mjob"
 	"github.com/jeffrom/job-manager/mjob/client"
+	"github.com/jeffrom/job-manager/mjob/consumer"
 	"github.com/jeffrom/job-manager/mjob/label"
 	"github.com/jeffrom/job-manager/mjob/resource"
 )
@@ -90,7 +90,7 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			consumer := mjob.NewConsumer(cl, &runner{opts: c.opts}, mjob.ConsumerWithConfig(mjob.ConsumerConfig{
+			cons := consumer.New(cl, &runner{opts: c.opts}, consumer.WithConfig(consumer.Config{
 				ShutdownTimeout: c.opts.shutdownTimeout,
 				Concurrency:     c.opts.concurrency,
 				DequeueOpts: client.DequeueOpts{
@@ -98,7 +98,7 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 					Queues: queues,
 				},
 			}))
-			err := consumer.Run(ctx)
+			err := cons.Run(ctx)
 			if err != nil {
 				log.Print("consumer", i, err)
 			}

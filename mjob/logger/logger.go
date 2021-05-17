@@ -1,4 +1,5 @@
-package mjob
+// Package logger provides an interface for customizable client logging.
+package logger
 
 import (
 	"context"
@@ -8,10 +9,10 @@ import (
 )
 
 type Logger interface {
-	Log(ctx context.Context, e *LogEvent)
+	Log(ctx context.Context, e *Event)
 }
 
-type LogEvent struct {
+type Event struct {
 	Level   string      `json:"level"`
 	Message string      `json:"msg"`
 	JobID   string      `json:"job_id,omitempty"`
@@ -21,12 +22,14 @@ type LogEvent struct {
 
 type NilLogger struct{}
 
-func (l *NilLogger) Log(ctx context.Context, e *LogEvent) {
+func (l *NilLogger) Log(ctx context.Context, e *Event) {
 }
 
-type DefaultLogger struct{}
+var Nil = &NilLogger{}
 
-func (l *DefaultLogger) Log(ctx context.Context, e *LogEvent) {
+type Default struct{}
+
+func (l *Default) Log(ctx context.Context, e *Event) {
 	var msg string
 	if e != nil {
 		msg = e.Message

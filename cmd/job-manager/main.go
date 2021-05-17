@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/backend/bememory"
-	"github.com/jeffrom/job-manager/pkg/backend/bepostgres"
+	bememory "github.com/jeffrom/job-manager/pkg/backend/mem"
+	bepostgres "github.com/jeffrom/job-manager/pkg/backend/pg"
 	"github.com/jeffrom/job-manager/pkg/config"
 	"github.com/jeffrom/job-manager/pkg/logger"
 	"github.com/jeffrom/job-manager/pkg/web"

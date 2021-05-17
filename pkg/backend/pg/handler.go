@@ -1,4 +1,4 @@
-package bepostgres
+package pg
 
 import (
 	"database/sql"
@@ -10,7 +10,7 @@ import (
 	bindata "github.com/golang-migrate/migrate/source/go_bindata"
 
 	"github.com/jeffrom/job-manager/pkg/backend"
-	"github.com/jeffrom/job-manager/pkg/backend/bepostgres/migrations"
+	"github.com/jeffrom/job-manager/pkg/backend/pg/migrations"
 	"github.com/jeffrom/job-manager/pkg/logger"
 )
 

@@ -3,13 +3,14 @@ package integration
 import (
 	"testing"
 
-	"github.com/jeffrom/job-manager/mjob"
+	"github.com/jeffrom/job-manager/mjob/consumer"
 )
 
+// TODO remove this?
 func TestIntegrationMJob(t *testing.T) {
 	tcs := []struct {
 		name string
-		cfg  mjob.ConsumerConfig
+		cfg  consumer.Config
 	}{
 		{
 			name: "default",

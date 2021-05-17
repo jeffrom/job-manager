@@ -1,3 +1,3 @@
-FROM alpine:3.13.2
+FROM scratch
 COPY job-manager /usr/local/bin/
 ENTRYPOINT ["job-manager"]

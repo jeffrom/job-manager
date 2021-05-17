@@ -1,3 +1,3 @@
-FROM alpine:3.13.2
+FROM scratch
 COPY jobctl /usr/local/bin/
 ENTRYPOINT ["jobctl"]

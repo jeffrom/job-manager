@@ -48,24 +48,33 @@ func TestMemoryCounter(t *testing.T) {
 	t.Logf("consumer concurrency ($N): %d (%d cpus)", n, cpus)
 	t.Logf("job count: %d", count)
 
-	cfg := middleware.NewConfig()
-	cfg.Logger = &srvlogger.Logger{Disabled: true, Logger: zerolog.Nop()}
-	cfg.ResetLogOutput(ioutil.Discard)
-	be := mem.New()
-	h, err := web.NewControllerRouter(cfg, be)
-	if err != nil {
-		t.Fatal(err)
-	}
-	srv := httptest.NewUnstartedServer(h)
-	t.Logf("Started job-controller server with backend %T at address: %s", be, srv.Listener.Addr())
-	srv.Start()
-	defer srv.Close()
+	var c client.Interface
+	externalSrv := false
+	if env := os.Getenv("ADDR"); env != "" {
+		c = client.New(env)
+		externalSrv = true
+	} else {
+		cfg := middleware.NewConfig()
+		cfg.Logger = &srvlogger.Logger{Disabled: true, Logger: zerolog.Nop()}
+		cfg.ResetLogOutput(ioutil.Discard)
+		be := mem.New()
+		h, err := web.NewControllerRouter(cfg, be)
+		if err != nil {
+			t.Fatal(err)
+		}
+		srv := httptest.NewUnstartedServer(h)
+		t.Logf("Started job-controller server with backend %T at address: %s", be, srv.Listener.Addr())
+		srv.Start()
+		defer srv.Close()
 
+		c = testenv.NewTestClient(t, srv)
+	}
 	ctx := context.Background()
-	c := testenv.NewTestClient(t, srv)
-	_, err = c.SaveQueue(ctx, "memcounter", client.SaveQueueOpts{MaxRetries: 0})
-	if err != nil {
-		t.Fatal(err)
+	if !externalSrv {
+		_, err := c.SaveQueue(ctx, "memcounter", client.SaveQueueOpts{MaxRetries: 0})
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	for i := 0; i < count; i++ {
 		if _, err := c.EnqueueJob(ctx, "memcounter"); err != nil {

@@ -24,11 +24,12 @@ import (
 )
 
 func TestMemoryCounter(t *testing.T) {
-	t.Skip("just for funsies")
 	if testing.Short() {
 		t.Skip("-short")
 	}
-	n := 10
+	n := 20
+	// count := 100000
+	count := 100
 	if env := os.Getenv("N"); env != "" {
 		envN, err := strconv.ParseInt(env, 10, 64)
 		if err != nil {
@@ -36,8 +37,16 @@ func TestMemoryCounter(t *testing.T) {
 		}
 		n = int(envN)
 	}
+	if env := os.Getenv("COUNT"); env != "" {
+		envCount, err := strconv.ParseInt(env, 10, 64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		count = int(envCount)
+	}
 	cpus := runtime.NumCPU()
 	t.Logf("consumer concurrency ($N): %d (%d cpus)", n, cpus)
+	t.Logf("job count: %d", count)
 
 	cfg := middleware.NewConfig()
 	cfg.Logger = &srvlogger.Logger{Disabled: true, Logger: zerolog.Nop()}
@@ -58,13 +67,13 @@ func TestMemoryCounter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < count; i++ {
 		if _, err := c.EnqueueJob(ctx, "memcounter"); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	cr := &counterRunner{done: make(chan error)}
+	cr := &counterRunner{done: make(chan error), total: int64(count)}
 	cons := consumer.New(c, cr,
 		consumer.WithConfig(consumer.Config{Concurrency: n}),
 		consumer.WithLogger(logger.Error),
@@ -92,9 +101,9 @@ func TestMemoryCounter(t *testing.T) {
 	dur := time.Since(startedAt)
 
 	cons.Stop()
-	count := atomic.LoadInt64(&cr.n)
-	t.Logf("counter: %d", count)
-	t.Logf("took: %s (%s/job, %2f jobs/s)", dur, dur/time.Duration(count), float64(count)/dur.Seconds())
+	counted := atomic.LoadInt64(&cr.n)
+	t.Logf("counter: %d", counted)
+	t.Logf("took: %s (%s/job, %2f jobs/s)", dur, dur/time.Duration(counted), float64(counted)/dur.Seconds())
 	select {
 	case err := <-consErrC:
 		if err != nil {
@@ -105,13 +114,14 @@ func TestMemoryCounter(t *testing.T) {
 }
 
 type counterRunner struct {
-	n    int64
-	done chan error
+	n     int64
+	total int64
+	done  chan error
 }
 
 func (cr *counterRunner) Run(ctx context.Context, job *resource.Job) (*resource.JobResult, error) {
 	n := atomic.AddInt64(&cr.n, 1)
-	if n >= 100000 {
+	if n >= cr.total {
 		cr.done <- nil
 	}
 	// fmt.Println("SUP", n)

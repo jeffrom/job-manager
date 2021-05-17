@@ -15,7 +15,9 @@ import (
 
 func NewTestControllerServer(t testing.TB, cfg middleware.Config, be backend.Interface) *httptest.Server {
 	t.Helper()
-	cfg.ResetLogOutput(testLogOutput(t))
+	if !cfg.Logger.Disabled {
+		cfg.ResetLogOutput(testLogOutput(t))
+	}
 	if cfg.Backend == "" {
 		cfg.Backend = "memory"
 	}

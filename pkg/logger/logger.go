@@ -21,6 +21,7 @@ var queryKey = contextKey("query")
 
 type Logger struct {
 	zerolog.Logger
+	Disabled bool
 }
 
 func FromContext(ctx context.Context) *Logger {
@@ -54,6 +55,9 @@ func New(out io.Writer, useJSON, debug bool) *Logger {
 }
 
 func (l *Logger) Middleware(next http.Handler) http.Handler {
+	if l.Disabled {
+		return next
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 		rec := httptest.NewRecorder()

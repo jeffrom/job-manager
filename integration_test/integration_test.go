@@ -20,7 +20,7 @@ import (
 )
 
 func BenchmarkMemory(b *testing.B) {
-	// b.SetParallelism(1)
+	b.SetParallelism(1)
 	n := 1
 	if env := os.Getenv("N"); env != "" {
 		envN, err := strconv.ParseInt(env, 10, 64)
@@ -52,7 +52,7 @@ func BenchmarkMemory(b *testing.B) {
 	br := newBenchRunner()
 	cons := consumer.New(c, br,
 		consumer.WithConfig(consumer.Config{Concurrency: cpus * n}),
-		consumer.WithLogger(logger.Nil),
+		consumer.WithLogger(logger.Error),
 	)
 	defer cons.Stop()
 	consErrC := make(chan error)

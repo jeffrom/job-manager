@@ -243,7 +243,7 @@ Loop:
 			}
 			// TODO we should make an effort to ack all jobs, but it is always
 			// possible for a job to run twice. It runs in its own context.
-			if err := c.ackJob(res.JobID, *res.Status, res); err != nil {
+			if err := c.ackJob(ctx, res.JobID, *res.Status, res); err != nil {
 				return currJobs, err
 			}
 			c.removeActive(res.JobID)
@@ -263,9 +263,12 @@ Loop:
 	return currJobs, nil
 }
 
-func (c *Consumer) ackJob(jobID string, status resource.Status, res *resource.JobResult) error {
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(c.cfg.ShutdownTimeout))
-	defer cancel()
+func (c *Consumer) ackJob(ctx context.Context, jobID string, status resource.Status, res *resource.JobResult) error {
+	if cerr := ctx.Err(); cerr != nil {
+		nctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(c.cfg.ShutdownTimeout))
+		defer cancel()
+		ctx = nctx
+	}
 	return c.client.AckJobOpts(ctx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data})
 }
 

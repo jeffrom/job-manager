@@ -46,3 +46,16 @@ func (l *Default) Log(ctx context.Context, e *Event) {
 		log.Print(s)
 	}
 }
+
+type ErrorLogger struct {
+	def *Default
+}
+
+var Error = &ErrorLogger{def: &Default{}}
+
+func (l *ErrorLogger) Log(ctx context.Context, e *Event) {
+	if e.Level != "error" {
+		return
+	}
+	l.def.Log(ctx, e)
+}

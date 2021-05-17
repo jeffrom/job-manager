@@ -14,6 +14,7 @@ import (
 	"github.com/jeffrom/job-manager/pkg/internal"
 	"github.com/jeffrom/job-manager/pkg/web/handler"
 	"github.com/jeffrom/job-manager/pkg/web/middleware"
+	"github.com/jeffrom/job-manager/release"
 )
 
 func debugRoutes(r chi.Router) {
@@ -35,7 +36,11 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 	debugRoutes(r)
 
 	logger := cfg.Logger
-	logger.Info().Interface("config", cfg).Msg("new router")
+	logger.Info().
+		Str("v", release.Version).
+		Str("commit", release.Commit).
+		Interface("config", cfg).
+		Msg("new router")
 
 	r.Group(func(r chi.Router) {
 		r.Use(

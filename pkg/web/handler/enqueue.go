@@ -34,6 +34,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		resources := &resource.Jobs{Jobs: make([]*resource.Job, len(params.Jobs))}
 		jobs := &jobv1.Jobs{Jobs: make([]*jobv1.Job, len(params.Jobs))}
 		now := timestamppb.New(internal.GetTimeProvider(ctx).Now())
+		uniqueArgQueues := make(map[string]bool)
 		for i, jobArg := range params.Jobs {
 			queue, err := be.GetQueue(ctx, jobArg.Job, nil)
 			if err != nil {
@@ -51,6 +52,7 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if queue.Unique {
+				uniqueArgQueues[jobArg.Job] = true
 				ids, unique, err := checkArgUniqueness(ctx, be, scm, jobArg.Args)
 				if err != nil {
 					return err
@@ -92,17 +94,34 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jobIDs := res.IDs()
-		jobKeys, err := res.ArgKeys()
+		uniqueIDs, uniqueKeys, err := h.gatherUniqueArgs(res.Jobs, uniqueArgQueues)
 		if err != nil {
 			return err
 		}
-		if err := be.SetJobUniqueArgs(ctx, jobIDs, jobKeys); err != nil {
+		if err := be.SetJobUniqueArgs(ctx, uniqueIDs, uniqueKeys); err != nil {
 			return err
 		}
 		return MarshalResponse(w, r, &apiv1.EnqueueJobsResponse{
 			Jobs: jobIDs,
 		})
 	})(w, r)
+}
+
+func (h *EnqueueJobs) gatherUniqueArgs(jobs []*resource.Job, uniqueQueues map[string]bool) ([]string, []string, error) {
+	var ids []string
+	var keys []string
+	for _, jb := range jobs {
+		if ok := uniqueQueues[jb.Name]; !ok {
+			continue
+		}
+		ids = append(ids, jb.ID)
+		key, err := jb.ArgKey()
+		if err != nil {
+			return nil, nil, err
+		}
+		keys = append(keys, key)
+	}
+	return ids, keys, nil
 }
 
 func checkArgUniqueness(ctx context.Context, be backend.Interface, scm *schema.Schema, args []*structpb.Value) ([]string, bool, error) {

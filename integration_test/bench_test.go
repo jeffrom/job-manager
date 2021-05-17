@@ -76,11 +76,15 @@ func TestMemoryCounter(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	t.Logf("enqueuing %d jobs...", count)
+	startedEnqueueAt := time.Now()
 	for i := 0; i < count; i++ {
 		if _, err := c.EnqueueJob(ctx, "memcounter"); err != nil {
 			t.Fatal(err)
 		}
 	}
+	enqueueDur := time.Since(startedEnqueueAt)
+	t.Logf("done enqueuing jobs after %s: %s/job, %2f jobs/s", enqueueDur, enqueueDur/time.Duration(count), float64(count)/enqueueDur.Seconds())
 
 	cr := &counterRunner{done: make(chan error), total: int64(count)}
 	cons := consumer.New(c, cr,

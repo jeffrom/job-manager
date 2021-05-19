@@ -4,9 +4,7 @@ job-manager is a server that coordinates the execution of distributed jobs over 
 
 The gist is that consumers poll the server for jobs, and send job status back upon completion. Checkins can be used to annotate the job with data pre-completion. A command-line tool, jobctl, is provided for queue administration. Labels, JSON Schema validation, and a gitops-style queue administration are supported to better support complex workflows across multiple development teams.
 
-I made this initially to experiment with some higher-level features in a job queue, but it should handle a decent amount of scale by now. In most cases, the job server itself should rarely be a bottleneck, but multiple replicas can be run for high availability. Typically, the backend (currently postgresql) is going to be the bottleneck in most workloads.
-
-*WARNING* it's still buggy, and I think I'd want to rework the data model before taking this to 1.0.
+I made this initially to experiment with some higher-level features in a job queue, but it should be capable of comparable performance to postgres-backed job queues. In most cases, the job server itself is rarely a bottleneck, but multiple replicas can be run for high availability. Typically, the backend, not the api server, will be the bottleneck in most workloads.
 
 ## install
 
@@ -46,7 +44,7 @@ Migrations are implemented using [golang-migrate](https://github.com/golang-migr
 * json schema validation for job arguments, data, results
 * the usual job queue features: retries, exponential backoff, durability
 * graceful shutdown
-* not very fast, and probably will never be as fast as the average job system
+* not fast, predictable 😎
 
 ## clients
 

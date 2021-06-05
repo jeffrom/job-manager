@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/jeffrom/job-manager/mjob/client"
-	// apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 )
 
 type showJobOpts struct {
@@ -34,6 +33,9 @@ func newShowJobCmd(cfg *client.Config) *showJobCmd {
 	cmd := c.Cmd()
 	flags := cmd.Flags()
 	flags.StringArrayVarP(&opts.includes, "include", "i", allowedJobIncludes, fmt.Sprintf("include additional data (%q)", allowedJobIncludes))
+	die(cmd.RegisterFlagCompletionFunc("include", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"checkin", "result"}, cobra.ShellCompDirectiveNoFileComp
+	}))
 
 	return c
 }

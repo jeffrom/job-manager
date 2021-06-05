@@ -81,3 +81,9 @@ func addCommands(cfg *client.Config, parent Command, children ...Command) {
 		p.AddCommand(childCmd)
 	}
 }
+
+func die(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

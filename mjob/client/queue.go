@@ -123,3 +123,17 @@ func (c *Client) GetQueue(ctx context.Context, id string) (*resource.Queue, erro
 	}
 	return jobv1.NewQueueFromProto(resp.Data), nil
 }
+
+func (c *Client) DeleteQueue(ctx context.Context, queue string) error {
+	uri := fmt.Sprintf("/api/v1/queues/%s", queue)
+	req, err := c.newRequestProto(ctx, "DELETE", uri, nil)
+	if err != nil {
+		return err
+	}
+
+	resp := &apiv1.DeleteQueueResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return err
+	}
+	return nil
+}

@@ -443,6 +443,27 @@
       "extensions": [],
       "messages": [
         {
+          "name": "DeleteQueueResponse",
+          "longName": "DeleteQueueResponse",
+          "fullName": "api.v1.DeleteQueueResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "ok",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetQueueRequest",
           "longName": "GetQueueRequest",
           "fullName": "api.v1.GetQueueRequest",

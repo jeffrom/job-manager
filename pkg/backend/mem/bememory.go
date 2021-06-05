@@ -289,6 +289,15 @@ func (m *Memory) DeleteJobUniqueArgs(ctx context.Context, ids, keys []string) er
 	return nil
 }
 
+func (m *Memory) DeleteQueues(ctx context.Context, queues []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, queue := range queues {
+		delete(m.queues, queue)
+	}
+	return nil
+}
+
 func valIn(val string, vals []string) bool {
 	for _, v := range vals {
 		if val == v {

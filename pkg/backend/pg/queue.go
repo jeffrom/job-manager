@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -113,6 +114,79 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 	}
 
 	return &resource.Queues{Queues: rows}, nil
+}
+
+func (pg *Postgres) DeleteQueues(ctx context.Context, queues []string) error {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+
+	if _, err := getQueuesByName(ctx, c, queues); err != nil {
+		return err
+	}
+
+	q := "DELETE FROM queues WHERE name IN (?)"
+	q, args, err := sqlx.In(q, queues)
+	if err != nil {
+		return err
+	}
+	stmt, err := sqlx.PreparexContext(ctx, c, c.Rebind(q))
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, args...)
+	if err != nil {
+		return err
+	}
+
+	labelQ := "DELETE FROM queue_labels WHERE queue IN (?)"
+	labelQ, args, err = sqlx.In(labelQ, queues)
+	if err != nil {
+		return err
+	}
+	labelStmt, err := sqlx.PreparexContext(ctx, c, c.Rebind(labelQ))
+	if err != nil {
+		return err
+	}
+	defer labelStmt.Close()
+
+	_, err = labelStmt.ExecContext(ctx, args...)
+	return err
+}
+
+// getQueuesByName returns the latest version of each queue requested
+// TODO include labels conditionally
+func getQueuesByName(ctx context.Context, c sqlxer, names []string) ([]*resource.Queue, error) {
+	q, args, err := sqlx.In("SELECT * FROM queues WHERE name IN (?) ORDER BY name, v DESC", names)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("ASDFASDF", q, args)
+
+	var rows []*resource.Queue
+	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
+		return nil, err
+	}
+
+	m := make(map[string]*resource.Queue)
+	for _, row := range rows {
+		if _, ok := m[row.Name]; !ok {
+			m[row.Name] = row
+		}
+	}
+
+	if len(m) < len(names) {
+		return nil, backend.ErrNotFound
+	}
+
+	queues := make([]*resource.Queue, len(names))
+	for i := 0; i < len(names); i++ {
+		queues[i] = m[names[i]]
+	}
+	return queues, nil
 }
 
 func getQueueByName(ctx context.Context, c sqlxer, name string) (*resource.Queue, error) {

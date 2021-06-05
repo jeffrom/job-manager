@@ -39,6 +39,7 @@ type Interface interface {
 	// SaveQueues(ctx context.Context, queue *resource.Queues) error
 	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
 	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
+	DeleteQueue(ctx context.Context, queue string) error
 }
 
 type providerFunc func(c *Client) *Client

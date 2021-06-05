@@ -39,7 +39,7 @@ CREATE TYPE job_status AS ENUM (
 CREATE TABLE jobs (
     id bigserial PRIMARY KEY,
     v integer not null,
-    queue_id bigint not null REFERENCES queues (id),
+    queue_id bigint not null REFERENCES queues (id) ON DELETE CASCADE,
     attempt smallint,
     status job_status not null,
     args jsonb,
@@ -54,7 +54,7 @@ CREATE INDEX jobs_status ON jobs (status);
 
 CREATE TABLE job_claims (
     id bigserial PRIMARY KEY,
-    job_id bigint not null REFERENCES jobs (id),
+    job_id bigint not null REFERENCES jobs (id) ON DELETE CASCADE,
     name varchar(63) not null,
     value varchar(63) not null,
     UNIQUE (job_id, name, value)
@@ -64,7 +64,7 @@ CREATE INDEX job_claims_job_id ON job_claims (job_id);
 
 CREATE TABLE job_checkins (
     id bigserial PRIMARY KEY,
-    job_id bigint not null REFERENCES jobs (id),
+    job_id bigint not null REFERENCES jobs (id) ON DELETE CASCADE,
     data jsonb,
     created_at timestamp not null default now()
 );
@@ -73,7 +73,7 @@ CREATE INDEX job_checkins_job_id ON job_checkins (job_id);
 
 CREATE TABLE job_results (
     id bigserial PRIMARY KEY,
-    job_id bigint not null REFERENCES jobs (id),
+    job_id bigint not null REFERENCES jobs (id) ON DELETE CASCADE,
     status job_status not null,
     data jsonb,
     error text,
@@ -84,7 +84,7 @@ CREATE TABLE job_results (
 CREATE INDEX job_results_job_id ON job_results (job_id);
 
 CREATE TABLE job_uniqueness (
-    job_id bigint not null REFERENCES jobs (id),
+    job_id bigint not null REFERENCES jobs (id) ON DELETE CASCADE,
     key bytea PRIMARY KEY,
     created_at timestamp not null default now()
 );

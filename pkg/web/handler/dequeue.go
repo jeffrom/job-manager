@@ -24,7 +24,7 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 	if queueID != "" && len(params.Queues) == 0 {
 		params.Queues = []string{queueID}
 	}
-	var num int = 1
+	num := 1
 	if params.Num > 0 {
 		num = int(params.Num)
 	}

@@ -52,3 +52,7 @@ message GetQueueRequest {
 message GetQueueResponse {
   job.v1.Queue data = 1;
 }
+
+message DeleteQueueResponse {
+  bool ok = 1;
+}

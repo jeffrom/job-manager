@@ -3,6 +3,7 @@ package testenv
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -112,9 +113,14 @@ func testQueueAdmin(ctx context.Context, t *testing.T, tc *backendTestContext) {
 
 	// })
 
-	// t.Run("delete", func(t *testing.T) {
-
-	// })
+	t.Run("delete", func(t *testing.T) {
+		be := tc.cfg.Backend
+		ctx = mustReset(ctx, t, be)
+		q := mustSaveQueue(ctx, t, be, getBasicQueue())
+		mustGetQueue(ctx, t, be, q.Name, nil)
+		mustDeleteQueue(ctx, t, be, q.Name)
+		checkQueueNotFound(ctx, t, be, q.Name)
+	})
 }
 
 func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContext) {
@@ -527,6 +533,51 @@ func mustSaveQueue(ctx context.Context, t testing.TB, be backend.Interface, q *r
 	t.Logf("-> %s", readable(res))
 	done(t, nil)
 	return res
+}
+
+func mustGetQueue(ctx context.Context, t testing.TB, be backend.Interface, q string, opts *resource.GetByIDOpts) *resource.Queue {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("GetQueue(%+v)", readable(q))
+	res, err := be.GetQueue(ctx, q, opts)
+	if err != nil {
+		t.Logf("-> err: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> %s", readable(res))
+	done(t, nil)
+	return res
+}
+
+func checkQueueNotFound(ctx context.Context, t testing.TB, be backend.Interface, q string) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("GetQueue(%+v)", readable(q))
+	_, err := be.GetQueue(ctx, q, nil)
+	if !errors.Is(err, backend.ErrNotFound) {
+		done(t, err)
+		t.Fatal("expected not found error, got", err)
+	}
+	t.Logf("-> err (expected): backend.ErrNotFound")
+	done(t, nil)
+}
+
+func mustDeleteQueue(ctx context.Context, t testing.TB, be backend.Interface, q string) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("DeleteQueues(%+v)", readable(q))
+	err := be.DeleteQueues(ctx, []string{q})
+	if err != nil {
+		t.Logf("-> err: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> success")
+	done(t, nil)
 }
 
 func mustEnqueueJobs(ctx context.Context, t testing.TB, be backend.Interface, jobs *resource.Jobs) *resource.Jobs {

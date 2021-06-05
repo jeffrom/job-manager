@@ -34,7 +34,7 @@ func SaveQueue(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	var maxRetries int32 = int32(cfg.DefaultMaxRetries)
+	maxRetries := int32(cfg.DefaultMaxRetries)
 	if mr := params.MaxRetries; mr > 0 {
 		maxRetries = mr
 	}

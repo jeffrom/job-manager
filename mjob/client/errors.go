@@ -39,7 +39,7 @@ func (e *APIError) Is(other error) bool {
 }
 
 func newResourceErrorFromMessage(message *apiv1.GenericError) *resource.Error {
-	var code int = 500
+	code := 500
 	switch message.Kind {
 	case "not_found":
 		code = 404

@@ -11,7 +11,14 @@ import (
 )
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	ctx := r.Context()
+	be := backend.FromMiddleware(ctx)
+	queueID := chi.URLParam(r, "queueID")
+
+	if err := be.DeleteQueues(ctx, []string{queueID}); err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.DeleteQueueResponse{Ok: true})
 }
 
 func GetQueueByID(w http.ResponseWriter, r *http.Request) error {

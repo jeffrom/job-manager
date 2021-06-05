@@ -23,6 +23,7 @@ type Interface interface {
 	GetQueue(ctx context.Context, job string, opts *resource.GetByIDOpts) (*resource.Queue, error)
 	SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error)
 	ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error)
+	DeleteQueues(ctx context.Context, queues []string) error
 
 	EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error)
 	DequeueJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)
@@ -31,8 +32,6 @@ type Interface interface {
 	GetJobUniqueArgs(ctx context.Context, keys []string) ([]string, bool, error)
 	SetJobUniqueArgs(ctx context.Context, ids, keys []string) error
 	DeleteJobUniqueArgs(ctx context.Context, ids, keys []string) error
-	// GetSetJobKeys(ctx context.Context, ids, keys []string) (string, bool, error)
-	// DeleteJobKeys(ctx context.Context, keys []string) error
 
 	GetJobByID(ctx context.Context, id string, opts *resource.GetByIDOpts) (*resource.Job, error)
 	ListJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)

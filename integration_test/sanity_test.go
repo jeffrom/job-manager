@@ -236,7 +236,7 @@ func testCreateQueue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if q.Name != expectID {
 		t.Errorf("expected queue name %q, got %q", expectID, q.Name)
 	}
-	var defaultMaxRetries int = 10
+	defaultMaxRetries := 10
 	if q.Retries != defaultMaxRetries {
 		t.Errorf("expected default max retries %d, got %d", defaultMaxRetries, q.Retries)
 	}

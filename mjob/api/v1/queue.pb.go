@@ -463,6 +463,53 @@ func (x *GetQueueResponse) GetData() *v1.Queue {
 	return nil
 }
 
+type DeleteQueueResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+}
+
+func (x *DeleteQueueResponse) Reset() {
+	*x = DeleteQueueResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteQueueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteQueueResponse) ProtoMessage() {}
+
+func (x *DeleteQueueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteQueueResponse.ProtoReflect.Descriptor instead.
+func (*DeleteQueueResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteQueueResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
 var File_api_v1_queue_proto protoreflect.FileDescriptor
 
 var file_api_v1_queue_proto_rawDesc = []byte{
@@ -539,10 +586,13 @@ var file_api_v1_queue_proto_rawDesc = []byte{
 	0x69, 0x64, 0x22, 0x35, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x21, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x6a, 0x6f, 0x62, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
-	0x65, 0x75, 0x65, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6a, 0x65, 0x66, 0x66, 0x72, 0x6f, 0x6d, 0x2f,
-	0x6a, 0x6f, 0x62, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x2f, 0x6d, 0x6a, 0x6f, 0x62,
-	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x75, 0x65, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x25, 0x0a, 0x13, 0x44, 0x65, 0x6c,
+	0x65, 0x74, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b,
+	0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6a,
+	0x65, 0x66, 0x66, 0x72, 0x6f, 0x6d, 0x2f, 0x6a, 0x6f, 0x62, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67,
+	0x65, 0x72, 0x2f, 0x6d, 0x6a, 0x6f, 0x62, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -557,32 +607,33 @@ func file_api_v1_queue_proto_rawDescGZIP() []byte {
 	return file_api_v1_queue_proto_rawDescData
 }
 
-var file_api_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_api_v1_queue_proto_goTypes = []interface{}{
-	(*SaveQueueParamArgs)(nil), // 0: api.v1.SaveQueueParamArgs
-	(*SaveQueueRequest)(nil),   // 1: api.v1.SaveQueueRequest
-	(*SaveQueueResponse)(nil),  // 2: api.v1.SaveQueueResponse
-	(*ListQueuesRequest)(nil),  // 3: api.v1.ListQueuesRequest
-	(*ListQueuesResponse)(nil), // 4: api.v1.ListQueuesResponse
-	(*GetQueueRequest)(nil),    // 5: api.v1.GetQueueRequest
-	(*GetQueueResponse)(nil),   // 6: api.v1.GetQueueResponse
-	nil,                        // 7: api.v1.SaveQueueParamArgs.LabelsEntry
-	(*duration.Duration)(nil),  // 8: google.protobuf.Duration
-	(*v1.Queue)(nil),           // 9: job.v1.Queue
-	(*Pagination)(nil),         // 10: api.v1.Pagination
+	(*SaveQueueParamArgs)(nil),  // 0: api.v1.SaveQueueParamArgs
+	(*SaveQueueRequest)(nil),    // 1: api.v1.SaveQueueRequest
+	(*SaveQueueResponse)(nil),   // 2: api.v1.SaveQueueResponse
+	(*ListQueuesRequest)(nil),   // 3: api.v1.ListQueuesRequest
+	(*ListQueuesResponse)(nil),  // 4: api.v1.ListQueuesResponse
+	(*GetQueueRequest)(nil),     // 5: api.v1.GetQueueRequest
+	(*GetQueueResponse)(nil),    // 6: api.v1.GetQueueResponse
+	(*DeleteQueueResponse)(nil), // 7: api.v1.DeleteQueueResponse
+	nil,                         // 8: api.v1.SaveQueueParamArgs.LabelsEntry
+	(*duration.Duration)(nil),   // 9: google.protobuf.Duration
+	(*v1.Queue)(nil),            // 10: job.v1.Queue
+	(*Pagination)(nil),          // 11: api.v1.Pagination
 }
 var file_api_v1_queue_proto_depIdxs = []int32{
-	8,  // 0: api.v1.SaveQueueParamArgs.duration:type_name -> google.protobuf.Duration
-	8,  // 1: api.v1.SaveQueueParamArgs.claim_duration:type_name -> google.protobuf.Duration
-	8,  // 2: api.v1.SaveQueueParamArgs.checkin_duration:type_name -> google.protobuf.Duration
-	7,  // 3: api.v1.SaveQueueParamArgs.labels:type_name -> api.v1.SaveQueueParamArgs.LabelsEntry
-	8,  // 4: api.v1.SaveQueueParamArgs.backoff_initial_duration:type_name -> google.protobuf.Duration
-	8,  // 5: api.v1.SaveQueueParamArgs.backoff_max_duration:type_name -> google.protobuf.Duration
+	9,  // 0: api.v1.SaveQueueParamArgs.duration:type_name -> google.protobuf.Duration
+	9,  // 1: api.v1.SaveQueueParamArgs.claim_duration:type_name -> google.protobuf.Duration
+	9,  // 2: api.v1.SaveQueueParamArgs.checkin_duration:type_name -> google.protobuf.Duration
+	8,  // 3: api.v1.SaveQueueParamArgs.labels:type_name -> api.v1.SaveQueueParamArgs.LabelsEntry
+	9,  // 4: api.v1.SaveQueueParamArgs.backoff_initial_duration:type_name -> google.protobuf.Duration
+	9,  // 5: api.v1.SaveQueueParamArgs.backoff_max_duration:type_name -> google.protobuf.Duration
 	0,  // 6: api.v1.SaveQueueRequest.queues:type_name -> api.v1.SaveQueueParamArgs
-	9,  // 7: api.v1.SaveQueueResponse.queue:type_name -> job.v1.Queue
-	10, // 8: api.v1.ListQueuesRequest.page:type_name -> api.v1.Pagination
-	9,  // 9: api.v1.ListQueuesResponse.items:type_name -> job.v1.Queue
-	9,  // 10: api.v1.GetQueueResponse.data:type_name -> job.v1.Queue
+	10, // 7: api.v1.SaveQueueResponse.queue:type_name -> job.v1.Queue
+	11, // 8: api.v1.ListQueuesRequest.page:type_name -> api.v1.Pagination
+	10, // 9: api.v1.ListQueuesResponse.items:type_name -> job.v1.Queue
+	10, // 10: api.v1.GetQueueResponse.data:type_name -> job.v1.Queue
 	11, // [11:11] is the sub-list for method output_type
 	11, // [11:11] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
@@ -681,6 +732,18 @@ func file_api_v1_queue_proto_init() {
 				return nil
 			}
 		}
+		file_api_v1_queue_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteQueueResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -688,7 +751,7 @@ func file_api_v1_queue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_v1_queue_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

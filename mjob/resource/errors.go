@@ -96,6 +96,17 @@ func NewNotFoundError(resource, resourceID, reason string) *Error {
 	}
 }
 
+func NewBlockedError(resource, resourceID, reason string) *Error {
+	return &Error{
+		Status:     http.StatusLocked,
+		Message:    "blocked",
+		Kind:       "blocked",
+		Resource:   resource,
+		ResourceID: resourceID,
+		Reason:     reason,
+	}
+}
+
 func (e *Error) Error() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf("api/v1: %s", e.Message))

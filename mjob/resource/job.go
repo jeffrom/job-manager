@@ -222,6 +222,8 @@ type JobListParams struct {
 	Claims        label.Claims     `json:"claims,omitempty"`
 	EnqueuedSince time.Time        `json:"enqueued_since,omitempty"`
 	EnqueuedUntil time.Time        `json:"enqueued_until,omitempty"`
+	NoPaused      bool             `json:"no_paused,omitempty"`
+	NoBlocked     bool             `json:"no_blocked,omitempty"`
 
 	// NoUnclaimed will exclude jobs that have outstanding claims.
 	NoUnclaimed bool        `json:"no_unclaimed,omitempty"`

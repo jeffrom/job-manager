@@ -40,6 +40,10 @@ type Interface interface {
 	ListQueues(ctx context.Context, opts ListQueuesOpts) (*resource.Queues, error)
 	GetQueue(ctx context.Context, id string) (*resource.Queue, error)
 	DeleteQueue(ctx context.Context, queue string) error
+	PauseQueue(ctx context.Context, queue string) error
+	UnpauseQueue(ctx context.Context, queue string) error
+	BlockQueue(ctx context.Context, queue string) error
+	UnblockQueue(ctx context.Context, queue string) error
 }
 
 type providerFunc func(c *Client) *Client

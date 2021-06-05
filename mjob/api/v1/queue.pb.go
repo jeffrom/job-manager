@@ -463,6 +463,53 @@ func (x *GetQueueResponse) GetData() *v1.Queue {
 	return nil
 }
 
+type DeleteQueueRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *DeleteQueueRequest) Reset() {
+	*x = DeleteQueueRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteQueueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteQueueRequest) ProtoMessage() {}
+
+func (x *DeleteQueueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteQueueRequest.ProtoReflect.Descriptor instead.
+func (*DeleteQueueRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteQueueRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 type DeleteQueueResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -474,7 +521,7 @@ type DeleteQueueResponse struct {
 func (x *DeleteQueueResponse) Reset() {
 	*x = DeleteQueueResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_v1_queue_proto_msgTypes[7]
+		mi := &file_api_v1_queue_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -487,7 +534,7 @@ func (x *DeleteQueueResponse) String() string {
 func (*DeleteQueueResponse) ProtoMessage() {}
 
 func (x *DeleteQueueResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_queue_proto_msgTypes[7]
+	mi := &file_api_v1_queue_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -500,10 +547,386 @@ func (x *DeleteQueueResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteQueueResponse.ProtoReflect.Descriptor instead.
 func (*DeleteQueueResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_queue_proto_rawDescGZIP(), []int{7}
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeleteQueueResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type PauseQueueRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Queue string `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+}
+
+func (x *PauseQueueRequest) Reset() {
+	*x = PauseQueueRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PauseQueueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PauseQueueRequest) ProtoMessage() {}
+
+func (x *PauseQueueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PauseQueueRequest.ProtoReflect.Descriptor instead.
+func (*PauseQueueRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PauseQueueRequest) GetQueue() string {
+	if x != nil {
+		return x.Queue
+	}
+	return ""
+}
+
+type PauseQueueResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+}
+
+func (x *PauseQueueResponse) Reset() {
+	*x = PauseQueueResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PauseQueueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PauseQueueResponse) ProtoMessage() {}
+
+func (x *PauseQueueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PauseQueueResponse.ProtoReflect.Descriptor instead.
+func (*PauseQueueResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PauseQueueResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type UnpauseQueueRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Queue string `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+}
+
+func (x *UnpauseQueueRequest) Reset() {
+	*x = UnpauseQueueRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnpauseQueueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnpauseQueueRequest) ProtoMessage() {}
+
+func (x *UnpauseQueueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnpauseQueueRequest.ProtoReflect.Descriptor instead.
+func (*UnpauseQueueRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UnpauseQueueRequest) GetQueue() string {
+	if x != nil {
+		return x.Queue
+	}
+	return ""
+}
+
+type UnpauseQueueResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+}
+
+func (x *UnpauseQueueResponse) Reset() {
+	*x = UnpauseQueueResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnpauseQueueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnpauseQueueResponse) ProtoMessage() {}
+
+func (x *UnpauseQueueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnpauseQueueResponse.ProtoReflect.Descriptor instead.
+func (*UnpauseQueueResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UnpauseQueueResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type BlockQueueRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Queue string `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+}
+
+func (x *BlockQueueRequest) Reset() {
+	*x = BlockQueueRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BlockQueueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BlockQueueRequest) ProtoMessage() {}
+
+func (x *BlockQueueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BlockQueueRequest.ProtoReflect.Descriptor instead.
+func (*BlockQueueRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *BlockQueueRequest) GetQueue() string {
+	if x != nil {
+		return x.Queue
+	}
+	return ""
+}
+
+type BlockQueueResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+}
+
+func (x *BlockQueueResponse) Reset() {
+	*x = BlockQueueResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BlockQueueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BlockQueueResponse) ProtoMessage() {}
+
+func (x *BlockQueueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BlockQueueResponse.ProtoReflect.Descriptor instead.
+func (*BlockQueueResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *BlockQueueResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type UnblockQueueRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Queue string `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+}
+
+func (x *UnblockQueueRequest) Reset() {
+	*x = UnblockQueueRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnblockQueueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnblockQueueRequest) ProtoMessage() {}
+
+func (x *UnblockQueueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnblockQueueRequest.ProtoReflect.Descriptor instead.
+func (*UnblockQueueRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UnblockQueueRequest) GetQueue() string {
+	if x != nil {
+		return x.Queue
+	}
+	return ""
+}
+
+type UnblockQueueResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+}
+
+func (x *UnblockQueueResponse) Reset() {
+	*x = UnblockQueueResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_queue_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnblockQueueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnblockQueueResponse) ProtoMessage() {}
+
+func (x *UnblockQueueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_queue_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnblockQueueResponse.ProtoReflect.Descriptor instead.
+func (*UnblockQueueResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_queue_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UnblockQueueResponse) GetOk() bool {
 	if x != nil {
 		return x.Ok
 	}
@@ -586,13 +1009,36 @@ var file_api_v1_queue_proto_rawDesc = []byte{
 	0x69, 0x64, 0x22, 0x35, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x21, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x6a, 0x6f, 0x62, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
-	0x65, 0x75, 0x65, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x25, 0x0a, 0x13, 0x44, 0x65, 0x6c,
-	0x65, 0x74, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b,
-	0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6a,
-	0x65, 0x66, 0x66, 0x72, 0x6f, 0x6d, 0x2f, 0x6a, 0x6f, 0x62, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67,
-	0x65, 0x72, 0x2f, 0x6d, 0x6a, 0x6f, 0x62, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x75, 0x65, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x24, 0x0a, 0x12, 0x44, 0x65, 0x6c,
+	0x65, 0x74, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22,
+	0x25, 0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b, 0x22, 0x29, 0x0a, 0x11, 0x50, 0x61, 0x75, 0x73, 0x65, 0x51,
+	0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x71,
+	0x75, 0x65, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x71, 0x75, 0x65, 0x75,
+	0x65, 0x22, 0x24, 0x0a, 0x12, 0x50, 0x61, 0x75, 0x73, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b, 0x22, 0x2b, 0x0a, 0x13, 0x55, 0x6e, 0x70, 0x61, 0x75,
+	0x73, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14,
+	0x0a, 0x05, 0x71, 0x75, 0x65, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x71,
+	0x75, 0x65, 0x75, 0x65, 0x22, 0x26, 0x0a, 0x14, 0x55, 0x6e, 0x70, 0x61, 0x75, 0x73, 0x65, 0x51,
+	0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02,
+	0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b, 0x22, 0x29, 0x0a, 0x11,
+	0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x14, 0x0a, 0x05, 0x71, 0x75, 0x65, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x71, 0x75, 0x65, 0x75, 0x65, 0x22, 0x24, 0x0a, 0x12, 0x42, 0x6c, 0x6f, 0x63, 0x6b,
+	0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a,
+	0x02, 0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b, 0x22, 0x2b, 0x0a,
+	0x13, 0x55, 0x6e, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x71, 0x75, 0x65, 0x75, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x71, 0x75, 0x65, 0x75, 0x65, 0x22, 0x26, 0x0a, 0x14, 0x55, 0x6e,
+	0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x51, 0x75, 0x65, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x02,
+	0x6f, 0x6b, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x6a, 0x65, 0x66, 0x66, 0x72, 0x6f, 0x6d, 0x2f, 0x6a, 0x6f, 0x62, 0x2d, 0x6d, 0x61, 0x6e,
+	0x61, 0x67, 0x65, 0x72, 0x2f, 0x6d, 0x6a, 0x6f, 0x62, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -607,33 +1053,42 @@ func file_api_v1_queue_proto_rawDescGZIP() []byte {
 	return file_api_v1_queue_proto_rawDescData
 }
 
-var file_api_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_api_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_api_v1_queue_proto_goTypes = []interface{}{
-	(*SaveQueueParamArgs)(nil),  // 0: api.v1.SaveQueueParamArgs
-	(*SaveQueueRequest)(nil),    // 1: api.v1.SaveQueueRequest
-	(*SaveQueueResponse)(nil),   // 2: api.v1.SaveQueueResponse
-	(*ListQueuesRequest)(nil),   // 3: api.v1.ListQueuesRequest
-	(*ListQueuesResponse)(nil),  // 4: api.v1.ListQueuesResponse
-	(*GetQueueRequest)(nil),     // 5: api.v1.GetQueueRequest
-	(*GetQueueResponse)(nil),    // 6: api.v1.GetQueueResponse
-	(*DeleteQueueResponse)(nil), // 7: api.v1.DeleteQueueResponse
-	nil,                         // 8: api.v1.SaveQueueParamArgs.LabelsEntry
-	(*duration.Duration)(nil),   // 9: google.protobuf.Duration
-	(*v1.Queue)(nil),            // 10: job.v1.Queue
-	(*Pagination)(nil),          // 11: api.v1.Pagination
+	(*SaveQueueParamArgs)(nil),   // 0: api.v1.SaveQueueParamArgs
+	(*SaveQueueRequest)(nil),     // 1: api.v1.SaveQueueRequest
+	(*SaveQueueResponse)(nil),    // 2: api.v1.SaveQueueResponse
+	(*ListQueuesRequest)(nil),    // 3: api.v1.ListQueuesRequest
+	(*ListQueuesResponse)(nil),   // 4: api.v1.ListQueuesResponse
+	(*GetQueueRequest)(nil),      // 5: api.v1.GetQueueRequest
+	(*GetQueueResponse)(nil),     // 6: api.v1.GetQueueResponse
+	(*DeleteQueueRequest)(nil),   // 7: api.v1.DeleteQueueRequest
+	(*DeleteQueueResponse)(nil),  // 8: api.v1.DeleteQueueResponse
+	(*PauseQueueRequest)(nil),    // 9: api.v1.PauseQueueRequest
+	(*PauseQueueResponse)(nil),   // 10: api.v1.PauseQueueResponse
+	(*UnpauseQueueRequest)(nil),  // 11: api.v1.UnpauseQueueRequest
+	(*UnpauseQueueResponse)(nil), // 12: api.v1.UnpauseQueueResponse
+	(*BlockQueueRequest)(nil),    // 13: api.v1.BlockQueueRequest
+	(*BlockQueueResponse)(nil),   // 14: api.v1.BlockQueueResponse
+	(*UnblockQueueRequest)(nil),  // 15: api.v1.UnblockQueueRequest
+	(*UnblockQueueResponse)(nil), // 16: api.v1.UnblockQueueResponse
+	nil,                          // 17: api.v1.SaveQueueParamArgs.LabelsEntry
+	(*duration.Duration)(nil),    // 18: google.protobuf.Duration
+	(*v1.Queue)(nil),             // 19: job.v1.Queue
+	(*Pagination)(nil),           // 20: api.v1.Pagination
 }
 var file_api_v1_queue_proto_depIdxs = []int32{
-	9,  // 0: api.v1.SaveQueueParamArgs.duration:type_name -> google.protobuf.Duration
-	9,  // 1: api.v1.SaveQueueParamArgs.claim_duration:type_name -> google.protobuf.Duration
-	9,  // 2: api.v1.SaveQueueParamArgs.checkin_duration:type_name -> google.protobuf.Duration
-	8,  // 3: api.v1.SaveQueueParamArgs.labels:type_name -> api.v1.SaveQueueParamArgs.LabelsEntry
-	9,  // 4: api.v1.SaveQueueParamArgs.backoff_initial_duration:type_name -> google.protobuf.Duration
-	9,  // 5: api.v1.SaveQueueParamArgs.backoff_max_duration:type_name -> google.protobuf.Duration
+	18, // 0: api.v1.SaveQueueParamArgs.duration:type_name -> google.protobuf.Duration
+	18, // 1: api.v1.SaveQueueParamArgs.claim_duration:type_name -> google.protobuf.Duration
+	18, // 2: api.v1.SaveQueueParamArgs.checkin_duration:type_name -> google.protobuf.Duration
+	17, // 3: api.v1.SaveQueueParamArgs.labels:type_name -> api.v1.SaveQueueParamArgs.LabelsEntry
+	18, // 4: api.v1.SaveQueueParamArgs.backoff_initial_duration:type_name -> google.protobuf.Duration
+	18, // 5: api.v1.SaveQueueParamArgs.backoff_max_duration:type_name -> google.protobuf.Duration
 	0,  // 6: api.v1.SaveQueueRequest.queues:type_name -> api.v1.SaveQueueParamArgs
-	10, // 7: api.v1.SaveQueueResponse.queue:type_name -> job.v1.Queue
-	11, // 8: api.v1.ListQueuesRequest.page:type_name -> api.v1.Pagination
-	10, // 9: api.v1.ListQueuesResponse.items:type_name -> job.v1.Queue
-	10, // 10: api.v1.GetQueueResponse.data:type_name -> job.v1.Queue
+	19, // 7: api.v1.SaveQueueResponse.queue:type_name -> job.v1.Queue
+	20, // 8: api.v1.ListQueuesRequest.page:type_name -> api.v1.Pagination
+	19, // 9: api.v1.ListQueuesResponse.items:type_name -> job.v1.Queue
+	19, // 10: api.v1.GetQueueResponse.data:type_name -> job.v1.Queue
 	11, // [11:11] is the sub-list for method output_type
 	11, // [11:11] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
@@ -733,7 +1188,115 @@ func file_api_v1_queue_proto_init() {
 			}
 		}
 		file_api_v1_queue_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteQueueRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteQueueResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PauseQueueRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PauseQueueResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnpauseQueueRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnpauseQueueResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BlockQueueRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BlockQueueResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnblockQueueRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_queue_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnblockQueueResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -751,7 +1314,7 @@ func file_api_v1_queue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_v1_queue_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

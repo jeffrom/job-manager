@@ -99,6 +99,10 @@ func NewControllerRouter(cfg middleware.Config, be backend.Interface) (chi.Route
 						r.Get("/", handler.Func(handler.GetQueueByID))
 						r.Put("/", handler.Func(handler.SaveQueue))
 						r.Delete("/", handler.Func(handler.DeleteQueue))
+						r.Put("/pause", handler.Func(handler.PauseQueue))
+						r.Put("/unpause", handler.Func(handler.UnpauseQueue))
+						r.Put("/block", handler.Func(handler.BlockQueue))
+						r.Put("/unblock", handler.Func(handler.UnblockQueue))
 
 						enqueueHandler := &handler.EnqueueJobs{}
 						r.Post("/enqueue", enqueueHandler.ServeHTTP)

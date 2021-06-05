@@ -41,6 +41,10 @@ func (h *EnqueueJobs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return handleBackendErrors(err, "queue", jobArg.Job)
 			}
 
+			if queue.Blocked {
+				return handleBackendErrors(backend.ErrBlocked, "queue", jobArg.Job)
+			}
+
 			// validate args if there is a schema
 			scm, err := schema.Parse(queue.SchemaRaw)
 			if err != nil {

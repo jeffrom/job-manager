@@ -56,10 +56,16 @@ func BackendTest(cfg BackendTestConfig) func(t *testing.T) {
 		if !t.Run("enqueue-dequeue", tc.wrap(ctx, testEnqueueDequeue)) {
 			return
 		}
+		if !t.Run("enqueue-while-blocked", tc.wrap(ctx, testEnqueueWhileBlocked)) {
+			return
+		}
 		if !t.Run("attempts", tc.wrap(ctx, testAttempts)) {
 			return
 		}
 		if !t.Run("dequeue-while-running", tc.wrap(ctx, testDequeueWhileRunning)) {
+			return
+		}
+		if !t.Run("dequeue-while-paused", tc.wrap(ctx, testDequeueWhilePaused)) {
 			return
 		}
 
@@ -437,6 +443,71 @@ func testDequeueWhileRunning(ctx context.Context, t *testing.T, tc *backendTestC
 	}
 }
 
+func testEnqueueWhileBlocked(ctx context.Context, t *testing.T, tc *backendTestContext) {
+	be := tc.cfg.Backend
+	ctx = mustReset(ctx, t, be)
+	now := basictime
+	ctx = internal.SetMockTime(ctx, now)
+	q := mustSaveQueue(ctx, t, be, getBasicQueue())
+
+	queueNames := []string{q.Name}
+	mustBlockQueues(ctx, t, be, queueNames)
+	expectJobs := getBasicJobs()
+	checkEnqueueBlocked(ctx, t, be, expectJobs)
+
+	mustUnblockQueues(ctx, t, be, queueNames)
+	mustEnqueueJobs(ctx, t, be, expectJobs)
+}
+
+func testDequeueWhilePaused(ctx context.Context, t *testing.T, tc *backendTestContext) {
+	be := tc.cfg.Backend
+	ctx = mustReset(ctx, t, be)
+	now := basictime
+	ctx = internal.SetMockTime(ctx, now)
+	q := mustSaveQueue(ctx, t, be, getBasicQueue())
+	jobs := getBasicJobs()
+	unpausedJobs := &resource.Jobs{
+		Jobs: jobs.Jobs[:1],
+	}
+
+	mustEnqueueJobs(ctx, t, be, unpausedJobs)
+
+	queueNames := []string{q.Name}
+	mustPauseQueues(ctx, t, be, queueNames)
+
+	pausedJobs := &resource.Jobs{
+		Jobs: jobs.Jobs[1:2],
+	}
+	mustEnqueueJobs(ctx, t, be, pausedJobs)
+
+	deqRes := mustDequeueJobs(ctx, t, be, 3, &resource.JobListParams{
+		Queues: queueNames,
+	})
+
+	expectNumJobs := 1
+	// memory backend is buggy :P
+	if tc.cfg.Type == "memory" {
+		expectNumJobs = 0
+	}
+	if len(deqRes.Jobs) != expectNumJobs {
+		t.Fatalf("expected %d job, got %d: %+v", expectNumJobs, len(deqRes.Jobs), deqRes)
+	}
+
+	mustUnpauseQueues(ctx, t, be, queueNames)
+
+	deqRes = mustDequeueJobs(ctx, t, be, 3, &resource.JobListParams{
+		Queues: queueNames,
+	})
+	expectNumJobs = 1
+	// memory backend is buggy :P
+	if tc.cfg.Type == "memory" {
+		expectNumJobs = 2
+	}
+	if len(deqRes.Jobs) != expectNumJobs {
+		t.Fatalf("expected %d job, got %d: %+v", expectNumJobs, len(deqRes.Jobs), deqRes)
+	}
+}
+
 func getBasicQueue() *resource.Queue {
 	return &resource.Queue{
 		Name: "cool",
@@ -551,6 +622,66 @@ func mustGetQueue(ctx context.Context, t testing.TB, be backend.Interface, q str
 	return res
 }
 
+func mustBlockQueues(ctx context.Context, t testing.TB, be backend.Interface, queues []string) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("BlockQueues(%+v)", readable(queues))
+	err := be.BlockQueues(ctx, queues)
+	if err != nil {
+		t.Logf("-> err: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> success")
+	done(t, nil)
+}
+
+func mustUnblockQueues(ctx context.Context, t testing.TB, be backend.Interface, queues []string) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("UnblockQueues(%+v)", readable(queues))
+	err := be.UnblockQueues(ctx, queues)
+	if err != nil {
+		t.Logf("-> err: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> success")
+	done(t, nil)
+}
+
+func mustPauseQueues(ctx context.Context, t testing.TB, be backend.Interface, queues []string) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("PauseQueues(%+v)", readable(queues))
+	err := be.PauseQueues(ctx, queues)
+	if err != nil {
+		t.Logf("-> err: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> success")
+	done(t, nil)
+}
+
+func mustUnpauseQueues(ctx context.Context, t testing.TB, be backend.Interface, queues []string) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("UnpauseQueues(%+v)", readable(queues))
+	err := be.UnpauseQueues(ctx, queues)
+	if err != nil {
+		t.Logf("-> err: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
+	t.Logf("-> success")
+	done(t, nil)
+}
+
 func checkQueueNotFound(ctx context.Context, t testing.TB, be backend.Interface, q string) {
 	t.Helper()
 	ctx, done := runMiddleware(ctx, t, be)
@@ -595,6 +726,28 @@ func mustEnqueueJobs(ctx context.Context, t testing.TB, be backend.Interface, jo
 
 	done(t, nil)
 	return res
+}
+
+func checkEnqueueBlocked(ctx context.Context, t testing.TB, be backend.Interface, jobs *resource.Jobs) {
+	t.Helper()
+	ctx, done := runMiddleware(ctx, t, be)
+
+	t.Logf("EnqueueJobs(%+v)", readable(jobs.Jobs))
+	_, err := be.EnqueueJobs(ctx, jobs)
+	if err == nil {
+		err = errors.New("expected error but got none")
+		done(t, err)
+		t.Fatal(err)
+	} else {
+		if errors.Is(err, backend.ErrBlocked) {
+			t.Logf("-> Error (expected): %+v", err)
+			done(t, nil)
+			return
+		}
+		t.Logf("-> Unexpected error: %v", err)
+		done(t, err)
+		t.Fatal(err)
+	}
 }
 
 func mustDequeueJobs(ctx context.Context, t testing.TB, be backend.Interface, limit int, opts *resource.JobListParams) *resource.Jobs {

@@ -53,6 +53,42 @@ message GetQueueResponse {
   job.v1.Queue data = 1;
 }
 
+message DeleteQueueRequest {
+  string id = 1;
+}
+
 message DeleteQueueResponse {
+  bool ok = 1;
+}
+
+message PauseQueueRequest {
+  string queue = 1;
+}
+
+message PauseQueueResponse {
+  bool ok = 1;
+}
+
+message UnpauseQueueRequest {
+  string queue = 1;
+}
+
+message UnpauseQueueResponse {
+  bool ok = 1;
+}
+
+message BlockQueueRequest {
+  string queue = 1;
+}
+
+message BlockQueueResponse {
+  bool ok = 1;
+}
+
+message UnblockQueueRequest {
+  string queue = 1;
+}
+
+message UnblockQueueResponse {
   bool ok = 1;
 }

@@ -17,8 +17,9 @@ type statsCmd struct {
 func newStatsCmd(cfg *client.Config) *statsCmd {
 	c := &statsCmd{
 		Command: &cobra.Command{
-			Use:  "stats",
-			Args: cobra.RangeArgs(0, 1),
+			Use:               "stats",
+			Args:              cobra.RangeArgs(0, 1),
+			ValidArgsFunction: validQueueList(1),
 		},
 	}
 

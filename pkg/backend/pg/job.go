@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/jeffrom/job-manager/mjob/resource"
+	"github.com/jeffrom/job-manager/pkg/backend"
 	"github.com/jeffrom/job-manager/pkg/internal"
 )
 
@@ -25,6 +26,11 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 	res, err := pg.ListQueues(ctx, &resource.QueueListParams{Names: jobs.Queues()})
 	if err != nil {
 		return nil, err
+	}
+	for _, q := range res.Queues {
+		if q.Blocked {
+			return nil, backend.ErrBlocked
+		}
 	}
 	queues := res.ToMap()
 
@@ -85,6 +91,7 @@ func (pg *Postgres) DequeueJobs(ctx context.Context, limit int, opts *resource.J
 		opts = &resource.JobListParams{}
 	}
 	opts.NoUnclaimed = true
+	opts.NoPaused = true
 	opts.Statuses = []*resource.Status{resource.NewStatus(resource.StatusQueued), resource.NewStatus(resource.StatusFailed)}
 
 	// NOTE annotate jobs after the insert loop below if we want to include
@@ -272,6 +279,9 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 		}
 		wheres = append(wheres, fmt.Sprintf("(jobs.id %s ?)", op))
 		args = append(args, opts.Page.LastID)
+	}
+	if opts.NoPaused {
+		wheres = append(wheres, "(queues.paused != true OR queues.unpaused = true)")
 	}
 	if forDequeue {
 		wheres = append(wheres, "(jobs.attempt <= queues.retries)")

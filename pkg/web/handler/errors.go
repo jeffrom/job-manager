@@ -30,6 +30,8 @@ func handleBackendErrors(err error, resourceName, resourceID string) error {
 		return resource.NewUnprocessableEntityError(resourceName, resourceID, "job state does not allow this operation", nil)
 	case errors.Is(err, backend.ErrNotFound):
 		return resource.NewNotFoundError(resourceName, resourceID, "")
+	case errors.Is(err, backend.ErrBlocked):
+		return resource.NewBlockedError(resourceName, resourceID, "")
 	case errors.As(err, &cerr):
 		return newVersionConflictError(cerr)
 	}

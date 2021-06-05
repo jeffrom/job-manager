@@ -43,6 +43,7 @@ func newConsumerCmd(cfg *client.Config) *consumerCmd {
 			Use:  "consumer QUEUE...",
 			Args: cobra.MinimumNArgs(1),
 			// Aliases: []string{"wrk"},
+			ValidArgsFunction: validQueueList(-1),
 		},
 		opts: opts,
 	}

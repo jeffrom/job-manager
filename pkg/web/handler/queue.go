@@ -21,6 +21,50 @@ func DeleteQueue(w http.ResponseWriter, r *http.Request) error {
 	return MarshalResponse(w, r, &apiv1.DeleteQueueResponse{Ok: true})
 }
 
+func PauseQueue(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	be := backend.FromMiddleware(ctx)
+	queueID := chi.URLParam(r, "queueID")
+
+	if err := be.PauseQueues(ctx, []string{queueID}); err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.PauseQueueResponse{Ok: true})
+}
+
+func UnpauseQueue(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	be := backend.FromMiddleware(ctx)
+	queueID := chi.URLParam(r, "queueID")
+
+	if err := be.UnpauseQueues(ctx, []string{queueID}); err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.PauseQueueResponse{Ok: true})
+}
+
+func BlockQueue(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	be := backend.FromMiddleware(ctx)
+	queueID := chi.URLParam(r, "queueID")
+
+	if err := be.BlockQueues(ctx, []string{queueID}); err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.BlockQueueResponse{Ok: true})
+}
+
+func UnblockQueue(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	be := backend.FromMiddleware(ctx)
+	queueID := chi.URLParam(r, "queueID")
+
+	if err := be.UnblockQueues(ctx, []string{queueID}); err != nil {
+		return handleBackendErrors(err, "queue", queueID)
+	}
+	return MarshalResponse(w, r, &apiv1.UnblockQueueResponse{Ok: true})
+}
+
 func GetQueueByID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	be := backend.FromMiddleware(ctx)

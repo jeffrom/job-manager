@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -72,7 +71,7 @@ func (pg *Postgres) ListQueues(ctx context.Context, opts *resource.QueueListPara
 	var wheres []string
 	var joins []string
 	var args []interface{}
-	q := "SELECT DISTINCT ON (name) id, queues.name, v, retries, unique_args, duration, checkin_duration, claim_duration, backoff_initial_duration, backoff_max_duration, backoff_factor, job_schema, created_at FROM queues"
+	q := "SELECT DISTINCT ON (name) id, queues.name, v, retries, unique_args, duration, checkin_duration, claim_duration, backoff_initial_duration, backoff_max_duration, backoff_factor, job_schema, paused, blocked, created_at FROM queues"
 	if opts != nil {
 		if len(opts.Names) > 0 {
 			wheres = append(wheres, "name IN (?)")
@@ -122,7 +121,7 @@ func (pg *Postgres) DeleteQueues(ctx context.Context, queues []string) error {
 		return err
 	}
 
-	if _, err := getQueuesByName(ctx, c, queues); err != nil {
+	if _, err := getQueuesByNames(ctx, c, queues); err != nil {
 		return err
 	}
 
@@ -157,14 +156,146 @@ func (pg *Postgres) DeleteQueues(ctx context.Context, queues []string) error {
 	return err
 }
 
-// getQueuesByName returns the latest version of each queue requested
+func (pg *Postgres) PauseQueues(ctx context.Context, queues []string) error {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+
+	prevs, err := getQueuesByNames(ctx, c, queues)
+	if err != nil {
+		return err
+	}
+
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	var toUpdate []*resource.Queue
+	for _, prev := range prevs {
+		if !prev.Paused {
+			next := prev.Copy()
+			next.Version.Inc()
+			next.UpdatedAt = now
+			next.Paused = true
+			toUpdate = append(toUpdate, next)
+		}
+	}
+
+	_, err = insertQueues(ctx, c, toUpdate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pg *Postgres) UnpauseQueues(ctx context.Context, queues []string) error {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+
+	prevs, err := getQueuesByNames(ctx, c, queues)
+	if err != nil {
+		return err
+	}
+
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	var toUpdate []*resource.Queue
+	for _, prev := range prevs {
+		if prev.Paused {
+			next := prev.Copy()
+			next.Version.Inc()
+			next.UpdatedAt = now
+			next.Paused = false
+			toUpdate = append(toUpdate, next)
+		}
+	}
+
+	_, err = insertQueues(ctx, c, toUpdate)
+	if err != nil {
+		return err
+	}
+
+	updateQ := "UPDATE queues SET updated_at = ?, unpaused = true WHERE name IN (?)"
+	updateQ, updateArgs, err := sqlx.In(updateQ, now, queues)
+	if err != nil {
+		return err
+	}
+	updateStmt, err := sqlx.PreparexContext(ctx, c, c.Rebind(updateQ))
+	if err != nil {
+		return err
+	}
+	defer updateStmt.Close()
+
+	_, err = updateStmt.ExecContext(ctx, updateArgs...)
+	return err
+}
+
+func (pg *Postgres) BlockQueues(ctx context.Context, queues []string) error {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+
+	prevs, err := getQueuesByNames(ctx, c, queues)
+	if err != nil {
+		return err
+	}
+
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	var toUpdate []*resource.Queue
+	for _, prev := range prevs {
+		if !prev.Blocked {
+			next := prev.Copy()
+			next.Version.Inc()
+			next.UpdatedAt = now
+			next.Blocked = true
+			toUpdate = append(toUpdate, next)
+		}
+	}
+
+	_, err = insertQueues(ctx, c, toUpdate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pg *Postgres) UnblockQueues(ctx context.Context, queues []string) error {
+	c, err := pg.getConn(ctx)
+	if err != nil {
+		return err
+	}
+
+	prevs, err := getQueuesByNames(ctx, c, queues)
+	if err != nil {
+		return err
+	}
+
+	now := internal.GetTimeProvider(ctx).Now().UTC()
+	var toUpdate []*resource.Queue
+	for _, prev := range prevs {
+		if prev.Blocked {
+			next := prev.Copy()
+			next.Version.Inc()
+			next.UpdatedAt = now
+			next.Blocked = false
+			toUpdate = append(toUpdate, next)
+		}
+	}
+
+	_, err = insertQueues(ctx, c, toUpdate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// getQueuesByNames returns the latest version of each queue requested
 // TODO include labels conditionally
-func getQueuesByName(ctx context.Context, c sqlxer, names []string) ([]*resource.Queue, error) {
+func getQueuesByNames(ctx context.Context, c sqlxer, names []string) ([]*resource.Queue, error) {
 	q, args, err := sqlx.In("SELECT * FROM queues WHERE name IN (?) ORDER BY name, v DESC", names)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("ASDFASDF", q, args)
 
 	var rows []*resource.Queue
 	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
@@ -255,7 +386,7 @@ func insertQueues(ctx context.Context, c sqlxer, queues []*resource.Queue) ([]*r
 		return nil, nil
 	}
 
-	q := "INSERT INTO queues (name, v, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, backoff_initial_duration, backoff_max_duration, backoff_factor, created_at, updated_at) VALUES (:name, :v, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, :backoff_initial_duration, :backoff_max_duration, :backoff_factor, :created_at, :updated_at) RETURNING *"
+	q := "INSERT INTO queues (name, v, retries, duration, checkin_duration, claim_duration, unique_args, job_schema, backoff_initial_duration, backoff_max_duration, backoff_factor, paused, blocked, created_at, updated_at) VALUES (:name, :v, :retries, :duration, :checkin_duration, :claim_duration, :unique_args, :job_schema, :backoff_initial_duration, :backoff_max_duration, :backoff_factor, :paused, :blocked, :created_at, :updated_at) RETURNING *"
 	stmt, err := c.PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err

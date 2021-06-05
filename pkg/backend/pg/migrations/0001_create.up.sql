@@ -11,6 +11,11 @@ CREATE TABLE queues (
     backoff_initial_duration bigint not null default 0,
     backoff_max_duration bigint not null default 0,
     backoff_factor float not null default 0,
+    paused boolean not null default false,
+    -- unpause indicates when a queue row (which is otherwise immutable) that
+    -- was previously paused is now unpaused
+    unpaused boolean not null default false,
+    blocked boolean not null default false,
     created_at timestamp not null default now(),
     updated_at timestamp not null default now(),
     deleted_at timestamp,

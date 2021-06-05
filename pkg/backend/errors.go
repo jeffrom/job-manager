@@ -8,6 +8,7 @@ import (
 )
 
 var ErrNotFound = errors.New("backend: not found")
+var ErrBlocked = errors.New("backend: queue blocked")
 var ErrInvalidState = errors.New("backend: invalid state")
 
 // ErrInvalidResource should be returned when the resource is missing a field

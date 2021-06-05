@@ -116,6 +116,9 @@ func (m *Memory) EnqueueJobs(ctx context.Context, jobArgs *resource.Jobs) (*reso
 		if err != nil {
 			return nil, err
 		}
+		if queue.Blocked {
+			return nil, backend.ErrBlocked
+		}
 		jobArg.ID = newID()
 		jobArg.EnqueuedAt = now
 		if jobArg.Version == nil {
@@ -152,6 +155,9 @@ func (m *Memory) DequeueJobs(ctx context.Context, limit int, opts *resource.JobL
 		queue, err := m.GetQueue(ctx, jb.Name, nil)
 		if err != nil {
 			return nil, err
+		}
+		if queue.Paused {
+			continue
 		}
 		if jb.Data != nil && len(jb.Data.Claims) > 0 {
 			match := jb.Data.Claims.Match(opts.Claims)
@@ -294,6 +300,61 @@ func (m *Memory) DeleteQueues(ctx context.Context, queues []string) error {
 	defer m.mu.Unlock()
 	for _, queue := range queues {
 		delete(m.queues, queue)
+	}
+	return nil
+}
+
+func (m *Memory) PauseQueues(ctx context.Context, queues []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// TODO bump versions for these
+	for _, queue := range queues {
+		stored, ok := m.queues[queue]
+		if !ok {
+			return backend.ErrNotFound
+		}
+		stored.Paused = true
+	}
+	return nil
+}
+
+func (m *Memory) UnpauseQueues(ctx context.Context, queues []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, queue := range queues {
+		stored, ok := m.queues[queue]
+		if !ok {
+			return backend.ErrNotFound
+		}
+		stored.Paused = false
+		stored.Unpaused = true
+	}
+	return nil
+}
+
+func (m *Memory) BlockQueues(ctx context.Context, queues []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, queue := range queues {
+		stored, ok := m.queues[queue]
+		if !ok {
+			return backend.ErrNotFound
+		}
+		stored.Blocked = true
+	}
+	return nil
+}
+
+func (m *Memory) UnblockQueues(ctx context.Context, queues []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for _, queue := range queues {
+		stored, ok := m.queues[queue]
+		if !ok {
+			return backend.ErrNotFound
+		}
+		stored.Blocked = false
 	}
 	return nil
 }

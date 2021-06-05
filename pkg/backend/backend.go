@@ -24,6 +24,10 @@ type Interface interface {
 	SaveQueue(ctx context.Context, queue *resource.Queue) (*resource.Queue, error)
 	ListQueues(ctx context.Context, opts *resource.QueueListParams) (*resource.Queues, error)
 	DeleteQueues(ctx context.Context, queues []string) error
+	PauseQueues(ctx context.Context, queues []string) error
+	UnpauseQueues(ctx context.Context, queues []string) error
+	BlockQueues(ctx context.Context, queues []string) error
+	UnblockQueues(ctx context.Context, queues []string) error
 
 	EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*resource.Jobs, error)
 	DequeueJobs(ctx context.Context, limit int, opts *resource.JobListParams) (*resource.Jobs, error)

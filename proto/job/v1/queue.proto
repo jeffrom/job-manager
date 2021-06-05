@@ -25,9 +25,13 @@ message Queue {
   google.protobuf.Duration backoff_max_duration = 11;
   float backoff_factor = 12;
 
-  google.protobuf.Timestamp created_at = 13;
-  google.protobuf.Timestamp updated_at = 14;
-  google.protobuf.Timestamp deleted_at = 15;
+  bool paused = 13;
+  bool unpaused = 14;
+  bool blocked = 15;
+
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+  google.protobuf.Timestamp deleted_at = 18;
 }
 
 message Queues {

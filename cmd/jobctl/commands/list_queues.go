@@ -63,12 +63,14 @@ func (c *listQueuesCmd) Execute(ctx context.Context, cfg *client.Config, cmd *co
 	}
 	padding := 3
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\tRETRIES\tDURATION\tBACKOFF\tUNIQUE\tLABELS\t")
+	fmt.Fprintln(w, "NAME\tCREATED\tVERSION\tPAUSED\tBLOCKED\tRETRIES\tDURATION\tBACKOFF\tUNIQUE\tLABELS\t")
 	for _, q := range qs.Queues {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%s\t%s\t%s\n",
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%d\t%s\t%s\t%s\t%s\n",
 			q.Name,
 			q.CreatedAt.Local().Format(time.Stamp),
 			q.Version.String(),
+			yesno(q.Paused),
+			yesno(q.Blocked),
 			q.Retries,
 			cleanupDuration(q.Duration.String()),
 			queueBackoff(q),

@@ -22,6 +22,9 @@ type Queue struct {
 	BackoffInitial  Duration     `json:"backoff_initial" db:"backoff_initial_duration"`
 	BackoffMax      Duration     `json:"backoff_max" db:"backoff_max_duration"`
 	BackoffFactor   float32      `json:"backoff_factor" db:"backoff_factor"`
+	Paused          bool         `json:"paused"`
+	Unpaused        bool         `json:"unpaused"`
+	Blocked         bool         `json:"blocked"`
 	CreatedAt       time.Time    `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time    `json:"-" db:"updated_at"`
 	DeletedAt       NullTime     `json:"deleted_at,omitempty" db:"deleted_at"`

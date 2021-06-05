@@ -137,3 +137,59 @@ func (c *Client) DeleteQueue(ctx context.Context, queue string) error {
 	}
 	return nil
 }
+
+func (c *Client) PauseQueue(ctx context.Context, queue string) error {
+	uri := fmt.Sprintf("/api/v1/queues/%s/pause", queue)
+	req, err := c.newRequestProto(ctx, "PUT", uri, nil)
+	if err != nil {
+		return err
+	}
+
+	resp := &apiv1.PauseQueueResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) UnpauseQueue(ctx context.Context, queue string) error {
+	uri := fmt.Sprintf("/api/v1/queues/%s/unpause", queue)
+	req, err := c.newRequestProto(ctx, "PUT", uri, nil)
+	if err != nil {
+		return err
+	}
+
+	resp := &apiv1.UnpauseQueueResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) BlockQueue(ctx context.Context, queue string) error {
+	uri := fmt.Sprintf("/api/v1/queues/%s/block", queue)
+	req, err := c.newRequestProto(ctx, "PUT", uri, nil)
+	if err != nil {
+		return err
+	}
+
+	resp := &apiv1.BlockQueueResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) UnblockQueue(ctx context.Context, queue string) error {
+	uri := fmt.Sprintf("/api/v1/queues/%s/unblock", queue)
+	req, err := c.newRequestProto(ctx, "PUT", uri, nil)
+	if err != nil {
+		return err
+	}
+
+	resp := &apiv1.UnblockQueueResponse{}
+	if err := c.doRequest(ctx, req, resp); err != nil {
+		return err
+	}
+	return nil
+}

@@ -283,6 +283,7 @@ func (c *Consumer) ackJob(ctx context.Context, jobID string, status resource.Sta
 	return c.client.AckJobOpts(ctx, res.JobID, *res.Status, client.AckJobOpts{Data: res.Data})
 }
 
+// startJob starts executing a job, returning true if successful.
 func (c *Consumer) startJob(ctx context.Context, jb *resource.Job) bool {
 	for _, wrk := range c.workers {
 		select {

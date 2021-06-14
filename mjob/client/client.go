@@ -46,7 +46,7 @@ type Interface interface {
 	UnblockQueue(ctx context.Context, queue string) error
 }
 
-type providerFunc func(c *Client) *Client
+type Provider func(c *Client) *Client
 
 type Client struct {
 	addr   string
@@ -54,7 +54,7 @@ type Client struct {
 	client *http.Client
 }
 
-func New(addr string, providers ...providerFunc) *Client {
+func New(addr string, providers ...Provider) *Client {
 	c := &Client{
 		addr:   addr,
 		cfg:    &ConfigDefaults,
@@ -67,14 +67,14 @@ func New(addr string, providers ...providerFunc) *Client {
 	return c
 }
 
-func WithHTTPClient(client *http.Client) providerFunc {
+func WithHTTPClient(client *http.Client) Provider {
 	return func(c *Client) *Client {
 		c.client = client
 		return c
 	}
 }
 
-func WithConfig(cfg *Config) providerFunc {
+func WithConfig(cfg *Config) Provider {
 	return func(c *Client) *Client {
 		c.cfg = cfg
 		return c

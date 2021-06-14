@@ -13,10 +13,14 @@ import (
 	"github.com/jeffrom/job-manager/mjob/resource"
 )
 
+// Runner can be implemented to execute jobs.
 type Runner interface {
+	// Run executes a job. It can return a nil *JobResult, indicating success.
+	// Returning an error will cause the job to fail.
 	Run(ctx context.Context, job *resource.Job) (*resource.JobResult, error)
 }
 
+// Consumer manages the dequeue, execution, and acknowledgement of jobs.
 type Consumer struct {
 	cfg     Config
 	log     logger.Logger
@@ -31,8 +35,11 @@ type Consumer struct {
 	mu         sync.Mutex
 }
 
+// Provider provides configuration to Consumers. It can be passed as an
+// argument to New.
 type Provider func(c *Consumer) *Consumer
 
+// New creates a new instance of Consumer.
 func New(client client.Interface, runner Runner, providers ...Provider) *Consumer {
 	c := &Consumer{
 		client: client,
@@ -54,6 +61,7 @@ func New(client client.Interface, runner Runner, providers ...Provider) *Consume
 	return c
 }
 
+// WithConfig allows custom configuration to be provided to new Consumers.
 func WithConfig(cfg Config) Provider {
 	return func(c *Consumer) *Consumer {
 		c.cfg = cfg
@@ -61,6 +69,7 @@ func WithConfig(cfg Config) Provider {
 	}
 }
 
+// WithLogger allows a custom logger to be provided to new Consumers.
 func WithLogger(logger logger.Logger) Provider {
 	return func(c *Consumer) *Consumer {
 		c.log = logger
@@ -68,6 +77,8 @@ func WithLogger(logger logger.Logger) Provider {
 	}
 }
 
+// WithQueue adds an additional target queue for new Consumers. If no queues
+// are provided, all queues are dequeued from. Multiple queues can be consumed.
 func WithQueue(queue string) Provider {
 	return func(c *Consumer) *Consumer {
 		c.cfg.DequeueOpts.Queues = append(c.cfg.DequeueOpts.Queues, queue)

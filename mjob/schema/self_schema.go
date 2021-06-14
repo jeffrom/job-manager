@@ -68,5 +68,4 @@ var selfSchemaRaw = []byte(`{
     },
     "additionalProperties": false,
     "required": []
-}
-`)
+}`)

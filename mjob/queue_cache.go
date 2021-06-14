@@ -16,6 +16,8 @@ const (
 	defaultQueueCacheSize   = 500
 )
 
+// QueueCache can be used to minimize requests to the job server for queue
+// data. It prunes old queue versions to ensure it runs with bounded memory.
 type QueueCache struct {
 	c         client.Interface
 	requestMu map[string]sync.Mutex

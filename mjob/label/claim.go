@@ -6,8 +6,10 @@ import (
 	"strings"
 )
 
-// Claims provide consumers the ability to signal cache availability to
-// job-manager.
+// Claims provide a facility for prioritizing jobs execution onto consumers
+// with matching claims. Queues can be configured with a claim window, a
+// duration during which only consumers with matching claims can dequeue the
+// job. After the duration elapses, dequeue behavior returns to normal.
 type Claims map[string][]string
 
 func (c Claims) Format() []string {

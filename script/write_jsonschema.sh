@@ -8,8 +8,7 @@ tmpl=$(cat << EOM
 
 package schema
 
-var %s = []byte(\`%s
-\`)
+var %s = []byte(\`%s\`)
 EOM
 )
 

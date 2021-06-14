@@ -27,9 +27,20 @@ func newEnqueueCmd(cfg *client.Config) *enqueueCmd {
 	c := &enqueueCmd{
 		Command: &cobra.Command{
 			Use:               "enqueue",
-			Args:              cobra.MinimumNArgs(1),
+			Short:             "Enqueue a job",
 			Aliases:           []string{"enq"},
+			Args:              cobra.MinimumNArgs(1),
 			ValidArgsFunction: validQueueList(1),
+			Long:              `Enqueue a job.`,
+			Example: `# enqueue a job with args (in json format) [1, 2, 3]
+$ jobctl enqueue myq 1 2 3
+
+# enqueue a job with args [{"hi": "hello"}]
+$ jobctl enqueue myq '{"hi": "hello"}'
+
+# enqueue a job with a claim
+$ jobctl enqueue -c myclaim=myval myq myarg
+`,
 		},
 		opts: opts,
 	}

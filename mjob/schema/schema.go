@@ -1,4 +1,4 @@
-// Package schema contains code for dealing with jsonschema.
+// Package schema validates job arguments and result data with jsonschema.
 package schema
 
 import (
@@ -13,7 +13,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var SelfSchema *jsonschema.Schema = &jsonschema.Schema{}
+// SelfSchema is used to validate job schemas themselves.
+var SelfSchema = &jsonschema.Schema{}
 
 func init() {
 	min := jsonmin.DefaultMinifier
@@ -24,6 +25,8 @@ func init() {
 	}
 }
 
+// Schema provides jsonschema validation for job arguments, data, and result
+// data.
 type Schema struct {
 	Args   *jsonschema.Schema `json:"args,omitempty"`
 	Data   *jsonschema.Schema `json:"data,omitempty"`
@@ -114,6 +117,8 @@ func marshalToJSON(arg interface{}) ([]byte, error) {
 	return jsonData, err
 }
 
+// Canonicalize deterministically formats json so it can be reliably compared
+// to previous versions.
 func Canonicalize(data []byte) ([]byte, error) {
 	b := &bytes.Buffer{}
 	if err := jsonmin.Minify(nil, b, bytes.NewReader(data), nil); err != nil {

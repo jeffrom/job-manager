@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// Labels can be used to filter queues. Their format is:
+// "KEY=VALUE[,KEY=VALUE...]"
 type Labels map[string]string
 
 func (l Labels) Equals(other Labels) bool {
@@ -31,9 +33,11 @@ func (l Labels) String() string {
 	return strings.Join(parts, ",")
 }
 
-func ParseStringArray(labels []string) (Labels, error) {
+// ParseStringArray reads an array of formatted labels, such as commandline
+// flags.
+func ParseStringArray(args []string) (Labels, error) {
 	l := make(Labels)
-	for _, lbl := range labels {
+	for _, lbl := range args {
 		parts := strings.SplitN(lbl, "=", 2)
 		key, val := parts[0], parts[1]
 		l[key] = val

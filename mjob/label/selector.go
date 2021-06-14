@@ -7,18 +7,10 @@ import (
 	"strings"
 )
 
-// var selectorRE = regexp.MustCompile(`^(?P<name>!?\w+) *(?P<operator>!=|=in|notin)? *(?P<value>\(?[\w ,]+\)?)?$`)
 var selectorRE = regexp.MustCompile(`^(?P<name>!?\w+)\s*(?P<operator>notin|in|=|!=)?\s*\(?(?P<value>[\w ,]+)?\)?$`)
 var selectorValueSplitRE = regexp.MustCompile(`, *`)
 
-// type selectorValue struct {
-// 	not   bool
-// 	in    []string
-// 	notin []string
-// }
-
-// type Selectors map[string]selectorValue
-
+// Selectors can be used to filter queues based on their labels.
 type Selectors struct {
 	Names    []string            `json:"names,omitempty"`
 	NotNames []string            `json:"not_names,omitempty"`
@@ -119,14 +111,6 @@ func (s *Selectors) String() string {
 	}
 	b.WriteString(">")
 	return b.String()
-}
-
-func (s *Selectors) InclusiveKeys() []string {
-	// keys := make([]string, len(s.))
-	// for _,  {
-
-	// }
-	return nil
 }
 
 func (s *Selectors) Match(labels Labels) bool {

@@ -19,6 +19,9 @@ import (
 )
 
 func TestBackendPostgres(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping because --short")
+	}
 	defaultCfg := backend.DefaultConfig
 	defaultCfg.TestMode = true
 	defaultCfg.Logger = logger.New(os.Stdout, false, true)

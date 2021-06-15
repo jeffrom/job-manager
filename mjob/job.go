@@ -8,7 +8,7 @@ import (
 
 // RunSucceeded returns a successful job result with optional data. It is
 // intended to be used as the return value to implementations of Runner.
-func RunSucceeded(data interface{}) (*resource.JobResult, error) {
+func RunSucceeded(data interface{}) (*Result, error) {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -21,13 +21,13 @@ func RunSucceeded(data interface{}) (*resource.JobResult, error) {
 	return res, nil
 }
 
-func RunInvalid(err error, data interface{}) (*resource.JobResult, error) {
+func RunInvalid(err error, data interface{}) (*Result, error) {
 	panic("not implemented")
 }
 
 // RunFailed returns a failed job result with optional error and data. It is
 // intended to be used as the return value to implementations of Runner.
-func RunFailed(err error, data interface{}) (*resource.JobResult, error) {
+func RunFailed(err error, data interface{}) (*Result, error) {
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()

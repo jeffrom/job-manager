@@ -54,5 +54,4 @@ func execJobUpdateLoop(ctx context.Context, stmt *sqlx.Stmt, now time.Time) erro
 			return nil
 		}
 	}
-	return nil
 }

@@ -89,7 +89,7 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 	wg := sync.WaitGroup{}
 	for i := 0; i < c.opts.consumers; i++ {
 		wg.Add(1)
-		go func() {
+		go func(i int) {
 			defer wg.Done()
 			cons := consumer.New(cl, &runner{opts: c.opts}, consumer.WithConfig(consumer.Config{
 				ShutdownTimeout: c.opts.shutdownTimeout,
@@ -103,7 +103,7 @@ func (c *consumerCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobr
 			if err != nil {
 				log.Print("consumer", i, err)
 			}
-		}()
+		}(i)
 	}
 
 	wg.Wait()

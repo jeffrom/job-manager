@@ -27,7 +27,6 @@ func (pg *Postgres) Reap(ctx context.Context, cfg *backend.ReaperConfig) error {
 		}
 		internal.IgnoreError(internal.Sleep(ctx, 2*time.Second))
 	}
-	return nil
 }
 
 func (pg *Postgres) reapOne(ctx context.Context) (bool, error) {

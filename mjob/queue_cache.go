@@ -20,7 +20,7 @@ const (
 // data. It prunes old queue versions to ensure it runs with bounded memory.
 type QueueCache struct {
 	c         client.Interface
-	requestMu map[string]sync.Mutex
+	requestMu map[string]*sync.Mutex
 	cache     map[string]versionCache
 	cacheMu   sync.Mutex
 }
@@ -50,7 +50,7 @@ func (vc versionCache) sortedKeys() []string {
 func NewQueueCache(c client.Interface) *QueueCache {
 	return &QueueCache{
 		c:         c,
-		requestMu: make(map[string]sync.Mutex),
+		requestMu: make(map[string]*sync.Mutex),
 		cache:     make(map[string]versionCache),
 	}
 }
@@ -70,6 +70,10 @@ func (qc *QueueCache) Get(ctx context.Context, job *resource.Job) (*resource.Que
 
 	cacheKey := fmt.Sprintf("%s/%s", name, ver)
 	reqLock := qc.requestMu[cacheKey]
+	if reqLock == nil {
+		reqLock = &sync.Mutex{}
+		qc.requestMu[cacheKey] = reqLock
+	}
 	reqLock.Lock()
 	qc.cacheMu.Unlock()
 	res, err := qc.c.GetQueue(ctx, id)

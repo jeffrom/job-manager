@@ -11,7 +11,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/jeffrom/job-manager/mjob v0.0.0-00010101000000-000000000000
-	github.com/jmoiron/sqlx v1.2.0
+	github.com/jmoiron/sqlx v1.3.4
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.9.0 // indirect
 	github.com/prometheus/client_golang v1.11.0

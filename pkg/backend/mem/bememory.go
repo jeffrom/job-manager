@@ -384,7 +384,11 @@ func calculateBackoff(jb *resource.Job, queue *resource.Queue) time.Duration {
 	}
 	attempt := jb.Attempt
 
-	res := time.Duration(initial * time.Duration(math.Pow(float64(attempt), float64(factor))))
+	res := initial * time.Duration(
+		math.Pow(
+			float64(attempt),
+			float64(factor),
+		))
 	if max > 0 && res > max {
 		return max
 	}

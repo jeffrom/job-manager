@@ -222,7 +222,7 @@ func SplitSelectors(s string) []string {
 			continue
 		}
 
-		if ch == ',' && (i-prev) != 0 {
+		if ch == ',' && (i-prev) != 0 { // nosemgrep: dgryski.semgrep-go.oddcompare.odd-comparison
 			parts = append(parts, s[prev:i])
 			prev = i + 1
 		}

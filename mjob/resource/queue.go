@@ -2,6 +2,7 @@ package resource
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -51,7 +52,7 @@ func (q *Queue) EqualAttrs(other *Queue) bool {
 		q.CheckinDuration == other.CheckinDuration &&
 		q.ClaimDuration == other.ClaimDuration &&
 		q.Unique == other.Unique &&
-		q.BackoffFactor == other.BackoffFactor &&
+		fmt.Sprint(q.BackoffFactor) == fmt.Sprint(other.BackoffFactor) &&
 		q.BackoffInitial == other.BackoffInitial &&
 		q.BackoffMax == other.BackoffMax &&
 		q.Labels.Equals(other.Labels) &&

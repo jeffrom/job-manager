@@ -84,7 +84,7 @@ lint: lint.go lint.proto lint.jsonschema
 lint.go: gen | $(staticcheck)
 	GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v 'job-manager/pkg/backend/pg/migrations')
 	cd mjob && GO111MODULE=on $(staticcheck) -f stylish -checks all $$(go list ./... | grep -v querystring)
-	semgrep -f ~/repos/semgrep-go -c p/gosec -c p/golang
+	semgrep --error -c r/dgryski.semgrep-go -c p/gosec -c p/golang --exclude pkg/backend/pg/migrations/data.go
 	ruleguard -c=0 -rules ~/repos/semgrep-go/ruleguard.rules.go ./...
 	cd mjob && ruleguard -c=0 -rules ~/repos/semgrep-go/ruleguard.rules.go ./...
 

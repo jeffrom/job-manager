@@ -13,8 +13,8 @@ func handleCompletion(comps []string, err error) ([]string, cobra.ShellCompDirec
 	// f, _ := os.Create("hi.txt")
 	// defer f.Close()
 	// fmt.Fprintf(f, "comps: %+v, err: %v\n", comps, err)
+	// TODO better way to print errors, debug info, need to dump to txt file
 	if err != nil {
-		// TODO better way to print errors, debug info, need to dump to txt file
 		// fmt.Fprintf(os.Stderr, "completion error: %v\n", err)
 		return comps, cobra.ShellCompDirectiveError
 	}

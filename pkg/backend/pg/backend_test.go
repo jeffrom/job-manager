@@ -68,7 +68,7 @@ func TestBackendPostgres(t *testing.T) {
 }
 
 func resetDB(ctx context.Context, t testing.TB, conn *sql.DB, database string) {
-	_, err := conn.ExecContext(ctx, "CREATE DATABASE "+database)
+	_, err := conn.ExecContext(ctx, "CREATE DATABASE "+database) // nosemgrep: go.lang.security.audit.database.string-formatted-query.string-formatted-query
 	if err != nil {
 		t.Logf("ignoring error: %v", err)
 	}

@@ -48,7 +48,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	if _, err := conn.ExecContext(ctx, "CREATE DATABASE "+pg.cfg.Database); err != nil {
+	if _, err := conn.ExecContext(ctx, "CREATE DATABASE "+pg.cfg.Database); err != nil { // nosemgrep: go.lang.security.audit.database.string-formatted-query.string-formatted-query
 		log.Info().Err(err).Msg("ignoring error")
 	}
 	if err := conn.Close(); err != nil {

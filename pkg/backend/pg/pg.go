@@ -124,6 +124,7 @@ func (pg *Postgres) Reset(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 
 	var tables []string
 	for rows.Next() {
@@ -140,7 +141,7 @@ func (pg *Postgres) Reset(ctx context.Context) error {
 	// fmt.Println(tables)
 
 	for _, table := range tables {
-		if _, err := pg.db.ExecContext(ctx, "TRUNCATE TABLE "+table+" CASCADE"); err != nil {
+		if _, err := pg.db.ExecContext(ctx, "TRUNCATE TABLE "+table+" CASCADE"); err != nil { // nosemgrep: go.lang.security.audit.database.string-formatted-query.string-formatted-query
 			return err
 		}
 	}

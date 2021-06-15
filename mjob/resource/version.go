@@ -46,7 +46,7 @@ func (v *Version) Equals(other *Version) bool {
 	return v.v == other.v
 }
 
-func (v *Version) MarshalJSON() ([]byte, error) {
+func (v Version) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"v%d"`, v.v)), nil
 }
 

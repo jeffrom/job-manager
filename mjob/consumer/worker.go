@@ -80,9 +80,9 @@ func (w *worker) respond(jb *resource.Job, res *resource.JobResult, err error) {
 	}
 	res.JobID = jb.ID
 
+	// TODO better error handling
 	if err != nil {
 		res.Error = err.Error()
-		// TODO better error handling
 		res.Status = resource.NewStatus(resource.StatusFailed)
 	} else if res.Status == nil {
 		res.Status = resource.NewStatus(resource.StatusComplete)

@@ -24,7 +24,7 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gz)
+	_, err = io.CopyN(&buf,  gz, 1024*1024*256)
 	clErr := gz.Close()
 
 	if err != nil {

@@ -127,8 +127,8 @@ Loop:
 		if n > 0 {
 			var err error
 			jobs, err = c.client.DequeueJobsOpts(ctx, n, c.cfg.DequeueOpts)
+			// TODO backoff
 			if err != nil {
-				// TODO backoff
 				c.log.Log(ctx, &logger.Event{
 					Level:   "error",
 					Error:   err,
@@ -144,9 +144,9 @@ Loop:
 		// fmt.Println("consumer got", dequeuedJobs, "jobs with limit", n)
 		remaining, err := c.processJobs(ctx, append(curr, jobs.Jobs...))
 		// fmt.Println("consumer processed jobs.", len(remaining), "jobs remain", "err:", err)
+		// TODO handle this? should processJobs ever error? only if a
+		// worker doesn't finish in time.
 		if err != nil {
-			// TODO handle this? should processJobs ever error? only if a
-			// worker doesn't finish in time.
 			c.log.Log(ctx, &logger.Event{
 				Level:   "error",
 				Error:   err,

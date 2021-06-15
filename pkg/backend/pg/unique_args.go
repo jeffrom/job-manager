@@ -24,7 +24,10 @@ func (pg *Postgres) GetJobUniqueArgs(ctx context.Context, keys []string) ([]stri
 	rows, err := c.QueryxContext(ctx, c.Rebind(q), iargs...)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, false, err
+	} else {
+		defer rows.Close()
 	}
+
 	var ids []string
 	for rows.Next() {
 		id := ""

@@ -76,38 +76,25 @@ func (pg *Postgres) deleteJobUniqueness(ctx context.Context, tx *sqlx.Tx, jb *re
 	}
 	q := "DELETE FROM job_uniqueness WHERE key = $1"
 	_, err = tx.ExecContext(ctx, q, []byte(key))
-	if err != nil {
-		return err
-	}
-	// res.RowsAffected
-	return nil
+	return err
 }
 
 func (pg *Postgres) deleteJobResults(ctx context.Context, tx *sqlx.Tx, jb *resource.Job) error {
 	q := "DELETE FROM job_results WHERE job_id = $1"
 	_, err := tx.ExecContext(ctx, q, jb.ID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (pg *Postgres) deleteJobClaims(ctx context.Context, tx *sqlx.Tx, jb *resource.Job) error {
 	q := "DELETE FROM job_claims WHERE job_id = $1"
 	_, err := tx.ExecContext(ctx, q, jb.ID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (pg *Postgres) deleteJobCheckins(ctx context.Context, tx *sqlx.Tx, jb *resource.Job) error {
 	q := "DELETE FROM job_checkins WHERE job_id = $1"
 	_, err := tx.ExecContext(ctx, q, jb.ID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (pg *Postgres) deleteJobs(ctx context.Context, tx *sqlx.Tx, jobs []*resource.Job) error {
@@ -129,8 +116,5 @@ func (pg *Postgres) deleteJobs(ctx context.Context, tx *sqlx.Tx, jobs []*resourc
 		return err
 	}
 	_, err = tx.ExecContext(ctx, tx.Rebind(q), args...)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

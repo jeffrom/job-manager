@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/jeffrom/job-manager/mjob/resource"
@@ -19,7 +20,7 @@ func checkSchemaNumber(t testing.TB, v interface{}, expect float64) {
 	if !ok {
 		t.Fatalf("expected invalid value type float64, got %T", v)
 	}
-	if val != expect {
+	if fmt.Sprint(val) != fmt.Sprint(expect) {
 		t.Errorf("expected value %f, got %f", expect, val)
 	}
 }

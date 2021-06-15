@@ -180,10 +180,7 @@ func (pg *Postgres) PauseQueues(ctx context.Context, queues []string) error {
 	}
 
 	_, err = insertQueues(ctx, c, toUpdate)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (pg *Postgres) UnpauseQueues(ctx context.Context, queues []string) error {
@@ -253,10 +250,7 @@ func (pg *Postgres) BlockQueues(ctx context.Context, queues []string) error {
 	}
 
 	_, err = insertQueues(ctx, c, toUpdate)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (pg *Postgres) UnblockQueues(ctx context.Context, queues []string) error {
@@ -283,10 +277,7 @@ func (pg *Postgres) UnblockQueues(ctx context.Context, queues []string) error {
 	}
 
 	_, err = insertQueues(ctx, c, toUpdate)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // getQueuesByNames returns the latest version of each queue requested

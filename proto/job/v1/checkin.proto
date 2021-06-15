@@ -2,12 +2,11 @@ syntax = "proto3";
 package job.v1;
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/struct.proto";
 
 option go_package = "github.com/jeffrom/job-manager/mjob/resource/job/v1";
 
 
 message Checkin {
-  google.protobuf.Value data = 1;
+  bytes data = 1;
   google.protobuf.Timestamp created_at = 2;
 }

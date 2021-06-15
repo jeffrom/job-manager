@@ -2,8 +2,7 @@ package client
 
 import (
 	"context"
-
-	"google.golang.org/protobuf/types/known/structpb"
+	"encoding/json"
 
 	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 	"github.com/jeffrom/job-manager/mjob/resource"
@@ -24,11 +23,11 @@ func (c *Client) AckJobOpts(ctx context.Context, id string, status resource.Stat
 		Status: jobv1.Status(status),
 	}
 	if opts.Data != nil {
-		val, err := structpb.NewValue(opts.Data)
+		b, err := json.Marshal(opts.Data)
 		if err != nil {
 			return err
 		}
-		args.Data = val
+		args.Data = b
 	}
 
 	uri := "/api/v1/jobs/ack"

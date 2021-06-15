@@ -322,11 +322,6 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
 		return nil, err
 	}
-	for _, row := range rows {
-		if err := row.Populate(); err != nil {
-			return nil, err
-		}
-	}
 
 	// XXX if we're using labels have to query queue labels here to handle the
 	// !label selector :'(
@@ -339,23 +334,9 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 
 }
 
-func setJobFields(jobs []*resource.Job) error {
-	for _, jb := range jobs {
-		if len(jb.ArgsRaw) > 0 && jb.Args == nil {
-			if err := json.Unmarshal(jb.ArgsRaw, &jb.Args); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func annotateJobs(ctx context.Context, c sqlxer, includes []string, jobs []*resource.Job) error {
 	if len(jobs) == 0 {
 		return nil
-	}
-	if err := setJobFields(jobs); err != nil {
-		return err
 	}
 	if len(includes) == 0 {
 		return nil

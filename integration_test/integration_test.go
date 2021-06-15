@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"os"
@@ -123,10 +124,14 @@ func newBenchRunner() *benchRunner {
 }
 
 func (br *benchRunner) Run(ctx context.Context, job *resource.Job) (*resource.JobResult, error) {
-	if len(job.Args) == 0 {
+	if len(job.ArgsRaw) == 0 {
 		return nil, nil
 	}
-	ch := br.pop(job.Args[0].(string))
+	args := []string{}
+	if err := json.Unmarshal(job.ArgsRaw, &args); err != nil {
+		return nil, err
+	}
+	ch := br.pop(args[0])
 	// fmt.Println("job arg 0:", job.Args[0], ch, job.Attempt)
 	if ch == nil {
 		return nil, errors.New("no channel")

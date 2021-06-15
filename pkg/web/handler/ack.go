@@ -82,11 +82,7 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 		if err != nil {
 			return err
 		}
-		iargs := make([]interface{}, len(jobData.Args))
-		for i, arg := range jobData.Args {
-			iargs[i] = arg
-		}
-		ukey, err := uniquenessKeyFromArgs(iargs)
+		ukey, err := uniquenessKeyFromArgs(jobData.ArgsRaw)
 		if err != nil {
 			return err
 		}

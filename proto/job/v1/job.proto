@@ -3,7 +3,6 @@ package job.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-import "google/protobuf/struct.proto";
 
 import "job/v1/status.proto";
 import "job/v1/data.proto";
@@ -19,7 +18,7 @@ message Job {
   int32 queue_v = 3;
   string name = 4;
 
-  repeated google.protobuf.Value args = 5;
+  bytes args = 5;
   Data data = 6;
 
   int32 attempt = 7;

@@ -285,15 +285,15 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 		t.Errorf("expected job queue version to be v1, was %s", jobArg.QueueVersion)
 	}
 
-	if len(jobArg.Args) != 1 {
-		t.Errorf("expected job args length %d, got %d", 1, len(jobArg.Args))
+	args := []string{}
+	if err := json.Unmarshal(jobArg.ArgsRaw, &args); err != nil {
+		t.Fatal(err)
+	}
+	if len(args) != 1 {
+		t.Errorf("expected job args length %d, got %d", 1, len(args))
 	} else {
 		expectArg := "nice"
-		iarg := jobArg.Args[0]
-		arg, ok := iarg.(string)
-		if !ok {
-			t.Fatalf("expected arg 0 to be %T, was %#v", expectArg, iarg)
-		}
+		arg := args[0]
 		if arg != expectArg {
 			t.Errorf("expected job arg to be %q, was %q", expectArg, arg)
 		}
@@ -318,8 +318,12 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	}
 
 	id := jobArg.ID
+	ackData, err := json.Marshal(args[0])
+	if err != nil {
+		t.Fatal(err)
+	}
 	tc.ackJobOpts(ctx, t, id, resource.StatusComplete, client.AckJobOpts{
-		Data: jobArg.Args[0].(string),
+		Data: ackData,
 	})
 
 	jobData := tc.getJob(ctx, t, id)
@@ -335,13 +339,12 @@ func testDequeue(ctx context.Context, t *testing.T, tc *sanityTestCase) {
 	if len(resultData) != 1 {
 		t.Fatalf("expected 1 results, got %d", len(resultData))
 	}
-	ival := resultData[0].Data
-	s, ok := ival.(string)
-	if !ok {
-		t.Fatalf("expected result data to be type string, was %T", ival)
+	var b []byte
+	if err := json.Unmarshal(resultData[0].Data, &b); err != nil {
+		t.Fatal(err)
 	}
-	if s != "nice" {
-		t.Errorf("expected 'arg' to be value 'nice', was %q", s)
+	if string(b) != `"nice"` {
+		t.Errorf("expected 'arg' to be value '\"nice\"', was %q", string(b))
 	}
 }
 

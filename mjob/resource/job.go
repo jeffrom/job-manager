@@ -15,8 +15,7 @@ type Job struct {
 	Version        *Version      `json:"version" db:"v"`
 	Name           string        `json:"name"`
 	QueueVersion   *Version      `json:"queue_version" db:"queue_v"`
-	Args           []interface{} `json:"args"`
-	ArgsRaw        []byte        `json:"-" db:"args"`
+	ArgsRaw        []byte        `json:"args" db:"args"`
 	Data           *JobData      `json:"data,omitempty"`
 	DataRaw        []byte        `json:"-" db:"data"`
 	Status         *Status       `json:"status"`
@@ -36,40 +35,6 @@ type Job struct {
 func (jb *Job) String() string {
 	b, _ := json.Marshal(jb)
 	return string(b)
-}
-
-func (jb *Job) Populate() error {
-	if jb.Args != nil {
-		b, err := json.Marshal(jb.Args)
-		if err != nil {
-			return err
-		}
-		jb.ArgsRaw = b
-	} else if len(jb.ArgsRaw) > 0 {
-		args := []interface{}{}
-		if err := json.Unmarshal(jb.ArgsRaw, &args); err != nil {
-			return err
-		}
-		jb.Args = args
-	}
-
-	if jb.Data != nil && jb.Data.Data != nil {
-		b, err := json.Marshal(jb.Data)
-		if err != nil {
-			return err
-		}
-		jb.DataRaw = b
-	} else if len(jb.DataRaw) > 0 {
-		var data interface{}
-		if err := json.Unmarshal(jb.DataRaw, &data); err != nil {
-			return err
-		}
-		if jb.Data == nil {
-			jb.Data = &JobData{}
-		}
-		jb.Data.Data = data
-	}
-	return nil
 }
 
 func (jb *Job) Copy() *Job {
@@ -131,17 +96,7 @@ func (jb *Job) HasStatus(statuses ...*Status) bool {
 }
 
 func (jb *Job) ArgKey() (string, error) {
-	var b []byte
-	var err error
-	if len(jb.ArgsRaw) > 0 {
-		b = jb.ArgsRaw
-	} else {
-		b, err = json.Marshal(jb.Args)
-		if err != nil {
-			return "", err
-		}
-	}
-	sum := sha256.Sum256(b)
+	sum := sha256.Sum256(jb.ArgsRaw)
 	return string(sum[:]), nil
 }
 
@@ -193,26 +148,26 @@ func (jobs *Jobs) Queues() []string {
 }
 
 type JobData struct {
-	Claims label.Claims `json:"claims,omitempty"`
-	Data   interface{}  `json:"data,omitempty"`
+	Claims  label.Claims `json:"claims,omitempty"`
+	DataRaw []byte       `json:"data,omitempty"`
 }
 
 type JobCheckin struct {
-	ID        string      `json:"-"`
-	JobID     string      `json:"-" db:"job_id"`
-	Data      interface{} `json:"data,omitempty"`
-	CreatedAt time.Time   `json:"created_at" db:"created_at"`
+	ID        string    `json:"-"`
+	JobID     string    `json:"-" db:"job_id"`
+	Data      []byte    `json:"data,omitempty"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 type JobResult struct {
-	ID          string      `json:"-"`
-	JobID       string      `json:"-" db:"job_id"`
-	Attempt     int         `json:"attempt"`
-	Status      *Status     `json:"status"`
-	Data        interface{} `json:"data,omitempty"`
-	Error       string      `json:"error,omitempty"`
-	StartedAt   time.Time   `json:"started_at" db:"started_at"`
-	CompletedAt time.Time   `json:"completed_at" db:"completed_at"`
+	ID          string    `json:"-"`
+	JobID       string    `json:"-" db:"job_id"`
+	Attempt     int       `json:"attempt"`
+	Status      *Status   `json:"status"`
+	Data        []byte    `json:"data,omitempty"`
+	Error       string    `json:"error,omitempty"`
+	StartedAt   time.Time `json:"started_at" db:"started_at"`
+	CompletedAt time.Time `json:"completed_at" db:"completed_at"`
 }
 
 type JobListParams struct {

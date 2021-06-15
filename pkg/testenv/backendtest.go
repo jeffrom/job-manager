@@ -520,22 +520,28 @@ func getBasicJobs() *resource.Jobs {
 	return &resource.Jobs{
 		Jobs: []*resource.Job{
 			{
-				Name: "cool",
-				Args: jobArgs(1, "nice"),
+				Name:    "cool",
+				ArgsRaw: jobArgs(1, "nice"),
 			},
 			{
-				Name: "cool",
-				Args: jobArgs(2, "222"),
+				Name:    "cool",
+				ArgsRaw: jobArgs(2, "222"),
 			},
 			{
-				Name: "cool",
-				Args: jobArgs(3, "heck"),
+				Name:    "cool",
+				ArgsRaw: jobArgs(3, "heck"),
 			},
 		},
 	}
 }
 
-func jobArgs(args ...interface{}) []interface{} { return args }
+func jobArgs(args ...interface{}) []byte {
+	b, err := json.Marshal(args)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
 
 // runMiddleware tries to wrap a call to a backend with its middleware. It
 // shouldn't be relied upon for transaction-type middleware.

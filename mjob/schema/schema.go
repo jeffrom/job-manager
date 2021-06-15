@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/qri-io/jsonschema"
 	jsonmin "github.com/tdewolff/minify/v2/json"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 // SelfSchema is used to validate job schemas themselves.
@@ -33,7 +31,7 @@ type Schema struct {
 	Result *jsonschema.Schema `json:"result,omitempty"`
 }
 
-func (s *Schema) Validate(ctx context.Context, args, data, result interface{}) error {
+func (s *Schema) Validate(ctx context.Context, args, data, result []byte) error {
 	merr := &multierror.Error{}
 	if err := s.ValidateArgs(ctx, args); err != nil {
 		merr = multierror.Append(merr, err)
@@ -47,15 +45,11 @@ func (s *Schema) Validate(ctx context.Context, args, data, result interface{}) e
 	return merr.ErrorOrNil()
 }
 
-func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
+func (s *Schema) ValidateArgs(ctx context.Context, jsonData []byte) error {
 	if s == nil || s.Args == nil {
 		return nil
 	}
 
-	jsonData, err := marshalToJSON(arg)
-	if err != nil {
-		return err
-	}
 	keyErrs, err := s.Args.ValidateBytes(ctx, jsonData)
 	if err != nil {
 		return err
@@ -66,16 +60,11 @@ func (s *Schema) ValidateArgs(ctx context.Context, arg interface{}) error {
 	return nil
 }
 
-func (s *Schema) ValidateResult(ctx context.Context, arg interface{}) error {
+func (s *Schema) ValidateResult(ctx context.Context, jsonData []byte) error {
 	if s == nil || s.Result == nil {
 		return nil
 	}
 
-	jsonData, err := marshalToJSON(arg)
-	if err != nil {
-		return err
-	}
-
 	keyErrs, err := s.Result.ValidateBytes(ctx, jsonData)
 	if err != nil {
 		return err
@@ -86,16 +75,11 @@ func (s *Schema) ValidateResult(ctx context.Context, arg interface{}) error {
 	return nil
 }
 
-func (s *Schema) ValidateData(ctx context.Context, arg interface{}) error {
+func (s *Schema) ValidateData(ctx context.Context, jsonData []byte) error {
 	if s == nil || s.Data == nil {
 		return nil
 	}
 
-	jsonData, err := marshalToJSON(arg)
-	if err != nil {
-		return err
-	}
-
 	keyErrs, err := s.Result.ValidateBytes(ctx, jsonData)
 	if err != nil {
 		return err
@@ -104,17 +88,6 @@ func (s *Schema) ValidateData(ctx context.Context, arg interface{}) error {
 		return NewValidationErrorKeyErrs(keyErrs)
 	}
 	return nil
-}
-
-func marshalToJSON(arg interface{}) ([]byte, error) {
-	var err error
-	var jsonData []byte
-	if msg, ok := arg.(proto.Message); ok {
-		jsonData, err = protojson.Marshal(msg)
-	} else {
-		jsonData, err = json.Marshal(arg)
-	}
-	return jsonData, err
 }
 
 // Canonicalize deterministically formats json so it can be reliably compared

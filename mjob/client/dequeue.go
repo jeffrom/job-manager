@@ -14,6 +14,9 @@ type DequeueOpts struct {
 	Queues    []string
 	Selectors []string
 	Claims    label.Claims
+	// Args provides an array of types to convert job arguments into when
+	// deserializing.
+	Args []interface{}
 }
 
 func (c *Client) DequeueJobsOpts(ctx context.Context, num int, opts DequeueOpts) (*resource.Jobs, error) {

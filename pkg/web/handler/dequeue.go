@@ -34,13 +34,6 @@ func DequeueJobs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	for _, qName := range params.Queues {
-		_, err = be.GetQueue(ctx, qName, nil)
-		if err != nil {
-			return err
-		}
-	}
-
 	// fmt.Println("params:", params.Claims, "parsed:", claims)
 	listOpts := &resource.JobListParams{
 		Queues: params.Queues,

@@ -1,12 +1,10 @@
 syntax = "proto3";
 package job.v1;
 
-import "google/protobuf/struct.proto";
-
 option go_package = "github.com/jeffrom/job-manager/mjob/resource/job/v1";
 
 
 message Data {
   repeated string claims = 1;
-  google.protobuf.Value data = 2;
+  bytes data = 2;
 }

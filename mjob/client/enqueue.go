@@ -2,10 +2,9 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-
-	"google.golang.org/protobuf/types/known/structpb"
 
 	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
 	"github.com/jeffrom/job-manager/mjob/label"
@@ -18,7 +17,7 @@ type EnqueueOpts struct {
 }
 
 func (c *Client) EnqueueJobOpts(ctx context.Context, name string, opts EnqueueOpts, args ...interface{}) (string, error) {
-	argList, err := structpb.NewList(args)
+	argsJSON, err := json.Marshal(args)
 	if err != nil {
 		return "", err
 	}
@@ -27,11 +26,11 @@ func (c *Client) EnqueueJobOpts(ctx context.Context, name string, opts EnqueueOp
 	if opts.Data != nil || len(opts.Claims) > 0 {
 		jobData = &jobv1.Data{}
 		if opts.Data != nil {
-			data, err := structpb.NewValue(opts.Data)
+			b, err := json.Marshal(opts.Data)
 			if err != nil {
 				return "", err
 			}
-			jobData.Data = data
+			jobData.Data = b
 		}
 		if len(opts.Claims) > 0 {
 			jobData.Claims = opts.Claims.Format()
@@ -41,7 +40,7 @@ func (c *Client) EnqueueJobOpts(ctx context.Context, name string, opts EnqueueOp
 		Jobs: []*apiv1.EnqueueJobsRequestArgs{
 			{
 				Job:  name,
-				Args: argList.Values,
+				Args: argsJSON,
 				Data: jobData,
 			},
 		},

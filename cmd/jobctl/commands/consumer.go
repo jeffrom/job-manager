@@ -115,7 +115,7 @@ type runner struct {
 }
 
 func (r *runner) Run(ctx context.Context, job *resource.Job) (*resource.JobResult, error) {
-	log.Printf("consumer executing on job %s", job.ID)
+	log.Printf("consumer executing on job %s. Args: %s", job.ID, string(job.ArgsRaw))
 	if r.opts.sleep > 0 {
 		d := r.opts.sleep
 		if r.opts.jitter != 0 {

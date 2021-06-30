@@ -2,7 +2,7 @@
 
 job-manager is a server that coordinates the execution of distributed jobs over HTTP.
 
-The gist is that consumers poll the server for jobs, and send job status back upon completion. Checkins can be used to annotate the job with data pre-completion. A command-line tool, jobctl, is provided for queue administration. Labels, JSON Schema validation, and a gitops-style queue administration are supported to better support complex workflows across multiple development teams.
+The gist is that consumers poll the server for jobs, and send job status back upon completion. Checkins can be used to annotate the job with data pre-completion. A command-line tool, jobctl, is provided for queue administration. Labels, JSON Schema validation, and a gitops-style queue administration support complex workflows across multiple development teams.
 
 I made this initially to experiment with some higher-level features in a job queue, but it should be capable of comparable performance to postgres-backed job queues. In most cases, the job server itself is rarely a bottleneck, but multiple replicas can be run for high availability. Typically, the backend, not the api server, will be the bottleneck in most workloads.
 

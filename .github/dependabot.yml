@@ -9,3 +9,13 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+
+  - package-ecosystem: gomod
+    directory: "/mjob"
+    schedule:
+      interval: daily
+
+  - package-ecosystem: github-actions
+    directory: "/mjob"
+    schedule:
+      interval: daily

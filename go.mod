@@ -18,6 +18,7 @@ require (
 	github.com/rs/zerolog v1.23.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.2.1
+	github.com/tdewolff/minify/v2 v2.9.19 // indirect
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )

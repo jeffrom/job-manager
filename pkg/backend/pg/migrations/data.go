@@ -24,7 +24,7 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	_, err = io.CopyN(&buf,  gz, 1024*1024*256)
+	_, err = io.Copy(&buf, gz)
 	clErr := gz.Close()
 
 	if err != nil {
@@ -83,7 +83,7 @@ func _0001_createUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0001_create.up.sql", size: 2736, mode: os.FileMode(436), modTime: time.Unix(1622868146, 0)}
+	info := bindataFileInfo{name: "0001_create.up.sql", size: 2736, mode: os.FileMode(436), modTime: time.Unix(1627951284, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

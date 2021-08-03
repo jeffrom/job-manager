@@ -9,6 +9,8 @@ before:
     - go mod download
     # you may remove this if you don't need go generate
     - go generate ./...
+    - GO111MODULE=off go get github.com/jteeuwen/go-bindata/...
+    - go-bindata -pkg migrations -ignore '\.go$' -prefix pkg/backend/pg/migrations/ -o pkg/backend/pg/migrations/data.go pkg/backend/pg/migrations
 
 builds:
   - id: job-manager

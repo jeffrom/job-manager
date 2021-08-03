@@ -7,8 +7,9 @@ before:
   hooks:
     # you may remove this if you don't use vgo
     - go mod download
+    # XXX would be nice to have
+    # - $(go env GOPATH)/bin/go-bindata -pkg migrations -ignore '\.go$' -prefix pkg/backend/pg/migrations/ -o pkg/backend/pg/migrations/data.go pkg/backend/pg/migrations
     # you may remove this if you don't need go generate
-    - $(go env GOPATH)/bin/go-bindata -pkg migrations -ignore '\.go$' -prefix pkg/backend/pg/migrations/ -o pkg/backend/pg/migrations/data.go pkg/backend/pg/migrations
     - go generate ./...
 
 builds:

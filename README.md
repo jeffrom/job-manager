@@ -14,7 +14,7 @@ Using go:
 $ go get github.com/jeffrom/job-manager/...
 ```
 
-Via docker: `docker pull jeffmartin1117/job-manager`
+Via docker: `docker pull jeffrom/job-manager`
 
 Or download a github release.
 

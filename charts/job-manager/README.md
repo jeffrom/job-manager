@@ -17,7 +17,7 @@ Background job server
 | configSecret | string | `""` | populate environment variables from a secret |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"jeffmartin1117/job-manager"` |  |
+| image.repository | string | `"jeffrom/job-manager"` |  |
 | image.tag | string | `""` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |

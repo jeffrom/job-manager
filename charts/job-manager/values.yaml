@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: jeffmartin1117/job-manager
+  repository: jeffrom/job-manager
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

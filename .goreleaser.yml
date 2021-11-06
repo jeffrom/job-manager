@@ -31,8 +31,8 @@ dockers:
   ids:
     - job-manager
   image_templates:
-  - "jeffmartin1117/job-manager:latest"
-  - "jeffmartin1117/job-manager:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+  - "jeffrom/job-manager:latest"
+  - "jeffrom/job-manager:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
   build_flag_templates:
   - "--label=org.label-schema.schema-version=1.0"
   - "--label=org.label-schema.version={{.Version}}"
@@ -44,8 +44,8 @@ dockers:
   ids:
     - jobctl
   image_templates:
-  - "jeffmartin1117/jobctl:latest"
-  - "jeffmartin1117/jobctl:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+  - "jeffrom/jobctl:latest"
+  - "jeffrom/jobctl:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
   build_flag_templates:
   - "--label=org.label-schema.schema-version=1.0"
   - "--label=org.label-schema.version={{.Version}}"

@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"google.golang.org/protobuf/proto"
@@ -201,7 +200,7 @@ func unmarshalProto(res *http.Response, msg proto.Message) error {
 		return nil
 	}
 	defer res.Body.Close()
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -83,7 +82,7 @@ func UnmarshalBody(r *http.Request, v interface{}, required bool) error {
 		ct = "application/x-www-form-urlencoded"
 	} else {
 		var rerr error
-		b, rerr = ioutil.ReadAll(r.Body)
+		b, rerr = io.ReadAll(r.Body)
 		if rerr != nil {
 			return rerr
 		}

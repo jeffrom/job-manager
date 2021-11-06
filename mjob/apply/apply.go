@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -19,7 +19,7 @@ import (
 var docSep = []byte("\n---\n")
 
 func Path(ctx context.Context, c client.Interface, p string) error {
-	b, err := ioutil.ReadFile(p)
+	b, err := os.ReadFile(p)
 	if err != nil {
 		return err
 	}

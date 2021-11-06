@@ -3,7 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -70,7 +70,7 @@ func runSaveQueue(ctx context.Context, cfg *client.Config, opts *saveQueueOpts, 
 	var scmb []byte
 	if p := opts.SchemaPath; p != "" {
 		var err error
-		scmb, err = ioutil.ReadFile(p)
+		scmb, err = os.ReadFile(p)
 		if err != nil {
 			return err
 		}

@@ -2,7 +2,7 @@ package integration
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"os"
 	"runtime"
@@ -56,7 +56,7 @@ func TestMemoryCounter(t *testing.T) {
 	} else {
 		cfg := middleware.NewConfig()
 		cfg.Logger = &srvlogger.Logger{Disabled: true, Logger: zerolog.Nop()}
-		cfg.ResetLogOutput(ioutil.Discard)
+		cfg.ResetLogOutput(io.Discard)
 		be := mem.New()
 		h, err := web.NewControllerRouter(cfg, be)
 		if err != nil {

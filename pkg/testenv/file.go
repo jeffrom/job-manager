@@ -1,12 +1,12 @@
 package testenv
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
 func ReadFile(t testing.TB, p string) []byte {
-	b, err := ioutil.ReadFile(p)
+	b, err := os.ReadFile(p)
 	if err != nil {
 		t.Fatal(err)
 	}

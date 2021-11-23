@@ -9,7 +9,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jackc/pgx/v4 v4.13.0
+	github.com/jackc/pgx/v4 v4.14.0
 	github.com/jeffrom/job-manager/mjob v0.0.0-00010101000000-000000000000
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/jteeuwen/go-bindata v3.0.7+incompatible

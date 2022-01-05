@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/satori/go.uuid v1.2.0
-	github.com/tdewolff/minify/v2 v2.9.26
+	github.com/tdewolff/minify/v2 v2.9.27
 	google.golang.org/protobuf v1.27.1
 )
 

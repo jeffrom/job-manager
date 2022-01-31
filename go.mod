@@ -13,7 +13,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/jteeuwen/go-bindata v3.0.7+incompatible
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/prometheus/client_golang v1.12.0
+	github.com/prometheus/client_golang v1.12.1
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/rs/zerolog v1.26.1
 	github.com/satori/go.uuid v1.2.0

@@ -16,7 +16,7 @@ type Job struct {
 	Name           string        `json:"name"`
 	QueueVersion   *Version      `json:"queue_version" db:"queue_v"`
 	ArgsRaw        []byte        `json:"args" db:"args"`
-	Data           *JobData      `json:"data,omitempty"`
+	Data           *JobData      `json:"data,omitempty" db:"-"`
 	DataRaw        []byte        `json:"-" db:"data"`
 	Status         *Status       `json:"status"`
 	Attempt        int           `json:"attempt,omitempty"`

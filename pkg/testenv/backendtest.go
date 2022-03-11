@@ -1,6 +1,7 @@
 package testenv
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -54,6 +55,9 @@ func BackendTest(cfg BackendTestConfig) func(t *testing.T) {
 			return
 		}
 		if !t.Run("enqueue-dequeue", tc.wrap(ctx, testEnqueueDequeue)) {
+			return
+		}
+		if !t.Run("enqueue-dequeue-data", tc.wrap(ctx, testEnqueueDequeueData)) {
 			return
 		}
 		if !t.Run("enqueue-while-blocked", tc.wrap(ctx, testEnqueueWhileBlocked)) {
@@ -216,6 +220,37 @@ func testEnqueueDequeue(ctx context.Context, t *testing.T, tc *backendTestContex
 		checkVersion(t, 3, ackedJobs[2].Version)
 	} else if l != 0 {
 		t.Fatalf("expected 3 or 0 rows, got %d", l)
+	}
+}
+
+func testEnqueueDequeueData(ctx context.Context, t *testing.T, tc *backendTestContext) {
+	be := tc.cfg.Backend
+	ctx = mustReset(ctx, t, be)
+
+	now := basictime
+	ctx = internal.SetMockTime(ctx, now)
+	mustSaveQueue(ctx, t, be, getBasicQueue())
+
+	expectJobs := &resource.Jobs{
+		Jobs: []*resource.Job{
+			{
+				Name:    "cool",
+				ArgsRaw: jobArgs(1, "nice-data"),
+				Data:    &resource.JobData{DataRaw: []byte(`{"hey": "sup data"}`)},
+			},
+		},
+	}
+	res := mustEnqueueJobs(ctx, t, be, expectJobs)
+
+	jobs := res.Jobs
+	if len(jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs))
+	}
+	checkJob(t, jobs[0])
+	checkJobStatus(t, resource.StatusQueued, jobs[0])
+	checkVersion(t, 1, jobs[0].Version)
+	if jobs[0].Data == nil || !bytes.Equal(jobs[0].Data.DataRaw, expectJobs.Jobs[0].Data.DataRaw) {
+		t.Errorf("expected job data %q, got %q", expectJobs.Jobs[0].Data.DataRaw, jobs[0].Data.DataRaw)
 	}
 }
 

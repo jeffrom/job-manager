@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 
 type enqueueOpts struct {
 	// client.EnqueueOpts
-	// data string
+	data   string
 	claims []string
 }
 
@@ -40,13 +41,17 @@ $ jobctl enqueue myq '{"hi": "hello"}'
 
 # enqueue a job with a claim
 $ jobctl enqueue -c myclaim=myval myq myarg
+
+# enqueue with some data
+$ jobctl enqueue myq myarg --data-raw '{"hi": "hello"}'
 `,
 		},
 		opts: opts,
 	}
 
 	flags := c.Command.Flags()
-	flags.StringArrayVarP(&opts.claims, "claim", "c", nil, "enqueue with claims")
+	flags.StringArrayVarP(&opts.claims, "claim", "c", nil, "enqueue with claims in `key=val` format. Multiple values can be provided")
+	flags.StringVar(&opts.data, "data-raw", "", "raw `json` data to include with job")
 
 	return c
 }
@@ -61,14 +66,24 @@ func (c *enqueueCmd) Execute(ctx context.Context, cfg *client.Config, cmd *cobra
 			return err
 		}
 	}
-	cl := clientFromContext(ctx)
+
+	var data interface{}
+	dataRaw := c.opts.data
+	if dataRaw != "" {
+		if err := json.Unmarshal([]byte(dataRaw), &data); err != nil {
+			return err
+		}
+	}
 	iargs, err := resource.ParseCLIArgs(args[1:])
 	if err != nil {
 		return err
 	}
 	opts := client.EnqueueOpts{
 		Claims: claims,
+		Data:   data,
 	}
+
+	cl := clientFromContext(ctx)
 	id, err := cl.EnqueueJobOpts(ctx, args[0], opts, iargs...)
 	if err != nil {
 		return err

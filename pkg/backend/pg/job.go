@@ -43,6 +43,9 @@ func (pg *Postgres) EnqueueJobs(ctx context.Context, jobs *resource.Jobs) (*reso
 		jb.Version = resource.NewVersion(1)
 		jb.QueueVersion = q.Version
 		jb.Status = resource.NewStatus(resource.StatusQueued)
+		if jb.Data != nil {
+			jb.DataRaw = jb.Data.DataRaw
+		}
 	}
 
 	fields, vals := sqlFields(
@@ -321,6 +324,12 @@ func (pg *Postgres) listJobs(ctx context.Context, limit int, opts *resource.JobL
 	var rows []*resource.Job
 	if err := sqlx.SelectContext(ctx, c, &rows, c.Rebind(q), args...); err != nil {
 		return nil, err
+	}
+
+	for _, row := range rows {
+		if len(row.DataRaw) > 0 {
+			row.Data = &resource.JobData{DataRaw: row.DataRaw}
+		}
 	}
 
 	// XXX if we're using labels have to query queue labels here to handle the

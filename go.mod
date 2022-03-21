@@ -17,7 +17,7 @@ require (
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/rs/zerolog v1.26.1
 	github.com/satori/go.uuid v1.2.0
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.4.0
 	google.golang.org/protobuf v1.27.1
 )
 

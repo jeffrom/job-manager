@@ -23,7 +23,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # In order:
         # * Module download cache
@@ -52,7 +52,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # In order:
         # * Module download cache
@@ -95,7 +95,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-python

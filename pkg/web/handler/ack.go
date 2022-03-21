@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	apiv1 "github.com/jeffrom/job-manager/mjob/api/v1"
@@ -82,7 +83,11 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 		if err != nil {
 			return err
 		}
-		ukey, err := uniquenessKeyFromArgs(jobData.ArgsRaw)
+		argsRaw, err := canonicalizeArgBytes(jobData.ArgsRaw)
+		if err != nil {
+			return err
+		}
+		ukey, err := uniquenessKeyFromArgs(argsRaw)
 		if err != nil {
 			return err
 		}
@@ -93,4 +98,12 @@ func deleteArgUniqueness(ctx context.Context, be backend.Interface, acks []*reso
 		keys = append(keys, ukey)
 	}
 	return be.DeleteJobUniqueArgs(ctx, nil, keys)
+}
+
+func canonicalizeArgBytes(b []byte) ([]byte, error) {
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return nil, err
+	}
+	return json.Marshal(v)
 }

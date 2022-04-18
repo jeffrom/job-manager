@@ -10,7 +10,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/jeffrom/job-manager/mjob v0.0.0-00010101000000-000000000000
-	github.com/jmoiron/sqlx v1.3.4
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/jteeuwen/go-bindata v3.0.7+incompatible
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/prometheus/client_golang v1.12.1
